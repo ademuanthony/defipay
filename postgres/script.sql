@@ -1,0 +1,84 @@
+
+CREATE TABLE IF NOT EXISTS account 
+(
+    id character varying(64) NOT NULL PRIMARY KEY,
+    username character varying(256) NOT NULL UNIQUE,
+    password character varying(256) NOT NULL,
+    created_at bigint NOT NULL,
+    first_name character varying(256) NOT NULL,
+    last_name character varying(256) NOT NULL,
+    referral_id character varying(256),
+    withdrawal_addresss character varying(256) NOT NULL,
+    balance bigint NOT NULL,
+    principal bigint NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS wallet 
+(
+    id character varying(64) NOT NULL PRIMARY KEY,
+    address character varying(64) NOT NULL UNIQUE,
+    private_key character varying(124) NOT NULL UNIQUE,
+    coin_symbol character varying(32) NOT NULL,
+    account_id character varying(64) NOT NULL REFERENCES account(id)
+);
+
+CREATE TABLE IF NOT EXISTS package 
+(
+    id character varying(64) NOT NULL PRIMARY KEY,
+    name character varying(64) NOT NULL UNIQUE,
+    price BIGINT NOT NULL,
+    min_return_per_month INT NOT NULL,
+    max_return_per_month INT NOT NULL,
+    trades_per_day INT NOT NULL,
+    accuracy INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS subscription
+(
+    id character varying(64) not null primary key,
+    account_id character varying(64) not null references account(id),
+    package_id character varying(64) not null references package(id),
+    start_date bigint not null,
+    end_date bigint not null
+);
+
+create table if not exists daily_earning
+(
+    id character varying(64) not null primary key,
+    date bigint not null,
+    amount bigint not null,
+    percentage int not null,
+    principal bigint not null
+);
+
+create table if not exists deposit
+(
+    id character varying(64) not null primary key,
+    amount bigint not null,
+    account_id character varying(64) not null references account(id),
+    date bigint not null,
+    ref character varying(256) not null
+);
+
+create table if not exists transfer
+(
+    if character varying(64) not null primary key,
+    amount bigint not null,
+    sender_id character varying(64) references account(id),
+    receiver_id character varying(64) references account(id),
+    date bigint not null
+);
+
+create table if not exists withdrawal 
+(
+    id character varying(64) not null primary key,
+    account_id character varying(64) not null references account(id),
+    amount bigint not null,
+    date bigint not null,
+    destination character varying(256) not null,
+    ref character varying(256) not null,
+    status character varying(32) not null
+);
+
+alter table account add email character varying(256) not null;
+alter table account add phone_number character varying(32) not null;

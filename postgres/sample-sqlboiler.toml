@@ -1,0 +1,16 @@
+[psql]
+    dbname = "c250cv2"
+    host = "localhost"
+    user = "postgres"
+    pass = ""
+    sslmode = "disable"
+    whitelist=[
+        "account",
+        "wallet",
+        "package",
+        "subscription",
+        "daily_earning",
+        "deposit",
+        "transfer",
+        "withdrawal"
+    ]
