@@ -4,21 +4,23 @@
 package models
 
 var TableNames = struct {
-	Account      string
-	DailyEarning string
-	Deposit      string
-	Package      string
-	Subscription string
-	Transfer     string
-	Wallet       string
-	Withdrawal   string
+	Account            string
+	AccountTransaction string
+	DailyEarning       string
+	Deposit            string
+	Package            string
+	Subscription       string
+	Transfer           string
+	Wallet             string
+	Withdrawal         string
 }{
-	Account:      "account",
-	DailyEarning: "daily_earning",
-	Deposit:      "deposit",
-	Package:      "package",
-	Subscription: "subscription",
-	Transfer:     "transfer",
-	Wallet:       "wallet",
-	Withdrawal:   "withdrawal",
+	Account:            "account",
+	AccountTransaction: "account_transaction",
+	DailyEarning:       "daily_earning",
+	Deposit:            "deposit",
+	Package:            "package",
+	Subscription:       "subscription",
+	Transfer:           "transfer",
+	Wallet:             "wallet",
+	Withdrawal:         "withdrawal",
 }

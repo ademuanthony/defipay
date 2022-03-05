@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 
@@ -88,4 +89,61 @@ func (pg PgDb) UpdateAccountDetail(ctx context.Context, accountID string, input 
 
 func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error) {
 	return models.Wallets(models.WalletWhere.AccountID.EQ(accountID)).One(ctx, pg.Db)
+}
+
+func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error) {
+	deposits, err := models.Deposits(
+		models.DepositWhere.AccountID.EQ(accountID),
+		qm.Limit(limit), qm.Offset(offset),
+	).All(ctx, pg.Db)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	totalCount, err := models.Deposits(models.DepositWhere.AccountID.EQ(accountID)).Count(ctx, pg.Db)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return deposits, totalCount, nil
+}
+
+func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
+	transaction := models.AccountTransaction {
+		AccountID: accountID,
+		Amount: amount,
+		TXType: app.TxTypeCredit,
+		Date: date,
+		Description: ref,
+	}
+
+	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
+		return err
+	}
+
+	statement := `update account set balance = balance + $1 where id = $2`
+	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, pg.Db)
+
+	return err
+}
+
+func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
+	transaction := models.AccountTransaction {
+		AccountID: accountID,
+		Amount: amount,
+		TXType: app.TxTypeDebit,
+		Date: date,
+		Description: ref,
+	}
+
+	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
+		return err
+	}
+
+	statement := `update account set balance = balance - $1 where id = $2`
+	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, pg.Db)
+
+	return err
 }

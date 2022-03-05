@@ -25,7 +25,7 @@ func (s Server) RequireLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uid := s.GetUserIDTokenCtx(r)
 		if uid == "" {
-			RenderErrorfJSON(w, "Invalid access token. Please login to continue")
+			sendAuthErrorfJSON(w, "Invalid access token. Please login to continue")
 			return
 		}
 

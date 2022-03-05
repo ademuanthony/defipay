@@ -13,6 +13,7 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("Accounts", testAccounts)
+	t.Run("AccountTransactions", testAccountTransactions)
 	t.Run("DailyEarnings", testDailyEarnings)
 	t.Run("Deposits", testDeposits)
 	t.Run("Packages", testPackages)
@@ -24,6 +25,7 @@ func TestParent(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Accounts", testAccountsDelete)
+	t.Run("AccountTransactions", testAccountTransactionsDelete)
 	t.Run("DailyEarnings", testDailyEarningsDelete)
 	t.Run("Deposits", testDepositsDelete)
 	t.Run("Packages", testPackagesDelete)
@@ -35,6 +37,7 @@ func TestDelete(t *testing.T) {
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsQueryDeleteAll)
+	t.Run("AccountTransactions", testAccountTransactionsQueryDeleteAll)
 	t.Run("DailyEarnings", testDailyEarningsQueryDeleteAll)
 	t.Run("Deposits", testDepositsQueryDeleteAll)
 	t.Run("Packages", testPackagesQueryDeleteAll)
@@ -46,6 +49,7 @@ func TestQueryDeleteAll(t *testing.T) {
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceDeleteAll)
+	t.Run("AccountTransactions", testAccountTransactionsSliceDeleteAll)
 	t.Run("DailyEarnings", testDailyEarningsSliceDeleteAll)
 	t.Run("Deposits", testDepositsSliceDeleteAll)
 	t.Run("Packages", testPackagesSliceDeleteAll)
@@ -57,6 +61,7 @@ func TestSliceDeleteAll(t *testing.T) {
 
 func TestExists(t *testing.T) {
 	t.Run("Accounts", testAccountsExists)
+	t.Run("AccountTransactions", testAccountTransactionsExists)
 	t.Run("DailyEarnings", testDailyEarningsExists)
 	t.Run("Deposits", testDepositsExists)
 	t.Run("Packages", testPackagesExists)
@@ -68,6 +73,7 @@ func TestExists(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	t.Run("Accounts", testAccountsFind)
+	t.Run("AccountTransactions", testAccountTransactionsFind)
 	t.Run("DailyEarnings", testDailyEarningsFind)
 	t.Run("Deposits", testDepositsFind)
 	t.Run("Packages", testPackagesFind)
@@ -79,6 +85,7 @@ func TestFind(t *testing.T) {
 
 func TestBind(t *testing.T) {
 	t.Run("Accounts", testAccountsBind)
+	t.Run("AccountTransactions", testAccountTransactionsBind)
 	t.Run("DailyEarnings", testDailyEarningsBind)
 	t.Run("Deposits", testDepositsBind)
 	t.Run("Packages", testPackagesBind)
@@ -90,6 +97,7 @@ func TestBind(t *testing.T) {
 
 func TestOne(t *testing.T) {
 	t.Run("Accounts", testAccountsOne)
+	t.Run("AccountTransactions", testAccountTransactionsOne)
 	t.Run("DailyEarnings", testDailyEarningsOne)
 	t.Run("Deposits", testDepositsOne)
 	t.Run("Packages", testPackagesOne)
@@ -101,6 +109,7 @@ func TestOne(t *testing.T) {
 
 func TestAll(t *testing.T) {
 	t.Run("Accounts", testAccountsAll)
+	t.Run("AccountTransactions", testAccountTransactionsAll)
 	t.Run("DailyEarnings", testDailyEarningsAll)
 	t.Run("Deposits", testDepositsAll)
 	t.Run("Packages", testPackagesAll)
@@ -112,6 +121,7 @@ func TestAll(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	t.Run("Accounts", testAccountsCount)
+	t.Run("AccountTransactions", testAccountTransactionsCount)
 	t.Run("DailyEarnings", testDailyEarningsCount)
 	t.Run("Deposits", testDepositsCount)
 	t.Run("Packages", testPackagesCount)
@@ -124,6 +134,8 @@ func TestCount(t *testing.T) {
 func TestInsert(t *testing.T) {
 	t.Run("Accounts", testAccountsInsert)
 	t.Run("Accounts", testAccountsInsertWhitelist)
+	t.Run("AccountTransactions", testAccountTransactionsInsert)
+	t.Run("AccountTransactions", testAccountTransactionsInsertWhitelist)
 	t.Run("DailyEarnings", testDailyEarningsInsert)
 	t.Run("DailyEarnings", testDailyEarningsInsertWhitelist)
 	t.Run("Deposits", testDepositsInsert)
@@ -143,6 +155,7 @@ func TestInsert(t *testing.T) {
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
+	t.Run("AccountTransactionToAccountUsingAccount", testAccountTransactionToOneAccountUsingAccount)
 	t.Run("DepositToAccountUsingAccount", testDepositToOneAccountUsingAccount)
 	t.Run("SubscriptionToAccountUsingAccount", testSubscriptionToOneAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingPackage", testSubscriptionToOnePackageUsingPackage)
@@ -159,6 +172,7 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
+	t.Run("AccountToAccountTransactions", testAccountToManyAccountTransactions)
 	t.Run("AccountToDeposits", testAccountToManyDeposits)
 	t.Run("AccountToSubscriptions", testAccountToManySubscriptions)
 	t.Run("AccountToReceiverTransfers", testAccountToManyReceiverTransfers)
@@ -171,6 +185,7 @@ func TestToMany(t *testing.T) {
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
+	t.Run("AccountTransactionToAccountUsingAccountTransactions", testAccountTransactionToOneSetOpAccountUsingAccount)
 	t.Run("DepositToAccountUsingDeposits", testDepositToOneSetOpAccountUsingAccount)
 	t.Run("SubscriptionToAccountUsingSubscriptions", testSubscriptionToOneSetOpAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingSubscriptions", testSubscriptionToOneSetOpPackageUsingPackage)
@@ -198,6 +213,7 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
+	t.Run("AccountToAccountTransactions", testAccountToManyAddOpAccountTransactions)
 	t.Run("AccountToDeposits", testAccountToManyAddOpDeposits)
 	t.Run("AccountToSubscriptions", testAccountToManyAddOpSubscriptions)
 	t.Run("AccountToReceiverTransfers", testAccountToManyAddOpReceiverTransfers)
@@ -223,6 +239,7 @@ func TestToManyRemove(t *testing.T) {
 
 func TestReload(t *testing.T) {
 	t.Run("Accounts", testAccountsReload)
+	t.Run("AccountTransactions", testAccountTransactionsReload)
 	t.Run("DailyEarnings", testDailyEarningsReload)
 	t.Run("Deposits", testDepositsReload)
 	t.Run("Packages", testPackagesReload)
@@ -234,6 +251,7 @@ func TestReload(t *testing.T) {
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Accounts", testAccountsReloadAll)
+	t.Run("AccountTransactions", testAccountTransactionsReloadAll)
 	t.Run("DailyEarnings", testDailyEarningsReloadAll)
 	t.Run("Deposits", testDepositsReloadAll)
 	t.Run("Packages", testPackagesReloadAll)
@@ -245,6 +263,7 @@ func TestReloadAll(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	t.Run("Accounts", testAccountsSelect)
+	t.Run("AccountTransactions", testAccountTransactionsSelect)
 	t.Run("DailyEarnings", testDailyEarningsSelect)
 	t.Run("Deposits", testDepositsSelect)
 	t.Run("Packages", testPackagesSelect)
@@ -256,6 +275,7 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Accounts", testAccountsUpdate)
+	t.Run("AccountTransactions", testAccountTransactionsUpdate)
 	t.Run("DailyEarnings", testDailyEarningsUpdate)
 	t.Run("Deposits", testDepositsUpdate)
 	t.Run("Packages", testPackagesUpdate)
@@ -267,6 +287,7 @@ func TestUpdate(t *testing.T) {
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceUpdateAll)
+	t.Run("AccountTransactions", testAccountTransactionsSliceUpdateAll)
 	t.Run("DailyEarnings", testDailyEarningsSliceUpdateAll)
 	t.Run("Deposits", testDepositsSliceUpdateAll)
 	t.Run("Packages", testPackagesSliceUpdateAll)

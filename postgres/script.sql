@@ -80,5 +80,18 @@ create table if not exists withdrawal
     status character varying(32) not null
 );
 
+CREATE TABLE IF NOT EXISTS account_transaction (
+	id serial,
+	account_id character varying(64) NOT NULL REFERENCES account(id),
+	amount INT8 NOT NULL,
+	tx_type VARCHAR(32) NOT NULL,
+	opening_balance INT8 NOT NULL,
+	closing_balance INT8 NOT NULL,
+	date INT8 NOT NULL,
+	description VARCHAR(256) NOT NULL,
+	UNIQUE(description),
+	PRIMARY KEY(id)
+);
+
 alter table account add email character varying(256) not null;
 alter table account add phone_number character varying(32) not null;

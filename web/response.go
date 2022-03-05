@@ -26,7 +26,7 @@ func RenderHTML(tmpl string, w http.ResponseWriter, r *http.Request, data interf
 	}
 }
 
-func RenderErrorfJSON(res http.ResponseWriter, errorMessage string, args ...interface{}) {
+func SendErrorfJSON(res http.ResponseWriter, errorMessage string, args ...interface{}) {
 	data := map[string]interface{}{
 		"data":    nil,
 		"success": false,
@@ -36,7 +36,18 @@ func RenderErrorfJSON(res http.ResponseWriter, errorMessage string, args ...inte
 	renderJSON(res, data)
 }
 
-func RenderJSON(res http.ResponseWriter, data interface{}) {
+func sendAuthErrorfJSON(res http.ResponseWriter, errorMessage string, args ...interface{}) {
+	data := map[string]interface{}{
+		"data":           nil,
+		"success":        false,
+		"error":          fmt.Sprintf(errorMessage, args...),
+		"_un_authorized": true,
+	}
+
+	renderJSON(res, data)
+}
+
+func SendJSON(res http.ResponseWriter, data interface{}) {
 	d := map[string]interface{}{
 		"data":    data,
 		"success": true,
@@ -46,7 +57,7 @@ func RenderJSON(res http.ResponseWriter, data interface{}) {
 	renderJSON(res, d)
 }
 
-func RenderPagedJSON(res http.ResponseWriter, data interface{}, totalCount int64) {
+func SendPagedJSON(res http.ResponseWriter, data interface{}, totalCount int64) {
 	d := map[string]interface{}{
 		"data":    data,
 		"total":   totalCount,
