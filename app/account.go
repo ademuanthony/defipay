@@ -137,6 +137,12 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
+func (m module) currentAccount(r *http.Request) (*models.Account, error) {
+	acc, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
+	acc.Password = ""
+	return acc, err
+}
+
 func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
 	var input UpdateDetailInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -202,8 +208,60 @@ func (m module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, accounts, totalCount)
 }
 
-func (m module) currentAccount(r *http.Request) (*models.Account, error) {
-	acc, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
-	acc.Password = ""
-	return acc, err
+func (m module) Invest(w http.ResponseWriter, r *http.Request) {
+	var input InvestInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Critical("UpdatePackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error is decoding request. Please try again later")
+		return
+	}
+
+	if input.Amount <= 0 {
+		web.SendErrorfJSON(w, "Invalid amount")
+		return
+	}
+
+	acc, err := m.currentAccount(r)
+	if err != nil {
+		log.Critical("Invest", "currentAccount", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	if acc.Balance < input.Amount {
+		web.SendErrorfJSON(w, "Insufficient fund. Please deposit fund to continue")
+		return
+	}
+
+	if err := m.db.Invest(r.Context(), acc.ID, input.Amount); err != nil {
+		log.Critical("Invest", "Invest", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	web.SendJSON(w, true)
+}
+
+func (m module) MyInvestments(w http.ResponseWriter, r * http.Request) {
+	pagedReq := web.GetPanitionInfo(r)
+	rec, total, err := m.db.Investments(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
+	if err != nil {
+		log.Error("MyInvestments", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	web.SendPagedJSON(w, rec, total)
+}
+
+func (m module) MyDailyEarnings(w http.ResponseWriter, r * http.Request) {
+	pagedReq := web.GetPanitionInfo(r)
+	rec, total, err := m.db.DailyEarnings(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
+	if err != nil {
+		log.Error("MyDailyEarnings", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	web.SendPagedJSON(w, rec, total)
 }

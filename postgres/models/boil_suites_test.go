@@ -16,10 +16,12 @@ func TestParent(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactions)
 	t.Run("DailyEarnings", testDailyEarnings)
 	t.Run("Deposits", testDeposits)
+	t.Run("Investments", testInvestments)
 	t.Run("Packages", testPackages)
 	t.Run("Subscriptions", testSubscriptions)
 	t.Run("Transfers", testTransfers)
 	t.Run("Wallets", testWallets)
+	t.Run("WeeklyPayouts", testWeeklyPayouts)
 	t.Run("Withdrawals", testWithdrawals)
 }
 
@@ -28,10 +30,12 @@ func TestDelete(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsDelete)
 	t.Run("DailyEarnings", testDailyEarningsDelete)
 	t.Run("Deposits", testDepositsDelete)
+	t.Run("Investments", testInvestmentsDelete)
 	t.Run("Packages", testPackagesDelete)
 	t.Run("Subscriptions", testSubscriptionsDelete)
 	t.Run("Transfers", testTransfersDelete)
 	t.Run("Wallets", testWalletsDelete)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsDelete)
 	t.Run("Withdrawals", testWithdrawalsDelete)
 }
 
@@ -40,10 +44,12 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsQueryDeleteAll)
 	t.Run("DailyEarnings", testDailyEarningsQueryDeleteAll)
 	t.Run("Deposits", testDepositsQueryDeleteAll)
+	t.Run("Investments", testInvestmentsQueryDeleteAll)
 	t.Run("Packages", testPackagesQueryDeleteAll)
 	t.Run("Subscriptions", testSubscriptionsQueryDeleteAll)
 	t.Run("Transfers", testTransfersQueryDeleteAll)
 	t.Run("Wallets", testWalletsQueryDeleteAll)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsQueryDeleteAll)
 	t.Run("Withdrawals", testWithdrawalsQueryDeleteAll)
 }
 
@@ -52,10 +58,12 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsSliceDeleteAll)
 	t.Run("DailyEarnings", testDailyEarningsSliceDeleteAll)
 	t.Run("Deposits", testDepositsSliceDeleteAll)
+	t.Run("Investments", testInvestmentsSliceDeleteAll)
 	t.Run("Packages", testPackagesSliceDeleteAll)
 	t.Run("Subscriptions", testSubscriptionsSliceDeleteAll)
 	t.Run("Transfers", testTransfersSliceDeleteAll)
 	t.Run("Wallets", testWalletsSliceDeleteAll)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsSliceDeleteAll)
 	t.Run("Withdrawals", testWithdrawalsSliceDeleteAll)
 }
 
@@ -64,10 +72,12 @@ func TestExists(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsExists)
 	t.Run("DailyEarnings", testDailyEarningsExists)
 	t.Run("Deposits", testDepositsExists)
+	t.Run("Investments", testInvestmentsExists)
 	t.Run("Packages", testPackagesExists)
 	t.Run("Subscriptions", testSubscriptionsExists)
 	t.Run("Transfers", testTransfersExists)
 	t.Run("Wallets", testWalletsExists)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsExists)
 	t.Run("Withdrawals", testWithdrawalsExists)
 }
 
@@ -76,10 +86,12 @@ func TestFind(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsFind)
 	t.Run("DailyEarnings", testDailyEarningsFind)
 	t.Run("Deposits", testDepositsFind)
+	t.Run("Investments", testInvestmentsFind)
 	t.Run("Packages", testPackagesFind)
 	t.Run("Subscriptions", testSubscriptionsFind)
 	t.Run("Transfers", testTransfersFind)
 	t.Run("Wallets", testWalletsFind)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsFind)
 	t.Run("Withdrawals", testWithdrawalsFind)
 }
 
@@ -88,10 +100,12 @@ func TestBind(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsBind)
 	t.Run("DailyEarnings", testDailyEarningsBind)
 	t.Run("Deposits", testDepositsBind)
+	t.Run("Investments", testInvestmentsBind)
 	t.Run("Packages", testPackagesBind)
 	t.Run("Subscriptions", testSubscriptionsBind)
 	t.Run("Transfers", testTransfersBind)
 	t.Run("Wallets", testWalletsBind)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsBind)
 	t.Run("Withdrawals", testWithdrawalsBind)
 }
 
@@ -100,10 +114,12 @@ func TestOne(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsOne)
 	t.Run("DailyEarnings", testDailyEarningsOne)
 	t.Run("Deposits", testDepositsOne)
+	t.Run("Investments", testInvestmentsOne)
 	t.Run("Packages", testPackagesOne)
 	t.Run("Subscriptions", testSubscriptionsOne)
 	t.Run("Transfers", testTransfersOne)
 	t.Run("Wallets", testWalletsOne)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsOne)
 	t.Run("Withdrawals", testWithdrawalsOne)
 }
 
@@ -112,10 +128,12 @@ func TestAll(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsAll)
 	t.Run("DailyEarnings", testDailyEarningsAll)
 	t.Run("Deposits", testDepositsAll)
+	t.Run("Investments", testInvestmentsAll)
 	t.Run("Packages", testPackagesAll)
 	t.Run("Subscriptions", testSubscriptionsAll)
 	t.Run("Transfers", testTransfersAll)
 	t.Run("Wallets", testWalletsAll)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsAll)
 	t.Run("Withdrawals", testWithdrawalsAll)
 }
 
@@ -124,10 +142,12 @@ func TestCount(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsCount)
 	t.Run("DailyEarnings", testDailyEarningsCount)
 	t.Run("Deposits", testDepositsCount)
+	t.Run("Investments", testInvestmentsCount)
 	t.Run("Packages", testPackagesCount)
 	t.Run("Subscriptions", testSubscriptionsCount)
 	t.Run("Transfers", testTransfersCount)
 	t.Run("Wallets", testWalletsCount)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsCount)
 	t.Run("Withdrawals", testWithdrawalsCount)
 }
 
@@ -140,6 +160,8 @@ func TestInsert(t *testing.T) {
 	t.Run("DailyEarnings", testDailyEarningsInsertWhitelist)
 	t.Run("Deposits", testDepositsInsert)
 	t.Run("Deposits", testDepositsInsertWhitelist)
+	t.Run("Investments", testInvestmentsInsert)
+	t.Run("Investments", testInvestmentsInsertWhitelist)
 	t.Run("Packages", testPackagesInsert)
 	t.Run("Packages", testPackagesInsertWhitelist)
 	t.Run("Subscriptions", testSubscriptionsInsert)
@@ -148,6 +170,8 @@ func TestInsert(t *testing.T) {
 	t.Run("Transfers", testTransfersInsertWhitelist)
 	t.Run("Wallets", testWalletsInsert)
 	t.Run("Wallets", testWalletsInsertWhitelist)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsInsert)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsInsertWhitelist)
 	t.Run("Withdrawals", testWithdrawalsInsert)
 	t.Run("Withdrawals", testWithdrawalsInsertWhitelist)
 }
@@ -156,7 +180,9 @@ func TestInsert(t *testing.T) {
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("AccountTransactionToAccountUsingAccount", testAccountTransactionToOneAccountUsingAccount)
+	t.Run("DailyEarningToAccountUsingAccount", testDailyEarningToOneAccountUsingAccount)
 	t.Run("DepositToAccountUsingAccount", testDepositToOneAccountUsingAccount)
+	t.Run("InvestmentToAccountUsingAccount", testInvestmentToOneAccountUsingAccount)
 	t.Run("SubscriptionToAccountUsingAccount", testSubscriptionToOneAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingPackage", testSubscriptionToOnePackageUsingPackage)
 	t.Run("TransferToAccountUsingReceiver", testTransferToOneAccountUsingReceiver)
@@ -173,7 +199,9 @@ func TestOneToOne(t *testing.T) {}
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
 	t.Run("AccountToAccountTransactions", testAccountToManyAccountTransactions)
+	t.Run("AccountToDailyEarnings", testAccountToManyDailyEarnings)
 	t.Run("AccountToDeposits", testAccountToManyDeposits)
+	t.Run("AccountToInvestments", testAccountToManyInvestments)
 	t.Run("AccountToSubscriptions", testAccountToManySubscriptions)
 	t.Run("AccountToReceiverTransfers", testAccountToManyReceiverTransfers)
 	t.Run("AccountToSenderTransfers", testAccountToManySenderTransfers)
@@ -186,7 +214,9 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("AccountTransactionToAccountUsingAccountTransactions", testAccountTransactionToOneSetOpAccountUsingAccount)
+	t.Run("DailyEarningToAccountUsingDailyEarnings", testDailyEarningToOneSetOpAccountUsingAccount)
 	t.Run("DepositToAccountUsingDeposits", testDepositToOneSetOpAccountUsingAccount)
+	t.Run("InvestmentToAccountUsingInvestments", testInvestmentToOneSetOpAccountUsingAccount)
 	t.Run("SubscriptionToAccountUsingSubscriptions", testSubscriptionToOneSetOpAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingSubscriptions", testSubscriptionToOneSetOpPackageUsingPackage)
 	t.Run("TransferToAccountUsingReceiverTransfers", testTransferToOneSetOpAccountUsingReceiver)
@@ -214,7 +244,9 @@ func TestOneToOneRemove(t *testing.T) {}
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
 	t.Run("AccountToAccountTransactions", testAccountToManyAddOpAccountTransactions)
+	t.Run("AccountToDailyEarnings", testAccountToManyAddOpDailyEarnings)
 	t.Run("AccountToDeposits", testAccountToManyAddOpDeposits)
+	t.Run("AccountToInvestments", testAccountToManyAddOpInvestments)
 	t.Run("AccountToSubscriptions", testAccountToManyAddOpSubscriptions)
 	t.Run("AccountToReceiverTransfers", testAccountToManyAddOpReceiverTransfers)
 	t.Run("AccountToSenderTransfers", testAccountToManyAddOpSenderTransfers)
@@ -242,10 +274,12 @@ func TestReload(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsReload)
 	t.Run("DailyEarnings", testDailyEarningsReload)
 	t.Run("Deposits", testDepositsReload)
+	t.Run("Investments", testInvestmentsReload)
 	t.Run("Packages", testPackagesReload)
 	t.Run("Subscriptions", testSubscriptionsReload)
 	t.Run("Transfers", testTransfersReload)
 	t.Run("Wallets", testWalletsReload)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsReload)
 	t.Run("Withdrawals", testWithdrawalsReload)
 }
 
@@ -254,10 +288,12 @@ func TestReloadAll(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsReloadAll)
 	t.Run("DailyEarnings", testDailyEarningsReloadAll)
 	t.Run("Deposits", testDepositsReloadAll)
+	t.Run("Investments", testInvestmentsReloadAll)
 	t.Run("Packages", testPackagesReloadAll)
 	t.Run("Subscriptions", testSubscriptionsReloadAll)
 	t.Run("Transfers", testTransfersReloadAll)
 	t.Run("Wallets", testWalletsReloadAll)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsReloadAll)
 	t.Run("Withdrawals", testWithdrawalsReloadAll)
 }
 
@@ -266,10 +302,12 @@ func TestSelect(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsSelect)
 	t.Run("DailyEarnings", testDailyEarningsSelect)
 	t.Run("Deposits", testDepositsSelect)
+	t.Run("Investments", testInvestmentsSelect)
 	t.Run("Packages", testPackagesSelect)
 	t.Run("Subscriptions", testSubscriptionsSelect)
 	t.Run("Transfers", testTransfersSelect)
 	t.Run("Wallets", testWalletsSelect)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsSelect)
 	t.Run("Withdrawals", testWithdrawalsSelect)
 }
 
@@ -278,10 +316,12 @@ func TestUpdate(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsUpdate)
 	t.Run("DailyEarnings", testDailyEarningsUpdate)
 	t.Run("Deposits", testDepositsUpdate)
+	t.Run("Investments", testInvestmentsUpdate)
 	t.Run("Packages", testPackagesUpdate)
 	t.Run("Subscriptions", testSubscriptionsUpdate)
 	t.Run("Transfers", testTransfersUpdate)
 	t.Run("Wallets", testWalletsUpdate)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsUpdate)
 	t.Run("Withdrawals", testWithdrawalsUpdate)
 }
 
@@ -290,9 +330,11 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("AccountTransactions", testAccountTransactionsSliceUpdateAll)
 	t.Run("DailyEarnings", testDailyEarningsSliceUpdateAll)
 	t.Run("Deposits", testDepositsSliceUpdateAll)
+	t.Run("Investments", testInvestmentsSliceUpdateAll)
 	t.Run("Packages", testPackagesSliceUpdateAll)
 	t.Run("Subscriptions", testSubscriptionsSliceUpdateAll)
 	t.Run("Transfers", testTransfersSliceUpdateAll)
 	t.Run("Wallets", testWalletsSliceUpdateAll)
+	t.Run("WeeklyPayouts", testWeeklyPayoutsSliceUpdateAll)
 	t.Run("Withdrawals", testWithdrawalsSliceUpdateAll)
 }

@@ -23,9 +23,9 @@ import (
 
 // DailyEarning is an object representing the database table.
 type DailyEarning struct {
-	ID         string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ID         int    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	AccountID  string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
 	Date       int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
-	Amount     int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Percentage int    `boil:"percentage" json:"percentage" toml:"percentage" yaml:"percentage"`
 	Principal  int64  `boil:"principal" json:"principal" toml:"principal" yaml:"principal"`
 
@@ -35,28 +35,28 @@ type DailyEarning struct {
 
 var DailyEarningColumns = struct {
 	ID         string
+	AccountID  string
 	Date       string
-	Amount     string
 	Percentage string
 	Principal  string
 }{
 	ID:         "id",
+	AccountID:  "account_id",
 	Date:       "date",
-	Amount:     "amount",
 	Percentage: "percentage",
 	Principal:  "principal",
 }
 
 var DailyEarningTableColumns = struct {
 	ID         string
+	AccountID  string
 	Date       string
-	Amount     string
 	Percentage string
 	Principal  string
 }{
 	ID:         "daily_earning.id",
+	AccountID:  "daily_earning.account_id",
 	Date:       "daily_earning.date",
-	Amount:     "daily_earning.amount",
 	Percentage: "daily_earning.percentage",
 	Principal:  "daily_earning.principal",
 }
@@ -64,25 +64,29 @@ var DailyEarningTableColumns = struct {
 // Generated where
 
 var DailyEarningWhere = struct {
-	ID         whereHelperstring
+	ID         whereHelperint
+	AccountID  whereHelperstring
 	Date       whereHelperint64
-	Amount     whereHelperint64
 	Percentage whereHelperint
 	Principal  whereHelperint64
 }{
-	ID:         whereHelperstring{field: "\"daily_earning\".\"id\""},
+	ID:         whereHelperint{field: "\"daily_earning\".\"id\""},
+	AccountID:  whereHelperstring{field: "\"daily_earning\".\"account_id\""},
 	Date:       whereHelperint64{field: "\"daily_earning\".\"date\""},
-	Amount:     whereHelperint64{field: "\"daily_earning\".\"amount\""},
 	Percentage: whereHelperint{field: "\"daily_earning\".\"percentage\""},
 	Principal:  whereHelperint64{field: "\"daily_earning\".\"principal\""},
 }
 
 // DailyEarningRels is where relationship names are stored.
 var DailyEarningRels = struct {
-}{}
+	Account string
+}{
+	Account: "Account",
+}
 
 // dailyEarningR is where relationships are stored.
 type dailyEarningR struct {
+	Account *Account `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
 }
 
 // NewStruct creates a new relationship struct
@@ -94,9 +98,9 @@ func (*dailyEarningR) NewStruct() *dailyEarningR {
 type dailyEarningL struct{}
 
 var (
-	dailyEarningAllColumns            = []string{"id", "date", "amount", "percentage", "principal"}
-	dailyEarningColumnsWithoutDefault = []string{"id", "date", "amount", "percentage", "principal"}
-	dailyEarningColumnsWithDefault    = []string{}
+	dailyEarningAllColumns            = []string{"id", "account_id", "date", "percentage", "principal"}
+	dailyEarningColumnsWithoutDefault = []string{"account_id", "date", "percentage", "principal"}
+	dailyEarningColumnsWithDefault    = []string{"id"}
 	dailyEarningPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -191,6 +195,163 @@ func (q dailyEarningQuery) Exists(ctx context.Context, exec boil.ContextExecutor
 	return count > 0, nil
 }
 
+// Account pointed to by the foreign key.
+func (o *DailyEarning) Account(mods ...qm.QueryMod) accountQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.AccountID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Accounts(queryMods...)
+	queries.SetFrom(query.Query, "\"account\"")
+
+	return query
+}
+
+// LoadAccount allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (dailyEarningL) LoadAccount(ctx context.Context, e boil.ContextExecutor, singular bool, maybeDailyEarning interface{}, mods queries.Applicator) error {
+	var slice []*DailyEarning
+	var object *DailyEarning
+
+	if singular {
+		object = maybeDailyEarning.(*DailyEarning)
+	} else {
+		slice = *maybeDailyEarning.(*[]*DailyEarning)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &dailyEarningR{}
+		}
+		args = append(args, object.AccountID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &dailyEarningR{}
+			}
+
+			for _, a := range args {
+				if a == obj.AccountID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.AccountID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`account`),
+		qm.WhereIn(`account.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Account")
+	}
+
+	var resultSlice []*Account
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Account")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for account")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for account")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Account = foreign
+		if foreign.R == nil {
+			foreign.R = &accountR{}
+		}
+		foreign.R.DailyEarnings = append(foreign.R.DailyEarnings, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.AccountID == foreign.ID {
+				local.R.Account = foreign
+				if foreign.R == nil {
+					foreign.R = &accountR{}
+				}
+				foreign.R.DailyEarnings = append(foreign.R.DailyEarnings, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetAccount of the dailyEarning to the related item.
+// Sets o.R.Account to related.
+// Adds o to related.R.DailyEarnings.
+func (o *DailyEarning) SetAccount(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Account) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"daily_earning\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+		strmangle.WhereClause("\"", "\"", 2, dailyEarningPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.AccountID = related.ID
+	if o.R == nil {
+		o.R = &dailyEarningR{
+			Account: related,
+		}
+	} else {
+		o.R.Account = related
+	}
+
+	if related.R == nil {
+		related.R = &accountR{
+			DailyEarnings: DailyEarningSlice{o},
+		}
+	} else {
+		related.R.DailyEarnings = append(related.R.DailyEarnings, o)
+	}
+
+	return nil
+}
+
 // DailyEarnings retrieves all the records using an executor.
 func DailyEarnings(mods ...qm.QueryMod) dailyEarningQuery {
 	mods = append(mods, qm.From("\"daily_earning\""))
@@ -199,7 +360,7 @@ func DailyEarnings(mods ...qm.QueryMod) dailyEarningQuery {
 
 // FindDailyEarning retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindDailyEarning(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*DailyEarning, error) {
+func FindDailyEarning(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*DailyEarning, error) {
 	dailyEarningObj := &DailyEarning{}
 
 	sel := "*"
@@ -655,7 +816,7 @@ func (o *DailyEarningSlice) ReloadAll(ctx context.Context, exec boil.ContextExec
 }
 
 // DailyEarningExists checks if the DailyEarning row exists.
-func DailyEarningExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+func DailyEarningExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"daily_earning\" where \"id\"=$1 limit 1)"
 

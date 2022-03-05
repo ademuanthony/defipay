@@ -23,6 +23,10 @@ type SubscriptionResponse struct {
 	Package models.Package `json:"package"`
 }
 
+type InvestInput struct {
+	Amount int64 `json:"amount"`
+}
+
 func (m module) CreatePackage(w http.ResponseWriter, r *http.Request) {
 	var pkg models.Package
 	if err := json.NewDecoder(r.Body).Decode(&pkg); err != nil {
@@ -98,9 +102,7 @@ func (m module) GetPackage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) GetPackages(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPanitionInfo(r)
-
-	packages, total, err := m.db.GetPackages(r.Context(), pagedReq.Offset, pagedReq.Limit)
+	packages, err := m.db.GetPackages(r.Context())
 
 	if err != nil {
 		log.Error("CreatePackage", err)
@@ -108,7 +110,7 @@ func (m module) GetPackages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	web.SendPagedJSON(w, packages, total)
+	web.SendJSON(w, packages)
 }
 
 func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
@@ -117,6 +119,11 @@ func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Info("BuyPackage", "currentAccount", err)
 		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
+		return
+	}
+
+	if sub, _ := m.db.ActiveSubscription(r.Context(), acc.ID); sub != nil {
+		web.SendErrorfJSON(w, "You have an active subscription. Please use the upgrade function")
 		return
 	}
 
@@ -155,7 +162,7 @@ func (m module) GetActiveSubscription(w http.ResponseWriter, r *http.Request) {
 
 	resp := SubscriptionResponse{
 		Subscription: sub,
-		Package: *sub.R.Package,
+		Package:      *sub.R.Package,
 	}
 
 	web.SendJSON(w, resp)

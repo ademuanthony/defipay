@@ -36,6 +36,7 @@ type Account struct {
 	Principal          int64       `boil:"principal" json:"principal" toml:"principal" yaml:"principal"`
 	Email              string      `boil:"email" json:"email" toml:"email" yaml:"email"`
 	PhoneNumber        string      `boil:"phone_number" json:"phone_number" toml:"phone_number" yaml:"phone_number"`
+	MaturedPrincipal   int64       `boil:"matured_principal" json:"matured_principal" toml:"matured_principal" yaml:"matured_principal"`
 
 	R *accountR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L accountL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -54,6 +55,7 @@ var AccountColumns = struct {
 	Principal          string
 	Email              string
 	PhoneNumber        string
+	MaturedPrincipal   string
 }{
 	ID:                 "id",
 	Username:           "username",
@@ -67,6 +69,7 @@ var AccountColumns = struct {
 	Principal:          "principal",
 	Email:              "email",
 	PhoneNumber:        "phone_number",
+	MaturedPrincipal:   "matured_principal",
 }
 
 var AccountTableColumns = struct {
@@ -82,6 +85,7 @@ var AccountTableColumns = struct {
 	Principal          string
 	Email              string
 	PhoneNumber        string
+	MaturedPrincipal   string
 }{
 	ID:                 "account.id",
 	Username:           "account.username",
@@ -95,6 +99,7 @@ var AccountTableColumns = struct {
 	Principal:          "account.principal",
 	Email:              "account.email",
 	PhoneNumber:        "account.phone_number",
+	MaturedPrincipal:   "account.matured_principal",
 }
 
 // Generated where
@@ -182,6 +187,7 @@ var AccountWhere = struct {
 	Principal          whereHelperint64
 	Email              whereHelperstring
 	PhoneNumber        whereHelperstring
+	MaturedPrincipal   whereHelperint64
 }{
 	ID:                 whereHelperstring{field: "\"account\".\"id\""},
 	Username:           whereHelperstring{field: "\"account\".\"username\""},
@@ -195,12 +201,15 @@ var AccountWhere = struct {
 	Principal:          whereHelperint64{field: "\"account\".\"principal\""},
 	Email:              whereHelperstring{field: "\"account\".\"email\""},
 	PhoneNumber:        whereHelperstring{field: "\"account\".\"phone_number\""},
+	MaturedPrincipal:   whereHelperint64{field: "\"account\".\"matured_principal\""},
 }
 
 // AccountRels is where relationship names are stored.
 var AccountRels = struct {
 	AccountTransactions string
+	DailyEarnings       string
 	Deposits            string
+	Investments         string
 	Subscriptions       string
 	ReceiverTransfers   string
 	SenderTransfers     string
@@ -208,7 +217,9 @@ var AccountRels = struct {
 	Withdrawals         string
 }{
 	AccountTransactions: "AccountTransactions",
+	DailyEarnings:       "DailyEarnings",
 	Deposits:            "Deposits",
+	Investments:         "Investments",
 	Subscriptions:       "Subscriptions",
 	ReceiverTransfers:   "ReceiverTransfers",
 	SenderTransfers:     "SenderTransfers",
@@ -219,7 +230,9 @@ var AccountRels = struct {
 // accountR is where relationships are stored.
 type accountR struct {
 	AccountTransactions AccountTransactionSlice `boil:"AccountTransactions" json:"AccountTransactions" toml:"AccountTransactions" yaml:"AccountTransactions"`
+	DailyEarnings       DailyEarningSlice       `boil:"DailyEarnings" json:"DailyEarnings" toml:"DailyEarnings" yaml:"DailyEarnings"`
 	Deposits            DepositSlice            `boil:"Deposits" json:"Deposits" toml:"Deposits" yaml:"Deposits"`
+	Investments         InvestmentSlice         `boil:"Investments" json:"Investments" toml:"Investments" yaml:"Investments"`
 	Subscriptions       SubscriptionSlice       `boil:"Subscriptions" json:"Subscriptions" toml:"Subscriptions" yaml:"Subscriptions"`
 	ReceiverTransfers   TransferSlice           `boil:"ReceiverTransfers" json:"ReceiverTransfers" toml:"ReceiverTransfers" yaml:"ReceiverTransfers"`
 	SenderTransfers     TransferSlice           `boil:"SenderTransfers" json:"SenderTransfers" toml:"SenderTransfers" yaml:"SenderTransfers"`
@@ -236,9 +249,9 @@ func (*accountR) NewStruct() *accountR {
 type accountL struct{}
 
 var (
-	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number"}
+	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number", "matured_principal"}
 	accountColumnsWithoutDefault = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email"}
-	accountColumnsWithDefault    = []string{"phone_number"}
+	accountColumnsWithDefault    = []string{"phone_number", "matured_principal"}
 	accountPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -354,6 +367,27 @@ func (o *Account) AccountTransactions(mods ...qm.QueryMod) accountTransactionQue
 	return query
 }
 
+// DailyEarnings retrieves all the daily_earning's DailyEarnings with an executor.
+func (o *Account) DailyEarnings(mods ...qm.QueryMod) dailyEarningQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"daily_earning\".\"account_id\"=?", o.ID),
+	)
+
+	query := DailyEarnings(queryMods...)
+	queries.SetFrom(query.Query, "\"daily_earning\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"daily_earning\".*"})
+	}
+
+	return query
+}
+
 // Deposits retrieves all the deposit's Deposits with an executor.
 func (o *Account) Deposits(mods ...qm.QueryMod) depositQuery {
 	var queryMods []qm.QueryMod
@@ -370,6 +404,27 @@ func (o *Account) Deposits(mods ...qm.QueryMod) depositQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"deposit\".*"})
+	}
+
+	return query
+}
+
+// Investments retrieves all the investment's Investments with an executor.
+func (o *Account) Investments(mods ...qm.QueryMod) investmentQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"investment\".\"account_id\"=?", o.ID),
+	)
+
+	query := Investments(queryMods...)
+	queries.SetFrom(query.Query, "\"investment\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"investment\".*"})
 	}
 
 	return query
@@ -571,6 +626,97 @@ func (accountL) LoadAccountTransactions(ctx context.Context, e boil.ContextExecu
 	return nil
 }
 
+// LoadDailyEarnings allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadDailyEarnings(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`daily_earning`),
+		qm.WhereIn(`daily_earning.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load daily_earning")
+	}
+
+	var resultSlice []*DailyEarning
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice daily_earning")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on daily_earning")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for daily_earning")
+	}
+
+	if singular {
+		object.R.DailyEarnings = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &dailyEarningR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.DailyEarnings = append(local.R.DailyEarnings, foreign)
+				if foreign.R == nil {
+					foreign.R = &dailyEarningR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadDeposits allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (accountL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
@@ -652,6 +798,97 @@ func (accountL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singul
 				local.R.Deposits = append(local.R.Deposits, foreign)
 				if foreign.R == nil {
 					foreign.R = &depositR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadInvestments allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadInvestments(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`investment`),
+		qm.WhereIn(`investment.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load investment")
+	}
+
+	var resultSlice []*Investment
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice investment")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on investment")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for investment")
+	}
+
+	if singular {
+		object.R.Investments = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &investmentR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.Investments = append(local.R.Investments, foreign)
+				if foreign.R == nil {
+					foreign.R = &investmentR{}
 				}
 				foreign.R.Account = local
 				break
@@ -1170,6 +1407,59 @@ func (o *Account) AddAccountTransactions(ctx context.Context, exec boil.ContextE
 	return nil
 }
 
+// AddDailyEarnings adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.DailyEarnings.
+// Sets related.R.Account appropriately.
+func (o *Account) AddDailyEarnings(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*DailyEarning) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"daily_earning\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, dailyEarningPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			DailyEarnings: related,
+		}
+	} else {
+		o.R.DailyEarnings = append(o.R.DailyEarnings, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &dailyEarningR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
+		}
+	}
+	return nil
+}
+
 // AddDeposits adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
 // Appends related to o.R.Deposits.
@@ -1214,6 +1504,59 @@ func (o *Account) AddDeposits(ctx context.Context, exec boil.ContextExecutor, in
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &depositR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
+		}
+	}
+	return nil
+}
+
+// AddInvestments adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Investments.
+// Sets related.R.Account appropriately.
+func (o *Account) AddInvestments(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Investment) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"investment\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, investmentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			Investments: related,
+		}
+	} else {
+		o.R.Investments = append(o.R.Investments, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &investmentR{
 				Account: o,
 			}
 		} else {

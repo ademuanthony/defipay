@@ -8,19 +8,23 @@ var TableNames = struct {
 	AccountTransaction string
 	DailyEarning       string
 	Deposit            string
+	Investment         string
 	Package            string
 	Subscription       string
 	Transfer           string
 	Wallet             string
+	WeeklyPayout       string
 	Withdrawal         string
 }{
 	Account:            "account",
 	AccountTransaction: "account_transaction",
 	DailyEarning:       "daily_earning",
 	Deposit:            "deposit",
+	Investment:         "investment",
 	Package:            "package",
 	Subscription:       "subscription",
 	Transfer:           "transfer",
 	Wallet:             "wallet",
+	WeeklyPayout:       "weekly_payout",
 	Withdrawal:         "withdrawal",
 }

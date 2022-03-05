@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testDailyEarnings(t *testing.T) {
+func testInvestments(t *testing.T) {
 	t.Parallel()
 
-	query := DailyEarnings()
+	query := Investments()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testDailyEarningsDelete(t *testing.T) {
+func testInvestmentsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testDailyEarningsDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testDailyEarningsDelete(t *testing.T) {
 	}
 }
 
-func testDailyEarningsQueryDeleteAll(t *testing.T) {
+func testInvestmentsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testDailyEarningsQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := DailyEarnings().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Investments().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testDailyEarningsQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testDailyEarningsSliceDeleteAll(t *testing.T) {
+func testInvestmentsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testDailyEarningsSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := DailyEarningSlice{o}
+	slice := InvestmentSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testDailyEarningsSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testDailyEarningsSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testDailyEarningsExists(t *testing.T) {
+func testInvestmentsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testDailyEarningsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := DailyEarningExists(ctx, tx, o.ID)
+	e, err := InvestmentExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if DailyEarning exists: %s", err)
+		t.Errorf("Unable to check if Investment exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected DailyEarningExists to return true, but got false.")
+		t.Errorf("Expected InvestmentExists to return true, but got false.")
 	}
 }
 
-func testDailyEarningsFind(t *testing.T) {
+func testInvestmentsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testDailyEarningsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	dailyEarningFound, err := FindDailyEarning(ctx, tx, o.ID)
+	investmentFound, err := FindInvestment(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if dailyEarningFound == nil {
+	if investmentFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testDailyEarningsBind(t *testing.T) {
+func testInvestmentsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testDailyEarningsBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = DailyEarnings().Bind(ctx, tx, o); err != nil {
+	if err = Investments().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testDailyEarningsOne(t *testing.T) {
+func testInvestmentsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testDailyEarningsOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := DailyEarnings().One(ctx, tx); err != nil {
+	if x, err := Investments().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testDailyEarningsAll(t *testing.T) {
+func testInvestmentsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	dailyEarningOne := &DailyEarning{}
-	dailyEarningTwo := &DailyEarning{}
-	if err = randomize.Struct(seed, dailyEarningOne, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	investmentOne := &Investment{}
+	investmentTwo := &Investment{}
+	if err = randomize.Struct(seed, investmentOne, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
-	if err = randomize.Struct(seed, dailyEarningTwo, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err = randomize.Struct(seed, investmentTwo, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = dailyEarningOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = investmentOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = dailyEarningTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = investmentTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := DailyEarnings().All(ctx, tx)
+	slice, err := Investments().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testDailyEarningsAll(t *testing.T) {
 	}
 }
 
-func testDailyEarningsCount(t *testing.T) {
+func testInvestmentsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	dailyEarningOne := &DailyEarning{}
-	dailyEarningTwo := &DailyEarning{}
-	if err = randomize.Struct(seed, dailyEarningOne, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	investmentOne := &Investment{}
+	investmentTwo := &Investment{}
+	if err = randomize.Struct(seed, investmentOne, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
-	if err = randomize.Struct(seed, dailyEarningTwo, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err = randomize.Struct(seed, investmentTwo, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = dailyEarningOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = investmentOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = dailyEarningTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = investmentTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,14 +299,14 @@ func testDailyEarningsCount(t *testing.T) {
 	}
 }
 
-func testDailyEarningsInsert(t *testing.T) {
+func testInvestmentsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -316,7 +316,7 @@ func testDailyEarningsInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -326,24 +326,24 @@ func testDailyEarningsInsert(t *testing.T) {
 	}
 }
 
-func testDailyEarningsInsertWhitelist(t *testing.T) {
+func testInvestmentsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(dailyEarningColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(investmentColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -353,17 +353,17 @@ func testDailyEarningsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testDailyEarningToOneAccountUsingAccount(t *testing.T) {
+func testInvestmentToOneAccountUsingAccount(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var local DailyEarning
+	var local Investment
 	var foreign Account
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err := randomize.Struct(seed, &local, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Account struct: %s", err)
@@ -387,8 +387,8 @@ func testDailyEarningToOneAccountUsingAccount(t *testing.T) {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
-	slice := DailyEarningSlice{&local}
-	if err = local.L.LoadAccount(ctx, tx, false, (*[]*DailyEarning)(&slice), nil); err != nil {
+	slice := InvestmentSlice{&local}
+	if err = local.L.LoadAccount(ctx, tx, false, (*[]*Investment)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
 	if local.R.Account == nil {
@@ -404,18 +404,18 @@ func testDailyEarningToOneAccountUsingAccount(t *testing.T) {
 	}
 }
 
-func testDailyEarningToOneSetOpAccountUsingAccount(t *testing.T) {
+func testInvestmentToOneSetOpAccountUsingAccount(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a DailyEarning
+	var a Investment
 	var b, c Account
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, dailyEarningDBTypes, false, strmangle.SetComplement(dailyEarningPrimaryKeyColumns, dailyEarningColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &a, investmentDBTypes, false, strmangle.SetComplement(investmentPrimaryKeyColumns, investmentColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
 	if err = randomize.Struct(seed, &b, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
@@ -442,7 +442,7 @@ func testDailyEarningToOneSetOpAccountUsingAccount(t *testing.T) {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.DailyEarnings[0] != &a {
+		if x.R.Investments[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
 		if a.AccountID != x.ID {
@@ -462,14 +462,14 @@ func testDailyEarningToOneSetOpAccountUsingAccount(t *testing.T) {
 	}
 }
 
-func testDailyEarningsReload(t *testing.T) {
+func testInvestmentsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -484,14 +484,14 @@ func testDailyEarningsReload(t *testing.T) {
 	}
 }
 
-func testDailyEarningsReloadAll(t *testing.T) {
+func testInvestmentsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -501,21 +501,21 @@ func testDailyEarningsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := DailyEarningSlice{o}
+	slice := InvestmentSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testDailyEarningsSelect(t *testing.T) {
+func testInvestmentsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -525,7 +525,7 @@ func testDailyEarningsSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := DailyEarnings().All(ctx, tx)
+	slice, err := Investments().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -536,25 +536,25 @@ func testDailyEarningsSelect(t *testing.T) {
 }
 
 var (
-	dailyEarningDBTypes = map[string]string{`ID`: `integer`, `AccountID`: `character varying`, `Date`: `bigint`, `Percentage`: `integer`, `Principal`: `bigint`}
-	_                   = bytes.MinRead
+	investmentDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `Amount`: `bigint`, `Date`: `bigint`, `ActivationDate`: `bigint`}
+	_                 = bytes.MinRead
 )
 
-func testDailyEarningsUpdate(t *testing.T) {
+func testInvestmentsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(dailyEarningPrimaryKeyColumns) {
+	if 0 == len(investmentPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(dailyEarningAllColumns) == len(dailyEarningPrimaryKeyColumns) {
+	if len(investmentAllColumns) == len(investmentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -564,7 +564,7 @@ func testDailyEarningsUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -573,8 +573,8 @@ func testDailyEarningsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -584,18 +584,18 @@ func testDailyEarningsUpdate(t *testing.T) {
 	}
 }
 
-func testDailyEarningsSliceUpdateAll(t *testing.T) {
+func testInvestmentsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(dailyEarningAllColumns) == len(dailyEarningPrimaryKeyColumns) {
+	if len(investmentAllColumns) == len(investmentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &DailyEarning{}
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := &Investment{}
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -605,7 +605,7 @@ func testDailyEarningsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -614,18 +614,18 @@ func testDailyEarningsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, dailyEarningDBTypes, true, dailyEarningPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err = randomize.Struct(seed, o, investmentDBTypes, true, investmentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(dailyEarningAllColumns, dailyEarningPrimaryKeyColumns) {
-		fields = dailyEarningAllColumns
+	if strmangle.StringSliceMatch(investmentAllColumns, investmentPrimaryKeyColumns) {
+		fields = investmentAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			dailyEarningAllColumns,
-			dailyEarningPrimaryKeyColumns,
+			investmentAllColumns,
+			investmentPrimaryKeyColumns,
 		)
 	}
 
@@ -643,7 +643,7 @@ func testDailyEarningsSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := DailyEarningSlice{o}
+	slice := InvestmentSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -651,29 +651,29 @@ func testDailyEarningsSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testDailyEarningsUpsert(t *testing.T) {
+func testInvestmentsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(dailyEarningAllColumns) == len(dailyEarningPrimaryKeyColumns) {
+	if len(investmentAllColumns) == len(investmentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := DailyEarning{}
-	if err = randomize.Struct(seed, &o, dailyEarningDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	o := Investment{}
+	if err = randomize.Struct(seed, &o, investmentDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert DailyEarning: %s", err)
+		t.Errorf("Unable to upsert Investment: %s", err)
 	}
 
-	count, err := DailyEarnings().Count(ctx, tx)
+	count, err := Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -682,15 +682,15 @@ func testDailyEarningsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, dailyEarningDBTypes, false, dailyEarningPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize DailyEarning struct: %s", err)
+	if err = randomize.Struct(seed, &o, investmentDBTypes, false, investmentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Investment struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert DailyEarning: %s", err)
+		t.Errorf("Unable to upsert Investment: %s", err)
 	}
 
-	count, err = DailyEarnings().Count(ctx, tx)
+	count, err = Investments().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}

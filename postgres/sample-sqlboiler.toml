@@ -12,5 +12,9 @@
         "daily_earning",
         "deposit",
         "transfer",
-        "withdrawal"
+        "withdrawal",
+        "withdrawal",
+        "account_transaction",
+        "investment",
+        "weekly_payout"
     ]

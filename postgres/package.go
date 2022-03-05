@@ -38,18 +38,13 @@ func (pg PgDb) PatchPackage(ctx context.Context, id string, input app.UpdatePack
 	return err
 }
 
-func (pg PgDb) GetPackages(ctx context.Context, offset, limit int) ([]*models.Package, int64, error) {
-	total, err := models.Packages().Count(ctx, pg.Db)
-	if err != nil {
-		return nil, 0, err
-	}
-
+func (pg PgDb) GetPackages(ctx context.Context) ([]*models.Package, error) {
 	packages, err := models.Packages().All(ctx, pg.Db)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	return packages, total, nil
+	return packages, nil
 }
 
 func (pg PgDb) GetPackage(ctx context.Context, id string) (*models.Package, error) {
@@ -84,12 +79,11 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	sub := models.Subscription{
-		ID: uuid.NewString(),
+		ID:        uuid.NewString(),
 		PackageID: packageID,
 		AccountID: accountID,
 		StartDate: date.Unix(),
-		EndDate: date.Add(365 * 24 * time.Hour).Unix(),
-
+		EndDate:   date.Add(365 * 24 * time.Hour).Unix(),
 	}
 
 	if err := sub.Insert(ctx, tx, boil.Infer()); err != nil {
@@ -98,9 +92,9 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	if acc.ReferralID.String != "" {
-		refAmount := pkg.Price/2
-		if err := pg.CreditAccountTx(ctx, tx, acc.ReferralID.String, refAmount, 
-			date.Unix(), "referral earning from " + acc.Username); err != nil {
+		refAmount := pkg.Price / 2
+		if err := pg.CreditAccountTx(ctx, tx, acc.ReferralID.String, refAmount,
+			date.Unix(), "referral earning from "+acc.Username); err != nil {
 			tx.Rollback()
 			return err
 		}

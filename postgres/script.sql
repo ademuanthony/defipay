@@ -44,11 +44,12 @@ CREATE TABLE IF NOT EXISTS subscription
 
 create table if not exists daily_earning
 (
-    id character varying(64) not null primary key,
+    id serial not null primary key,
+    account_id character varying(64) not null references account(id),
     date bigint not null,
-    amount bigint not null,
     percentage int not null,
-    principal bigint not null
+    principal bigint not null,
+    unique(account_id, date)
 );
 
 create table if not exists deposit
@@ -95,3 +96,19 @@ CREATE TABLE IF NOT EXISTS account_transaction (
 
 alter table account add email character varying(256) not null;
 alter table account add phone_number character varying(32) not null;
+
+create table if not exists investment (
+    id character varying(64) not null primary key,
+    account_id character varying(64) not null references account(id),
+    amount bigint not null,
+    date bigint not null,
+    activation_date bigint not null
+);
+
+alter table account add matured_principal bigint not null;
+
+create table if not exists weekly_payout (
+    id character varying(63) not null primary key,
+    date bigint not null,
+    amount bigint not null
+);

@@ -431,6 +431,84 @@ func testAccountToManyAccountTransactions(t *testing.T) {
 	}
 }
 
+func testAccountToManyDailyEarnings(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c DailyEarning
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, dailyEarningDBTypes, false, dailyEarningColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.AccountID = a.ID
+	c.AccountID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.DailyEarnings().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.AccountID == b.AccountID {
+			bFound = true
+		}
+		if v.AccountID == c.AccountID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadDailyEarnings(ctx, tx, false, (*[]*Account)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.DailyEarnings); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.DailyEarnings = nil
+	if err = a.L.LoadDailyEarnings(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.DailyEarnings); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testAccountToManyDeposits(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -501,6 +579,84 @@ func testAccountToManyDeposits(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := len(a.R.Deposits); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testAccountToManyInvestments(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c Investment
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, investmentDBTypes, false, investmentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.AccountID = a.ID
+	c.AccountID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Investments().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.AccountID == b.AccountID {
+			bFound = true
+		}
+		if v.AccountID == c.AccountID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadInvestments(ctx, tx, false, (*[]*Account)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Investments); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Investments = nil
+	if err = a.L.LoadInvestments(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Investments); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
@@ -972,6 +1128,81 @@ func testAccountToManyAddOpAccountTransactions(t *testing.T) {
 		}
 	}
 }
+func testAccountToManyAddOpDailyEarnings(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c, d, e DailyEarning
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*DailyEarning{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, dailyEarningDBTypes, false, strmangle.SetComplement(dailyEarningPrimaryKeyColumns, dailyEarningColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*DailyEarning{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddDailyEarnings(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.AccountID {
+			t.Error("foreign key was wrong value", a.ID, first.AccountID)
+		}
+		if a.ID != second.AccountID {
+			t.Error("foreign key was wrong value", a.ID, second.AccountID)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.DailyEarnings[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.DailyEarnings[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.DailyEarnings().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testAccountToManyAddOpDeposits(t *testing.T) {
 	var err error
 
@@ -1039,6 +1270,81 @@ func testAccountToManyAddOpDeposits(t *testing.T) {
 		}
 
 		count, err := a.Deposits().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpInvestments(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c, d, e Investment
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Investment{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, investmentDBTypes, false, strmangle.SetComplement(investmentPrimaryKeyColumns, investmentColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Investment{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddInvestments(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.AccountID {
+			t.Error("foreign key was wrong value", a.ID, first.AccountID)
+		}
+		if a.ID != second.AccountID {
+			t.Error("foreign key was wrong value", a.ID, second.AccountID)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Investments[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Investments[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Investments().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1849,7 +2155,7 @@ func testAccountsSelect(t *testing.T) {
 }
 
 var (
-	accountDBTypes = map[string]string{`ID`: `character varying`, `Username`: `character varying`, `Password`: `character varying`, `CreatedAt`: `bigint`, `FirstName`: `character varying`, `LastName`: `character varying`, `ReferralID`: `character varying`, `WithdrawalAddresss`: `character varying`, `Balance`: `bigint`, `Principal`: `bigint`, `Email`: `character varying`, `PhoneNumber`: `character varying`}
+	accountDBTypes = map[string]string{`ID`: `character varying`, `Username`: `character varying`, `Password`: `character varying`, `CreatedAt`: `bigint`, `FirstName`: `character varying`, `LastName`: `character varying`, `ReferralID`: `character varying`, `WithdrawalAddresss`: `character varying`, `Balance`: `bigint`, `Principal`: `bigint`, `Email`: `character varying`, `PhoneNumber`: `character varying`, `MaturedPrincipal`: `bigint`}
 	_              = bytes.MinRead
 )
 
