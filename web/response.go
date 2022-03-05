@@ -46,6 +46,17 @@ func RenderJSON(res http.ResponseWriter, data interface{}) {
 	renderJSON(res, d)
 }
 
+func RenderPagedJSON(res http.ResponseWriter, data interface{}, totalCount int64) {
+	d := map[string]interface{}{
+		"data":    data,
+		"total":   totalCount,
+		"success": true,
+		"error":   nil,
+	}
+
+	renderJSON(res, d)
+}
+
 func renderJSON(res http.ResponseWriter, data interface{}) {
 	d, err := json.Marshal(data)
 	if err != nil {

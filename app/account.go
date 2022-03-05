@@ -66,11 +66,19 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	input.Password = passwordHash
 
-	wallet, privateKey, err := GenerateWallet()
+	privateKey, wallet, err := GenerateWallet()
 	if err != nil {
 		log.Critical("CreateAccount", "GenerateWallet", err)
 		web.RenderErrorfJSON(w, "Something went wrong. Please try again later")
 		return
+	}
+
+	if input.ReferralID != "" {
+		_, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+		if err != nil {
+			web.RenderErrorfJSON(w, "Invalid referral ID, please try again")
+			return
+		}
 	}
 
 	input.WalletAddress = wallet
@@ -157,4 +165,38 @@ func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 
 	account.Password = ""
 	web.RenderJSON(w, account)
+}
+
+func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
+	count, err := m.db.GetAllAccountsCount(r.Context())
+	if err != nil {
+		log.Error("GetAllAccountsCount", err)
+		web.RenderErrorfJSON(w, "Something went wrong. Please try again later")
+		return
+	}
+
+	web.RenderJSON(w, count)
+}
+
+func (m module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
+	pageReq := web.GetPanitionInfo(r)
+	accounts, err := m.db.GetAccounts(r.Context(), pageReq.Offset, pageReq.Limit)
+	if err != nil {
+		log.Error("GetAllAccountsCount", err)
+		web.RenderErrorfJSON(w, "Something went wrong. Please try again later")
+		return
+	}
+
+	for _, acc := range accounts {
+		acc.Password = ""
+	}
+
+	totalCount, err := m.db.GetAllAccountsCount(r.Context())
+	if err != nil {
+		log.Error("GetAllAccountsCount", err)
+		web.RenderErrorfJSON(w, "Something went wrong. Please try again later")
+		return
+	}
+
+	web.RenderPagedJSON(w, accounts, totalCount)
 }

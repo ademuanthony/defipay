@@ -6,15 +6,18 @@ import (
 	"merryworld/metatradas/postgres/models"
 
 	"github.com/google/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) error {
 	account := models.Account{
-		ID:       uuid.NewString(),
-		Username: input.Username,
-		Password: input.Password,
-		Email:    input.Email,
+		ID:         uuid.NewString(),
+		ReferralID: null.StringFrom(input.ReferralID),
+		Username:   input.Username,
+		Password:   input.Password,
+		Email:      input.Email,
 	}
 
 	tx, err := pg.Db.Begin()
@@ -45,6 +48,17 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 
 func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, error) {
 	return models.FindAccount(ctx, pg.Db, id)
+}
+
+func (pg PgDb) GetAllAccountsCount(ctx context.Context) (int64, error) {
+	return models.Accounts().Count(ctx, pg.Db)
+}
+
+func (pg PgDb) GetAccounts(ctx context.Context, skip, limit int) ([]*models.Account, error) {
+	return models.Accounts(
+		qm.Offset(skip),
+		qm.Limit(limit),
+	).All(ctx, pg.Db)
 }
 
 func (pg PgDb) GetAccountByUsername(ctx context.Context, username string) (*models.Account, error) {

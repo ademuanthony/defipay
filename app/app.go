@@ -36,10 +36,12 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 	//ACCOUNT
 	app.server.AddRoute("/api/account/update", web.POST, app.UpdateAccountDetail, app.server.RequireLogin)
 	app.server.AddRoute("/api/account/me", web.GET, app.GetAccountDetail, app.server.RequireLogin)
-
-	//DEPOSIT
-	//app.server.AddRoute("/api/account/deposits", web.GET, app.GetDeposits, app.server.RequireLogin)
 	app.server.AddRoute("/api/account/deposit-address", web.GET, app.GetDepositAddress, app.server.RequireLogin)
+	//app.server.AddRoute("/api/account/deposits", web.GET, app.GetDeposits, app.server.RequireLogin)
+
+	// ACCOUNTS
+	app.server.AddRoute("/api/accounts/count", web.GET, app.GetAllAccountsCount, app.server.RequireLogin)
+	app.server.AddRoute("/api/accounts/list", web.GET, app.GetAllAccounts, app.server.RequireLogin)
 
 	return nil
 }

@@ -28,14 +28,14 @@ var (
 )
 
 // GenerateWallet creates a new wallet and return the private key and address
-func GenerateWallet() (string, string, error) {
+func GenerateWallet() (privateKeyHex string, address string, err error) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
 		return "", "", err
 	}
 
 	privateKeyBytes := crypto.FromECDSA(privateKey)
-	privateKeyHex := hexutil.Encode(privateKeyBytes)[2:]
+	privateKeyHex = hexutil.Encode(privateKeyBytes)[2:]
 
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
@@ -43,8 +43,8 @@ func GenerateWallet() (string, string, error) {
 		return "", "", errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	}
 
-	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	return privateKeyHex, address, nil
+	address = crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	return
 }
 
 func (m module) CheckBusdBalance(address string) (*big.Int, error) {
@@ -189,7 +189,7 @@ func etherToWei(eth *big.Float) *big.Int {
 }
 
 func (m module) convertClubDollarToBnb(ctx context.Context, amount int64) (*big.Int, error) {
-	_amountFloat := float64(amount)/float64(10000)
+	_amountFloat := float64(amount) / float64(10000)
 	bigFloat, err := ParseBigFloat(fmt.Sprintf("%.18f", _amountFloat))
 	if err != nil {
 		return nil, err
