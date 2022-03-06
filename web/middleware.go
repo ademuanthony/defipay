@@ -33,6 +33,27 @@ func (s Server) RequireLogin(next http.Handler) http.Handler {
 	})
 }
 
+var busyUsers = map[string]bool{}
+
+func (s Server) NoReentry(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uid := s.GetUserIDTokenCtx(r)
+		if uid == "" {
+			sendAuthErrorfJSON(w, "Invalid access token. Please login to continue")
+			return
+		}
+
+		if busyUsers[uid] {
+			SendErrorfJSON(w, "you have a pending request, please try again later")
+			return
+		}
+		busyUsers[uid] = true
+		defer delete(busyUsers, uid)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // ContractAddressCtx returns a http.HandlerFunc that embeds the value at the url
 // part {contractAddress} into the request context.
 func ContractAddressCtx(next http.Handler) http.Handler {

@@ -24,7 +24,7 @@ func (pg PgDb) Transfer(ctx context.Context, senderID, receiverID string, amount
 		return fmt.Errorf("GetAccount::receiver %v", err)
 	}
 
-	if receiver.Balance < amount {
+	if sender.Balance < amount {
 		return errors.New("insufficient balance")
 	}
 

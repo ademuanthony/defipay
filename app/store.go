@@ -31,4 +31,7 @@ type store interface {
 
 	Transfer(ctx context.Context, senderID, receiverID string, amount int64) error
 	TransferHistories(ctx context.Context, accountID string, offset, limit int) ([]TransferViewModel, int64, error)
+
+	Withdraw(ctx context.Context, accountID string, amount int64) error
+	Withdrawals(ctx context.Context, accountID string, offset, limit int) ([]*models.Withdrawal, int64, error)
 }
