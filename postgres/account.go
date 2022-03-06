@@ -18,11 +18,12 @@ import (
 
 func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) error {
 	account := models.Account{
-		ID:         uuid.NewString(),
-		ReferralID: null.StringFrom(input.ReferralID),
-		Username:   input.Username,
-		Password:   input.Password,
-		Email:      input.Email,
+		ID:          uuid.NewString(),
+		ReferralID:  null.StringFrom(input.ReferralID),
+		Username:    input.Username,
+		Password:    input.Password,
+		Email:       input.Email,
+		PhoneNumber: input.PhoneNumber,
 	}
 
 	tx, err := pg.Db.Begin()

@@ -10,10 +10,11 @@ import (
 )
 
 type CreateAccountInput struct {
-	ReferralID string `json:"referralId"`
-	Email      string `json:"email"`
-	Username   string `json:"username"`
-	Password   string `json:"password"`
+	ReferralID  string `json:"referralId"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
 
 	WalletAddress string `json:"_"`
 	PrivateKey    string `json:"_"`
@@ -41,6 +42,11 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	if input.Email == "" {
 		web.SendErrorfJSON(w, "Email is required")
+		return
+	}
+
+	if input.PhoneNumber == "" {
+		web.SendErrorfJSON(w, "Phone number is required")
 		return
 	}
 
@@ -242,7 +248,7 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) MyInvestments(w http.ResponseWriter, r * http.Request) {
+func (m module) MyInvestments(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	rec, total, err := m.db.Investments(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
@@ -254,7 +260,7 @@ func (m module) MyInvestments(w http.ResponseWriter, r * http.Request) {
 	web.SendPagedJSON(w, rec, total)
 }
 
-func (m module) MyDailyEarnings(w http.ResponseWriter, r * http.Request) {
+func (m module) MyDailyEarnings(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	rec, total, err := m.db.DailyEarnings(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
