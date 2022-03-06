@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"merryworld/metatradas/web"
+	"net/http"
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -36,6 +37,8 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		MgDomain: mgDomain,
 		MgKey:    mgKey,
 	}
+
+	app.server.AddRoute("/", web.GET, welcome)
 
 	// AUTH
 	app.server.AddRoute("/api/auth/register", web.POST, app.CreateAccount)
@@ -72,6 +75,10 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 	go app.runProcessor(context.Background())
 
 	return nil
+}
+
+func welcome(w http.ResponseWriter, r *http.Request) {
+	web.SendJSON(w, "welcome to metstradas api. download the app from app store to start earning")
 }
 
 func (m module) runProcessor(ctx context.Context) {
