@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS account
     id character varying(64) NOT NULL PRIMARY KEY,
     username character varying(256) NOT NULL UNIQUE,
     password character varying(256) NOT NULL,
+    email character varying(256) not null,
+    account add phone_number character varying(32) not null,
     created_at bigint NOT NULL,
     first_name character varying(256) NOT NULL,
     last_name character varying(256) NOT NULL,
@@ -93,9 +95,6 @@ CREATE TABLE IF NOT EXISTS account_transaction (
 	UNIQUE(description),
 	PRIMARY KEY(id)
 );
-
-alter table account add email character varying(256) not null;
-alter table account add phone_number character varying(32) not null;
 
 create table if not exists investment (
     id character varying(64) not null primary key,

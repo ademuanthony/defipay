@@ -24,6 +24,7 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 		Password:    input.Password,
 		Email:       input.Email,
 		PhoneNumber: input.PhoneNumber,
+		CreatedAt:   time.Now().Unix(),
 	}
 
 	tx, err := pg.Db.Begin()
