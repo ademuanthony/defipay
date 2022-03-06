@@ -5,12 +5,12 @@ CREATE TABLE IF NOT EXISTS account
     username character varying(256) NOT NULL UNIQUE,
     password character varying(256) NOT NULL,
     email character varying(256) not null,
-    account add phone_number character varying(32) not null,
+    phone_number character varying(32) not null,
     created_at bigint NOT NULL,
-    first_name character varying(256) NOT NULL,
-    last_name character varying(256) NOT NULL,
+    first_name character varying(256) NOT NULL default '',
+    last_name character varying(256) NOT NULL default '',
     referral_id character varying(256),
-    withdrawal_addresss character varying(256) NOT NULL,
+    withdrawal_addresss character varying(256) NOT NULL default '',
     balance bigint NOT NULL,
     principal bigint NOT NULL
 );
