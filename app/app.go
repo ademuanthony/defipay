@@ -62,6 +62,10 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 	app.server.AddRoute("/api/packages/buy", web.POST, app.BuyPackage, server.RequireLogin)
 	app.server.AddRoute("/api/packages/subscription", web.GET, app.GetActiveSubscription, server.RequireLogin)
 
+	// TRANSFER
+	app.server.AddRoute("/api/transfers/create", web.POST, app.makeTransfer, server.RequireLogin)
+	app.server.AddRoute("/api/transfers/history", web.GET, app.transferHistory, server.RequireLogin)
+
 	go app.runProcessor(context.Background())
 
 	return nil

@@ -1016,7 +1016,7 @@ func (accountL) LoadReceiverTransfers(ctx context.Context, e boil.ContextExecuto
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
@@ -1067,7 +1067,7 @@ func (accountL) LoadReceiverTransfers(ctx context.Context, e boil.ContextExecuto
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.ReceiverID) {
+			if local.ID == foreign.ReceiverID {
 				local.R.ReceiverTransfers = append(local.R.ReceiverTransfers, foreign)
 				if foreign.R == nil {
 					foreign.R = &transferR{}
@@ -1107,7 +1107,7 @@ func (accountL) LoadSenderTransfers(ctx context.Context, e boil.ContextExecutor,
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
@@ -1158,7 +1158,7 @@ func (accountL) LoadSenderTransfers(ctx context.Context, e boil.ContextExecutor,
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.SenderID) {
+			if local.ID == foreign.SenderID {
 				local.R.SenderTransfers = append(local.R.SenderTransfers, foreign)
 				if foreign.R == nil {
 					foreign.R = &transferR{}
@@ -1627,7 +1627,7 @@ func (o *Account) AddReceiverTransfers(ctx context.Context, exec boil.ContextExe
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.ReceiverID, o.ID)
+			rel.ReceiverID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -1637,7 +1637,7 @@ func (o *Account) AddReceiverTransfers(ctx context.Context, exec boil.ContextExe
 				strmangle.SetParamNames("\"", "\"", 1, []string{"receiver_id"}),
 				strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.If}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)
@@ -1648,7 +1648,7 @@ func (o *Account) AddReceiverTransfers(ctx context.Context, exec boil.ContextExe
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.ReceiverID, o.ID)
+			rel.ReceiverID = o.ID
 		}
 	}
 
@@ -1672,80 +1672,6 @@ func (o *Account) AddReceiverTransfers(ctx context.Context, exec boil.ContextExe
 	return nil
 }
 
-// SetReceiverTransfers removes all previously related items of the
-// account replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Receiver's ReceiverTransfers accordingly.
-// Replaces o.R.ReceiverTransfers with related.
-// Sets related.R.Receiver's ReceiverTransfers accordingly.
-func (o *Account) SetReceiverTransfers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Transfer) error {
-	query := "update \"transfer\" set \"receiver_id\" = null where \"receiver_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.ReceiverTransfers {
-			queries.SetScanner(&rel.ReceiverID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Receiver = nil
-		}
-
-		o.R.ReceiverTransfers = nil
-	}
-	return o.AddReceiverTransfers(ctx, exec, insert, related...)
-}
-
-// RemoveReceiverTransfers relationships from objects passed in.
-// Removes related items from R.ReceiverTransfers (uses pointer comparison, removal does not keep order)
-// Sets related.R.Receiver.
-func (o *Account) RemoveReceiverTransfers(ctx context.Context, exec boil.ContextExecutor, related ...*Transfer) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.ReceiverID, nil)
-		if rel.R != nil {
-			rel.R.Receiver = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("receiver_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.ReceiverTransfers {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.ReceiverTransfers)
-			if ln > 1 && i < ln-1 {
-				o.R.ReceiverTransfers[i] = o.R.ReceiverTransfers[ln-1]
-			}
-			o.R.ReceiverTransfers = o.R.ReceiverTransfers[:ln-1]
-			break
-		}
-	}
-
-	return nil
-}
-
 // AddSenderTransfers adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
 // Appends related to o.R.SenderTransfers.
@@ -1754,7 +1680,7 @@ func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecu
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.SenderID, o.ID)
+			rel.SenderID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -1764,7 +1690,7 @@ func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecu
 				strmangle.SetParamNames("\"", "\"", 1, []string{"sender_id"}),
 				strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.If}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.IsDebug(ctx) {
 				writer := boil.DebugWriterFrom(ctx)
@@ -1775,7 +1701,7 @@ func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecu
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.SenderID, o.ID)
+			rel.SenderID = o.ID
 		}
 	}
 
@@ -1796,80 +1722,6 @@ func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecu
 			rel.R.Sender = o
 		}
 	}
-	return nil
-}
-
-// SetSenderTransfers removes all previously related items of the
-// account replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Sender's SenderTransfers accordingly.
-// Replaces o.R.SenderTransfers with related.
-// Sets related.R.Sender's SenderTransfers accordingly.
-func (o *Account) SetSenderTransfers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Transfer) error {
-	query := "update \"transfer\" set \"sender_id\" = null where \"sender_id\" = $1"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.SenderTransfers {
-			queries.SetScanner(&rel.SenderID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Sender = nil
-		}
-
-		o.R.SenderTransfers = nil
-	}
-	return o.AddSenderTransfers(ctx, exec, insert, related...)
-}
-
-// RemoveSenderTransfers relationships from objects passed in.
-// Removes related items from R.SenderTransfers (uses pointer comparison, removal does not keep order)
-// Sets related.R.Sender.
-func (o *Account) RemoveSenderTransfers(ctx context.Context, exec boil.ContextExecutor, related ...*Transfer) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.SenderID, nil)
-		if rel.R != nil {
-			rel.R.Sender = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("sender_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.SenderTransfers {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.SenderTransfers)
-			if ln > 1 && i < ln-1 {
-				o.R.SenderTransfers[i] = o.R.SenderTransfers[ln-1]
-			}
-			o.R.SenderTransfers = o.R.SenderTransfers[:ln-1]
-			break
-		}
-	}
-
 	return nil
 }
 

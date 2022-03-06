@@ -28,4 +28,7 @@ type store interface {
 	PopulateEarnings(ctx context.Context) error
 	DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) 
 	ProcessWeeklyPayout(ctx context.Context) error
+
+	Transfer(ctx context.Context, senderID, receiverID string, amount int64) error
+	TransferHistories(ctx context.Context, accountID string, offset, limit int) ([]TransferViewModel, int64, error)
 }

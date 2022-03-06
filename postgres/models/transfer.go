@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,24 +23,24 @@ import (
 
 // Transfer is an object representing the database table.
 type Transfer struct {
-	If         string      `boil:"if" json:"if" toml:"if" yaml:"if"`
-	Amount     int64       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	SenderID   null.String `boil:"sender_id" json:"sender_id,omitempty" toml:"sender_id" yaml:"sender_id,omitempty"`
-	ReceiverID null.String `boil:"receiver_id" json:"receiver_id,omitempty" toml:"receiver_id" yaml:"receiver_id,omitempty"`
-	Date       int64       `boil:"date" json:"date" toml:"date" yaml:"date"`
+	ID         string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Amount     int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	SenderID   string `boil:"sender_id" json:"sender_id" toml:"sender_id" yaml:"sender_id"`
+	ReceiverID string `boil:"receiver_id" json:"receiver_id" toml:"receiver_id" yaml:"receiver_id"`
+	Date       int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
 
 	R *transferR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L transferL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var TransferColumns = struct {
-	If         string
+	ID         string
 	Amount     string
 	SenderID   string
 	ReceiverID string
 	Date       string
 }{
-	If:         "if",
+	ID:         "id",
 	Amount:     "amount",
 	SenderID:   "sender_id",
 	ReceiverID: "receiver_id",
@@ -49,13 +48,13 @@ var TransferColumns = struct {
 }
 
 var TransferTableColumns = struct {
-	If         string
+	ID         string
 	Amount     string
 	SenderID   string
 	ReceiverID string
 	Date       string
 }{
-	If:         "transfer.if",
+	ID:         "transfer.id",
 	Amount:     "transfer.amount",
 	SenderID:   "transfer.sender_id",
 	ReceiverID: "transfer.receiver_id",
@@ -65,16 +64,16 @@ var TransferTableColumns = struct {
 // Generated where
 
 var TransferWhere = struct {
-	If         whereHelperstring
+	ID         whereHelperstring
 	Amount     whereHelperint64
-	SenderID   whereHelpernull_String
-	ReceiverID whereHelpernull_String
+	SenderID   whereHelperstring
+	ReceiverID whereHelperstring
 	Date       whereHelperint64
 }{
-	If:         whereHelperstring{field: "\"transfer\".\"if\""},
+	ID:         whereHelperstring{field: "\"transfer\".\"id\""},
 	Amount:     whereHelperint64{field: "\"transfer\".\"amount\""},
-	SenderID:   whereHelpernull_String{field: "\"transfer\".\"sender_id\""},
-	ReceiverID: whereHelpernull_String{field: "\"transfer\".\"receiver_id\""},
+	SenderID:   whereHelperstring{field: "\"transfer\".\"sender_id\""},
+	ReceiverID: whereHelperstring{field: "\"transfer\".\"receiver_id\""},
 	Date:       whereHelperint64{field: "\"transfer\".\"date\""},
 }
 
@@ -102,10 +101,10 @@ func (*transferR) NewStruct() *transferR {
 type transferL struct{}
 
 var (
-	transferAllColumns            = []string{"if", "amount", "sender_id", "receiver_id", "date"}
-	transferColumnsWithoutDefault = []string{"if", "amount", "sender_id", "receiver_id", "date"}
+	transferAllColumns            = []string{"id", "amount", "sender_id", "receiver_id", "date"}
+	transferColumnsWithoutDefault = []string{"id", "amount", "sender_id", "receiver_id", "date"}
 	transferColumnsWithDefault    = []string{}
-	transferPrimaryKeyColumns     = []string{"if"}
+	transferPrimaryKeyColumns     = []string{"id"}
 )
 
 type (
@@ -244,9 +243,7 @@ func (transferL) LoadReceiver(ctx context.Context, e boil.ContextExecutor, singu
 		if object.R == nil {
 			object.R = &transferR{}
 		}
-		if !queries.IsNil(object.ReceiverID) {
-			args = append(args, object.ReceiverID)
-		}
+		args = append(args, object.ReceiverID)
 
 	} else {
 	Outer:
@@ -256,14 +253,12 @@ func (transferL) LoadReceiver(ctx context.Context, e boil.ContextExecutor, singu
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ReceiverID) {
+				if a == obj.ReceiverID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.ReceiverID) {
-				args = append(args, obj.ReceiverID)
-			}
+			args = append(args, obj.ReceiverID)
 
 		}
 	}
@@ -313,7 +308,7 @@ func (transferL) LoadReceiver(ctx context.Context, e boil.ContextExecutor, singu
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.ReceiverID, foreign.ID) {
+			if local.ReceiverID == foreign.ID {
 				local.R.Receiver = foreign
 				if foreign.R == nil {
 					foreign.R = &accountR{}
@@ -344,9 +339,7 @@ func (transferL) LoadSender(ctx context.Context, e boil.ContextExecutor, singula
 		if object.R == nil {
 			object.R = &transferR{}
 		}
-		if !queries.IsNil(object.SenderID) {
-			args = append(args, object.SenderID)
-		}
+		args = append(args, object.SenderID)
 
 	} else {
 	Outer:
@@ -356,14 +349,12 @@ func (transferL) LoadSender(ctx context.Context, e boil.ContextExecutor, singula
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.SenderID) {
+				if a == obj.SenderID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.SenderID) {
-				args = append(args, obj.SenderID)
-			}
+			args = append(args, obj.SenderID)
 
 		}
 	}
@@ -413,7 +404,7 @@ func (transferL) LoadSender(ctx context.Context, e boil.ContextExecutor, singula
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.SenderID, foreign.ID) {
+			if local.SenderID == foreign.ID {
 				local.R.Sender = foreign
 				if foreign.R == nil {
 					foreign.R = &accountR{}
@@ -443,7 +434,7 @@ func (o *Transfer) SetReceiver(ctx context.Context, exec boil.ContextExecutor, i
 		strmangle.SetParamNames("\"", "\"", 1, []string{"receiver_id"}),
 		strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.If}
+	values := []interface{}{related.ID, o.ID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -454,7 +445,7 @@ func (o *Transfer) SetReceiver(ctx context.Context, exec boil.ContextExecutor, i
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.ReceiverID, related.ID)
+	o.ReceiverID = related.ID
 	if o.R == nil {
 		o.R = &transferR{
 			Receiver: related,
@@ -474,39 +465,6 @@ func (o *Transfer) SetReceiver(ctx context.Context, exec boil.ContextExecutor, i
 	return nil
 }
 
-// RemoveReceiver relationship.
-// Sets o.R.Receiver to nil.
-// Removes o from all passed in related items' relationships struct (Optional).
-func (o *Transfer) RemoveReceiver(ctx context.Context, exec boil.ContextExecutor, related *Account) error {
-	var err error
-
-	queries.SetScanner(&o.ReceiverID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("receiver_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Receiver = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.ReceiverTransfers {
-		if queries.Equal(o.ReceiverID, ri.ReceiverID) {
-			continue
-		}
-
-		ln := len(related.R.ReceiverTransfers)
-		if ln > 1 && i < ln-1 {
-			related.R.ReceiverTransfers[i] = related.R.ReceiverTransfers[ln-1]
-		}
-		related.R.ReceiverTransfers = related.R.ReceiverTransfers[:ln-1]
-		break
-	}
-	return nil
-}
-
 // SetSender of the transfer to the related item.
 // Sets o.R.Sender to related.
 // Adds o to related.R.SenderTransfers.
@@ -523,7 +481,7 @@ func (o *Transfer) SetSender(ctx context.Context, exec boil.ContextExecutor, ins
 		strmangle.SetParamNames("\"", "\"", 1, []string{"sender_id"}),
 		strmangle.WhereClause("\"", "\"", 2, transferPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.If}
+	values := []interface{}{related.ID, o.ID}
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -534,7 +492,7 @@ func (o *Transfer) SetSender(ctx context.Context, exec boil.ContextExecutor, ins
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.SenderID, related.ID)
+	o.SenderID = related.ID
 	if o.R == nil {
 		o.R = &transferR{
 			Sender: related,
@@ -554,39 +512,6 @@ func (o *Transfer) SetSender(ctx context.Context, exec boil.ContextExecutor, ins
 	return nil
 }
 
-// RemoveSender relationship.
-// Sets o.R.Sender to nil.
-// Removes o from all passed in related items' relationships struct (Optional).
-func (o *Transfer) RemoveSender(ctx context.Context, exec boil.ContextExecutor, related *Account) error {
-	var err error
-
-	queries.SetScanner(&o.SenderID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("sender_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Sender = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.SenderTransfers {
-		if queries.Equal(o.SenderID, ri.SenderID) {
-			continue
-		}
-
-		ln := len(related.R.SenderTransfers)
-		if ln > 1 && i < ln-1 {
-			related.R.SenderTransfers[i] = related.R.SenderTransfers[ln-1]
-		}
-		related.R.SenderTransfers = related.R.SenderTransfers[:ln-1]
-		break
-	}
-	return nil
-}
-
 // Transfers retrieves all the records using an executor.
 func Transfers(mods ...qm.QueryMod) transferQuery {
 	mods = append(mods, qm.From("\"transfer\""))
@@ -595,7 +520,7 @@ func Transfers(mods ...qm.QueryMod) transferQuery {
 
 // FindTransfer retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindTransfer(ctx context.Context, exec boil.ContextExecutor, if_ string, selectCols ...string) (*Transfer, error) {
+func FindTransfer(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*Transfer, error) {
 	transferObj := &Transfer{}
 
 	sel := "*"
@@ -603,10 +528,10 @@ func FindTransfer(ctx context.Context, exec boil.ContextExecutor, if_ string, se
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"transfer\" where \"if\"=$1", sel,
+		"select %s from \"transfer\" where \"id\"=$1", sel,
 	)
 
-	q := queries.Raw(query, if_)
+	q := queries.Raw(query, iD)
 
 	err := q.Bind(ctx, exec, transferObj)
 	if err != nil {
@@ -935,7 +860,7 @@ func (o *Transfer) Delete(ctx context.Context, exec boil.ContextExecutor) (int64
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), transferPrimaryKeyMapping)
-	sql := "DELETE FROM \"transfer\" WHERE \"if\"=$1"
+	sql := "DELETE FROM \"transfer\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1012,7 +937,7 @@ func (o TransferSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor)
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *Transfer) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindTransfer(ctx, exec, o.If)
+	ret, err := FindTransfer(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1051,16 +976,16 @@ func (o *TransferSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor
 }
 
 // TransferExists checks if the Transfer row exists.
-func TransferExists(ctx context.Context, exec boil.ContextExecutor, if_ string) (bool, error) {
+func TransferExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"transfer\" where \"if\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"transfer\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
 		fmt.Fprintln(writer, sql)
-		fmt.Fprintln(writer, if_)
+		fmt.Fprintln(writer, iD)
 	}
-	row := exec.QueryRowContext(ctx, sql, if_)
+	row := exec.QueryRowContext(ctx, sql, iD)
 
 	err := row.Scan(&exists)
 	if err != nil {

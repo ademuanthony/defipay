@@ -768,8 +768,9 @@ func testAccountToManyReceiverTransfers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&b.ReceiverID, a.ID)
-	queries.Assign(&c.ReceiverID, a.ID)
+	b.ReceiverID = a.ID
+	c.ReceiverID = a.ID
+
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -784,10 +785,10 @@ func testAccountToManyReceiverTransfers(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if queries.Equal(v.ReceiverID, b.ReceiverID) {
+		if v.ReceiverID == b.ReceiverID {
 			bFound = true
 		}
-		if queries.Equal(v.ReceiverID, c.ReceiverID) {
+		if v.ReceiverID == c.ReceiverID {
 			cFound = true
 		}
 	}
@@ -845,8 +846,9 @@ func testAccountToManySenderTransfers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&b.SenderID, a.ID)
-	queries.Assign(&c.SenderID, a.ID)
+	b.SenderID = a.ID
+	c.SenderID = a.ID
+
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -861,10 +863,10 @@ func testAccountToManySenderTransfers(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if queries.Equal(v.SenderID, b.SenderID) {
+		if v.SenderID == b.SenderID {
 			bFound = true
 		}
-		if queries.Equal(v.SenderID, c.SenderID) {
+		if v.SenderID == c.SenderID {
 			cFound = true
 		}
 	}
@@ -1473,10 +1475,10 @@ func testAccountToManyAddOpReceiverTransfers(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if !queries.Equal(a.ID, first.ReceiverID) {
+		if a.ID != first.ReceiverID {
 			t.Error("foreign key was wrong value", a.ID, first.ReceiverID)
 		}
-		if !queries.Equal(a.ID, second.ReceiverID) {
+		if a.ID != second.ReceiverID {
 			t.Error("foreign key was wrong value", a.ID, second.ReceiverID)
 		}
 
@@ -1503,182 +1505,6 @@ func testAccountToManyAddOpReceiverTransfers(t *testing.T) {
 		}
 	}
 }
-
-func testAccountToManySetOpReceiverTransfers(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Account
-	var b, c, d, e Transfer
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*Transfer{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetReceiverTransfers(ctx, tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.ReceiverTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetReceiverTransfers(ctx, tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.ReceiverTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.ReceiverID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.ReceiverID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if !queries.Equal(a.ID, d.ReceiverID) {
-		t.Error("foreign key was wrong value", a.ID, d.ReceiverID)
-	}
-	if !queries.Equal(a.ID, e.ReceiverID) {
-		t.Error("foreign key was wrong value", a.ID, e.ReceiverID)
-	}
-
-	if b.R.Receiver != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Receiver != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Receiver != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.Receiver != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.ReceiverTransfers[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.ReceiverTransfers[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testAccountToManyRemoveOpReceiverTransfers(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Account
-	var b, c, d, e Transfer
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*Transfer{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddReceiverTransfers(ctx, tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.ReceiverTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemoveReceiverTransfers(ctx, tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.ReceiverTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.ReceiverID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.ReceiverID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.Receiver != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Receiver != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Receiver != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.Receiver != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.ReceiverTransfers) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.ReceiverTransfers[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.ReceiverTransfers[0] != &e {
-		t.Error("relationship to e should have been preserved")
-	}
-}
-
 func testAccountToManyAddOpSenderTransfers(t *testing.T) {
 	var err error
 
@@ -1724,10 +1550,10 @@ func testAccountToManyAddOpSenderTransfers(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if !queries.Equal(a.ID, first.SenderID) {
+		if a.ID != first.SenderID {
 			t.Error("foreign key was wrong value", a.ID, first.SenderID)
 		}
-		if !queries.Equal(a.ID, second.SenderID) {
+		if a.ID != second.SenderID {
 			t.Error("foreign key was wrong value", a.ID, second.SenderID)
 		}
 
@@ -1754,182 +1580,6 @@ func testAccountToManyAddOpSenderTransfers(t *testing.T) {
 		}
 	}
 }
-
-func testAccountToManySetOpSenderTransfers(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Account
-	var b, c, d, e Transfer
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*Transfer{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetSenderTransfers(ctx, tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.SenderTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetSenderTransfers(ctx, tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.SenderTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.SenderID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.SenderID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if !queries.Equal(a.ID, d.SenderID) {
-		t.Error("foreign key was wrong value", a.ID, d.SenderID)
-	}
-	if !queries.Equal(a.ID, e.SenderID) {
-		t.Error("foreign key was wrong value", a.ID, e.SenderID)
-	}
-
-	if b.R.Sender != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Sender != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Sender != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.Sender != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.SenderTransfers[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.SenderTransfers[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testAccountToManyRemoveOpSenderTransfers(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Account
-	var b, c, d, e Transfer
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*Transfer{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddSenderTransfers(ctx, tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.SenderTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemoveSenderTransfers(ctx, tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.SenderTransfers().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.SenderID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.SenderID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.Sender != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Sender != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Sender != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.Sender != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.SenderTransfers) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.SenderTransfers[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.SenderTransfers[0] != &e {
-		t.Error("relationship to e should have been preserved")
-	}
-}
-
 func testAccountToManyAddOpWallets(t *testing.T) {
 	var err error
 

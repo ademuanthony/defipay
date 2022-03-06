@@ -171,7 +171,7 @@ func (pg PgDb) Invest(ctx context.Context, accountID string, amount int64) error
 		ID:             uuid.NewString(),
 		AccountID:      accountID,
 		Amount:         amount,
-		Date:           time.Now().UTC().Unix(),
+		Date:           time.Now().Unix(),
 		ActivationDate: now.BeginningOfDay().UTC().Add(24 * time.Hour).Unix(),
 	}
 
@@ -211,7 +211,7 @@ func (pg PgDb) Investments(ctx context.Context, accountId string, offset, limit 
 }
 
 func (pg PgDb) DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) {
-	today := now.BeginningOfDay().UTC().Unix()
+	today := now.BeginningOfDay().Unix()
 
 	rec, err := models.DailyEarnings(
 		models.DailyEarningWhere.AccountID.EQ(accountId),
@@ -238,7 +238,7 @@ func (pg PgDb) DailyEarnings(ctx context.Context, accountId string, offset, limi
 
 func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 
-	date := now.BeginningOfDay().UTC().Unix()
+	date := now.BeginningOfDay().Unix()
 	count, err := models.DailyEarnings(models.DailyEarningWhere.Date.EQ(date)).Count(ctx, pg.Db)
 	if err != nil {
 		return err
@@ -293,7 +293,7 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	date := now.BeginningOfDay()
 	if date.Weekday() != time.Sunday {
-		// return nil TODO: stop execution
+		return nil
 	}
 
 	lastPayout, err := models.WeeklyPayouts(
@@ -326,10 +326,9 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	weeklyPay := models.WeeklyPayout{
-		ID: uuid.NewString(),
-		Date: today,
+		ID:     uuid.NewString(),
+		Date:   today,
 		Amount: totalDaily.Principal,
-
 	}
 
 	if err := weeklyPay.Insert(ctx, tx, boil.Infer()); err != nil {

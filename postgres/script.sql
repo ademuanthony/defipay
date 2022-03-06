@@ -63,10 +63,10 @@ create table if not exists deposit
 
 create table if not exists transfer
 (
-    if character varying(64) not null primary key,
+    id character varying(64) not null primary key,
     amount bigint not null,
-    sender_id character varying(64) references account(id),
-    receiver_id character varying(64) references account(id),
+    sender_id character varying(64) not null references account(id),
+    receiver_id character varying(64) not null references account(id),
     date bigint not null
 );
 

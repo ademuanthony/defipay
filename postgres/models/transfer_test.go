@@ -149,7 +149,7 @@ func testTransfersExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := TransferExists(ctx, tx, o.If)
+	e, err := TransferExists(ctx, tx, o.ID)
 	if err != nil {
 		t.Errorf("Unable to check if Transfer exists: %s", err)
 	}
@@ -175,7 +175,7 @@ func testTransfersFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	transferFound, err := FindTransfer(ctx, tx, o.If)
+	transferFound, err := FindTransfer(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
@@ -362,7 +362,7 @@ func testTransferToOneAccountUsingReceiver(t *testing.T) {
 	var foreign Account
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, transferDBTypes, true, transferColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, transferDBTypes, false, transferColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Transfer struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
@@ -373,7 +373,7 @@ func testTransferToOneAccountUsingReceiver(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&local.ReceiverID, foreign.ID)
+	local.ReceiverID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -383,7 +383,7 @@ func testTransferToOneAccountUsingReceiver(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !queries.Equal(check.ID, foreign.ID) {
+	if check.ID != foreign.ID {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -413,7 +413,7 @@ func testTransferToOneAccountUsingSender(t *testing.T) {
 	var foreign Account
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, transferDBTypes, true, transferColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, transferDBTypes, false, transferColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Transfer struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
@@ -424,7 +424,7 @@ func testTransferToOneAccountUsingSender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&local.SenderID, foreign.ID)
+	local.SenderID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +434,7 @@ func testTransferToOneAccountUsingSender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !queries.Equal(check.ID, foreign.ID) {
+	if check.ID != foreign.ID {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -496,7 +496,7 @@ func testTransferToOneSetOpAccountUsingReceiver(t *testing.T) {
 		if x.R.ReceiverTransfers[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if !queries.Equal(a.ReceiverID, x.ID) {
+		if a.ReceiverID != x.ID {
 			t.Error("foreign key was wrong value", a.ReceiverID)
 		}
 
@@ -507,63 +507,11 @@ func testTransferToOneSetOpAccountUsingReceiver(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if !queries.Equal(a.ReceiverID, x.ID) {
+		if a.ReceiverID != x.ID {
 			t.Error("foreign key was wrong value", a.ReceiverID, x.ID)
 		}
 	}
 }
-
-func testTransferToOneRemoveOpAccountUsingReceiver(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Transfer
-	var b Account
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetReceiver(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveReceiver(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.Receiver().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Receiver != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.ReceiverID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.ReceiverTransfers) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
-
 func testTransferToOneSetOpAccountUsingSender(t *testing.T) {
 	var err error
 
@@ -605,7 +553,7 @@ func testTransferToOneSetOpAccountUsingSender(t *testing.T) {
 		if x.R.SenderTransfers[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if !queries.Equal(a.SenderID, x.ID) {
+		if a.SenderID != x.ID {
 			t.Error("foreign key was wrong value", a.SenderID)
 		}
 
@@ -616,60 +564,9 @@ func testTransferToOneSetOpAccountUsingSender(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if !queries.Equal(a.SenderID, x.ID) {
+		if a.SenderID != x.ID {
 			t.Error("foreign key was wrong value", a.SenderID, x.ID)
 		}
-	}
-}
-
-func testTransferToOneRemoveOpAccountUsingSender(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Transfer
-	var b Account
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, transferDBTypes, false, strmangle.SetComplement(transferPrimaryKeyColumns, transferColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetSender(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveSender(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.Sender().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Sender != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.SenderID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.SenderTransfers) != 0 {
-		t.Error("failed to remove a from b's relationships")
 	}
 }
 
@@ -747,7 +644,7 @@ func testTransfersSelect(t *testing.T) {
 }
 
 var (
-	transferDBTypes = map[string]string{`If`: `character varying`, `Amount`: `bigint`, `SenderID`: `character varying`, `ReceiverID`: `character varying`, `Date`: `bigint`}
+	transferDBTypes = map[string]string{`ID`: `character varying`, `Amount`: `bigint`, `SenderID`: `character varying`, `ReceiverID`: `character varying`, `Date`: `bigint`}
 	_               = bytes.MinRead
 )
 

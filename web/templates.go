@@ -271,8 +271,8 @@ func MakeTemplateFuncMap() template.FuncMap {
 
 	return template.FuncMap{
 		csrf.TemplateTag: csrf.TemplateField,
-		"assetsVersion": func () int64 {
-			return 121 // time.Now().UTC().Unix()	
+		"assetsVersion": func() int64 {
+			return 121 // time.Now().Unix()
 		},
 		"add": func(args ...int64) int64 {
 			var sum int64
@@ -443,16 +443,16 @@ func MakeTemplateFuncMap() template.FuncMap {
 			}
 			return r2
 		},
-		"rawHTML": func (input string) template.HTML {
+		"rawHTML": func(input string) template.HTML {
 			return template.HTML(input)
 		},
-		"truncateTxHash": func (hash string) string {
+		"truncateTxHash": func(hash string) string {
 			if len(hash) < 16 {
 				return hash
 			}
 			return hash[:16]
 		},
-		"formatBusd": func (amount int64) string {
+		"formatBusd": func(amount int64) string {
 			amountBig := &big.Float{}
 			amountBig, ok := amountBig.SetString(fmt.Sprintf("%d", amount))
 			if !ok {
