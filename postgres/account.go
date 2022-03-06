@@ -274,7 +274,7 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 				select 
 					DISTINCT account.id as account_id,
 					%d, 
-					(floor(random()*(%d-%d+1))+%d) as percentage, 
+					COALESCE((floor(random()*(%d-%d+1))+%d), 0) as percentage, 
 					account.principal
 				from account 
 				inner join subscription on account.id = subscription.account_id
@@ -322,7 +322,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	statement := `select
-	 sum((daily_earning.principal * daily_earning.percentage)/100000) as principal 
+	COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as principal 
 	 from daily_earning where date >= $1 and date < $2`
 	totalDaily, err := models.DailyEarnings(qm.SQL(statement, lastPayout.Date, today)).One(ctx, tx)
 	if err != nil && err != sql.ErrNoRows {
@@ -345,7 +345,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	update account set balance  = balance + floor(sub.total) FROM (
 		select distinct
 		 daily_earning.account_id,
-		 sum((daily_earning.principal * daily_earning.percentage)/100000) as total from 
+		 COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as total from 
 		 daily_earning
 		where daily_earning.date >= $1 and daily_earning.date < $2
 		group by daily_earning.account_id
