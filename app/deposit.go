@@ -1,8 +1,16 @@
 package app
 
 import (
+	"context"
+	"database/sql"
+	"math/big"
+	"merryworld/metatradas/app/dfc"
 	"merryworld/metatradas/web"
 	"net/http"
+	"os"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func (m module) GetDepositAddress(w http.ResponseWriter, r *http.Request) {
@@ -26,5 +34,52 @@ func (m module) DepositHistories(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendPagedJSON(w, deposits, totalCount)
+
+}
+
+func (m module) watchDeposit() {
+	dfcToken, err := dfc.NewDfc(common.HexToAddress(os.Getenv("USDT_CONTRACT")), m.client)
+	if err != nil {
+		log.Error("watchDeposit", err)
+		return
+	}
+
+	var sink = make(chan *dfc.DfcTransfer)
+
+	sub, err := dfcToken.WatchTransfer(&bind.WatchOpts{}, sink, nil, nil)
+	if err != nil {
+		log.Error("watchTranfer", err)
+		return
+	}
+
+	defer sub.Unsubscribe()
+
+	for {
+		tx := <-sink
+		// mi deposit is 20$
+		if tx.Value.Div(tx.Value, big.NewInt(1e18)).Int64() < 20 {
+			continue
+		}
+
+		wallet, err := m.db.GetWellatByAddress(context.Background(), tx.To.String())
+		if err == sql.ErrNoRows {
+			continue
+		}
+		if err != nil {
+			log.Critical("GetWalletByAddress", err)
+			continue
+		}
+		// TODO: move the fund to the main wallet
+
+		//get wallet address
+		// process deposit
+		divisor := big.NewInt(1e14)
+		amountBig := tx.Value.Div(tx.Value, divisor)
+
+		if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, tx.Raw.BlockHash.Hex(), amountBig.Int64()); err != nil {
+			log.Critical("CreateDeposit", err)
+			continue
+		}
+	}
 
 }

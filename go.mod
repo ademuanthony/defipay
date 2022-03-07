@@ -46,6 +46,7 @@ require (
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/go-ole/go-ole v1.2.1 // indirect
