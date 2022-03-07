@@ -9,10 +9,11 @@ CREATE TABLE IF NOT EXISTS account
     created_at bigint NOT NULL,
     first_name character varying(256) NOT NULL default '',
     last_name character varying(256) NOT NULL default '',
-    referral_id character varying(256),
+    referral_id character varying(256) default '',
     withdrawal_addresss character varying(256) NOT NULL default '',
-    balance bigint NOT NULL,
-    principal bigint NOT NULL
+    balance bigint NOT NULL default 0,
+    principal bigint NOT NULL default 0,
+    matured_principal bigint not null default 0
 );
 
 CREATE TABLE IF NOT EXISTS wallet 
@@ -103,8 +104,6 @@ create table if not exists investment (
     date bigint not null,
     activation_date bigint not null
 );
-
-alter table account add matured_principal bigint not null;
 
 create table if not exists weekly_payout (
     id character varying(63) not null primary key,

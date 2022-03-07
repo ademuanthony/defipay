@@ -18,16 +18,13 @@ import (
 
 func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) error {
 	account := models.Account{
-		ID:               uuid.NewString(),
-		ReferralID:       null.StringFrom(input.ReferralID),
-		Username:         input.Username,
-		Password:         input.Password,
-		Email:            input.Email,
-		PhoneNumber:      input.PhoneNumber,
-		CreatedAt:        time.Now().Unix(),
-		MaturedPrincipal: 0,
-		Balance:          0,
-		Principal:        0,
+		ID:          uuid.NewString(),
+		ReferralID:  null.StringFrom(input.ReferralID),
+		Username:    input.Username,
+		Password:    input.Password,
+		Email:       input.Email,
+		PhoneNumber: input.PhoneNumber,
+		CreatedAt:   time.Now().Unix(),
 	}
 
 	tx, err := pg.Db.Begin()
@@ -42,6 +39,7 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 	}
 
 	wallet := models.Wallet{
+		ID:         uuid.NewString(),
 		AccountID:  account.ID,
 		Address:    input.WalletAddress,
 		PrivateKey: input.PrivateKey,
