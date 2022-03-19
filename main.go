@@ -17,7 +17,6 @@ import (
 	"github.com/didip/tollbooth/limiter"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -59,9 +58,6 @@ func _main(ctx context.Context) error {
 	// configure firebase
 	var wg sync.WaitGroup
 	webMux := chi.NewRouter()
-
-	webMux.Use(cors.AllowAll().Handler)
-
 	webServer, err := web.NewServer(web.Config{
 		CacheControlMaxAge: int64(cfg.CacheControlMaxAge),
 		Viewsfolder:        "./views",
@@ -104,11 +100,27 @@ func _main(ctx context.Context) error {
 	return nil
 }
 
+func CORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Credentials", "true")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+
+		if r.Method == "OPTIONS" {
+			http.Error(w, "No Content", http.StatusNoContent)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
 func listenAndServeProto(ctx context.Context, wg *sync.WaitGroup, listen, proto string, mux http.Handler) {
 	// Try to bind web server
 	server := http.Server{
 		Addr:         listen,
-		Handler:      mux,
+		Handler:      CORS(mux.ServeHTTP),
 		ReadTimeout:  5 * time.Second,  // slow requests should not hold connections opened
 		WriteTimeout: 60 * time.Second, // hung responses must die
 	}
