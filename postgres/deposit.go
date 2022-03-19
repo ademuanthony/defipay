@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
 func (pg PgDb) GetWellatByAddress(ctx context.Context, address string) (*models.Wallet, error) {
@@ -38,4 +39,20 @@ func (pg PgDb) CreateDeposit(ctx context.Context, accountID, txHash string, amou
 	}
 
 	return nil
+}
+
+func (pg PgDb) GetWalletByAddresses(ctx context.Context) ([]string, error) {
+	wallets, err := models.Wallets(
+		qm.Select(models.WalletColumns.Address),
+	).All(ctx, pg.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	var addresses []string
+	for _, wallet := range wallets {
+		addresses = append(addresses, wallet.Address)
+	}
+
+	return addresses, nil
 }

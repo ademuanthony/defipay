@@ -35,6 +35,7 @@ type store interface {
 	Withdraw(ctx context.Context, accountID string, amount int64) error
 	Withdrawals(ctx context.Context, accountID string, offset, limit int) ([]*models.Withdrawal, int64, error)
 
+	GetWalletByAddresses(ctx context.Context) ([]string, error)
 	GetWellatByAddress(ctx context.Context, address string) (*models.Wallet, error)
 	CreateDeposit(ctx context.Context, accountID, txHash string, amount int64) error
 }

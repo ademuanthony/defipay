@@ -110,3 +110,6 @@ create table if not exists weekly_payout (
     date bigint not null,
     amount bigint not null
 );
+
+alter table account add referral_id_2 character varying(256) default ''
+alter table account add referral_id_3 character varying(256) default ''

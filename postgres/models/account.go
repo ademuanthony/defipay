@@ -37,6 +37,8 @@ type Account struct {
 	Email              string      `boil:"email" json:"email" toml:"email" yaml:"email"`
 	PhoneNumber        string      `boil:"phone_number" json:"phone_number" toml:"phone_number" yaml:"phone_number"`
 	MaturedPrincipal   int64       `boil:"matured_principal" json:"matured_principal" toml:"matured_principal" yaml:"matured_principal"`
+	ReferralID2        null.String `boil:"referral_id_2" json:"referral_id_2,omitempty" toml:"referral_id_2" yaml:"referral_id_2,omitempty"`
+	ReferralID3        null.String `boil:"referral_id_3" json:"referral_id_3,omitempty" toml:"referral_id_3" yaml:"referral_id_3,omitempty"`
 
 	R *accountR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L accountL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -56,6 +58,8 @@ var AccountColumns = struct {
 	Email              string
 	PhoneNumber        string
 	MaturedPrincipal   string
+	ReferralID2        string
+	ReferralID3        string
 }{
 	ID:                 "id",
 	Username:           "username",
@@ -70,6 +74,8 @@ var AccountColumns = struct {
 	Email:              "email",
 	PhoneNumber:        "phone_number",
 	MaturedPrincipal:   "matured_principal",
+	ReferralID2:        "referral_id_2",
+	ReferralID3:        "referral_id_3",
 }
 
 var AccountTableColumns = struct {
@@ -86,6 +92,8 @@ var AccountTableColumns = struct {
 	Email              string
 	PhoneNumber        string
 	MaturedPrincipal   string
+	ReferralID2        string
+	ReferralID3        string
 }{
 	ID:                 "account.id",
 	Username:           "account.username",
@@ -100,6 +108,8 @@ var AccountTableColumns = struct {
 	Email:              "account.email",
 	PhoneNumber:        "account.phone_number",
 	MaturedPrincipal:   "account.matured_principal",
+	ReferralID2:        "account.referral_id_2",
+	ReferralID3:        "account.referral_id_3",
 }
 
 // Generated where
@@ -188,6 +198,8 @@ var AccountWhere = struct {
 	Email              whereHelperstring
 	PhoneNumber        whereHelperstring
 	MaturedPrincipal   whereHelperint64
+	ReferralID2        whereHelpernull_String
+	ReferralID3        whereHelpernull_String
 }{
 	ID:                 whereHelperstring{field: "\"account\".\"id\""},
 	Username:           whereHelperstring{field: "\"account\".\"username\""},
@@ -202,6 +214,8 @@ var AccountWhere = struct {
 	Email:              whereHelperstring{field: "\"account\".\"email\""},
 	PhoneNumber:        whereHelperstring{field: "\"account\".\"phone_number\""},
 	MaturedPrincipal:   whereHelperint64{field: "\"account\".\"matured_principal\""},
+	ReferralID2:        whereHelpernull_String{field: "\"account\".\"referral_id_2\""},
+	ReferralID3:        whereHelpernull_String{field: "\"account\".\"referral_id_3\""},
 }
 
 // AccountRels is where relationship names are stored.
@@ -249,9 +263,9 @@ func (*accountR) NewStruct() *accountR {
 type accountL struct{}
 
 var (
-	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number", "matured_principal"}
+	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number", "matured_principal", "referral_id_2", "referral_id_3"}
 	accountColumnsWithoutDefault = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email"}
-	accountColumnsWithDefault    = []string{"phone_number", "matured_principal"}
+	accountColumnsWithDefault    = []string{"phone_number", "matured_principal", "referral_id_2", "referral_id_3"}
 	accountPrimaryKeyColumns     = []string{"id"}
 )
 

@@ -18,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -93,7 +94,8 @@ func _main(ctx context.Context) error {
 	// starting here if the block explorer is disable.
 	// The action here assumes that all other modules has being configured
 	webServer.BuildRoute()
-	listenAndServeProto(ctx, &wg, cfg.APIListen, cfg.APIProto, webMux)
+	handler := cors.Default().Handler(webMux)
+	listenAndServeProto(ctx, &wg, cfg.APIListen, cfg.APIProto, handler)
 
 	wg.Wait()
 

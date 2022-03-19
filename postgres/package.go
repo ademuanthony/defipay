@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 	"time"
@@ -92,15 +94,46 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	if acc.ReferralID.String != "" {
-		refAmount := pkg.Price / 2
-		if err := pg.CreditAccountTx(ctx, tx, acc.ReferralID.String, refAmount,
-			date.Unix(), "referral earning from "+acc.Username); err != nil {
+		if err := pg.payReferrer(ctx, tx, acc.Username, date.Unix(), acc.ReferralID.String, pkg.Price, 1); err != nil {
 			tx.Rollback()
-			return err
+			return fmt.Errorf("payReferrer %v", err)
 		}
 	}
 
 	return tx.Commit()
+}
+
+func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, payerUsername string, date int64, refId string, subAmount int64, level int) error {
+	// first level is 15%
+	if level > 3 {
+		return nil
+	}
+	var percentage int64
+
+	switch level {
+	case 1:
+		percentage = 15
+	case 2:
+		percentage = 10
+	case 3:
+		percentage = 5
+	}
+
+	amount := subAmount*percentage/100
+
+	if err := pg.CreditAccountTx(ctx, tx, refId, amount,
+		date, "referral earning from "+payerUsername); err != nil {
+		tx.Rollback()
+		return err
+	}
+	acc, err := models.FindAccount(ctx, tx, refId)
+	if err == sql.ErrNoRows {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return pg.payReferrer(ctx, tx, payerUsername, date, acc.ReferralID.String, subAmount, level+1)
 }
 
 func (pg PgDb) ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error) {

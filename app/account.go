@@ -1,6 +1,7 @@
 package app
 
 import (
+	"database/sql"
 	"encoding/json"
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
@@ -11,13 +12,15 @@ import (
 
 type CreateAccountInput struct {
 	ReferralID  string `json:"referralId"`
+	ReferralID2 string `json:"-"`
+	ReferralID3 string `json:"-"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
 	Username    string `json:"username"`
 	Password    string `json:"password"`
 
-	WalletAddress string `json:"_"`
-	PrivateKey    string `json:"_"`
+	WalletAddress string `json:"-"`
+	PrivateKey    string `json:"-"`
 }
 
 type LoginRequst struct {
@@ -81,10 +84,18 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.ReferralID != "" {
-		_, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+		ref1, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
 		if err != nil {
 			web.SendErrorfJSON(w, "Invalid referral ID, please try again")
 			return
+		}
+
+		input.ReferralID = ref1.ID
+		input.ReferralID2 = ref1.ReferralID.String
+
+		ref2, err := m.db.GetAccount(r.Context(), ref1.ReferralID.String)
+		if err != sql.ErrNoRows && err != nil {
+			input.ReferralID3 = ref2.ID
 		}
 	}
 

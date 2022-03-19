@@ -20,6 +20,8 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 	account := models.Account{
 		ID:          uuid.NewString(),
 		ReferralID:  null.StringFrom(input.ReferralID),
+		ReferralID2: null.StringFrom(input.ReferralID2),
+		ReferralID3: null.StringFrom(input.ReferralID3),
 		Username:    input.Username,
 		Password:    input.Password,
 		Email:       input.Email,

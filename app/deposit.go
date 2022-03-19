@@ -8,6 +8,7 @@ import (
 	"merryworld/metatradas/web"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -46,16 +47,33 @@ func (m module) watchDeposit() {
 
 	var sink = make(chan *dfc.DfcTransfer)
 
-	sub, err := dfcToken.WatchTransfer(&bind.WatchOpts{}, sink, nil, nil)
-	if err != nil {
-		log.Error("watchTranfer", err)
-		return
-	}
+	go func() {
+		for {
+			func() {
+				addresses, err := m.db.GetWalletByAddresses(context.Background())
+				if err != nil {
+					log.Error("GetWalletByAddresses", err)
+				}
 
-	defer sub.Unsubscribe()
+				var toAddresses []common.Address
+				for _, add := range addresses {
+					toAddresses = append(toAddresses, common.HexToAddress(add))
+				}
+
+				sub, err := dfcToken.WatchTransfer(&bind.WatchOpts{}, sink, nil, toAddresses)
+				if err != nil {
+					log.Error("watchTranfer", err)
+					return
+				}
+				defer sub.Unsubscribe()
+				time.Sleep(5*time.Minute)
+			}()
+		}
+	}()
 
 	for {
 		tx := <-sink
+		log.Info("processing deposit at" + tx.To.Hex())
 		// mi deposit is 20$
 		if tx.Value.Div(tx.Value, big.NewInt(1e18)).Int64() < 20 {
 			continue
