@@ -17,8 +17,8 @@ import (
 	"github.com/didip/tollbooth/limiter"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 )
 
 func main() {
@@ -59,6 +59,9 @@ func _main(ctx context.Context) error {
 	// configure firebase
 	var wg sync.WaitGroup
 	webMux := chi.NewRouter()
+
+	webMux.Use(cors.AllowAll().Handler)
+
 	webServer, err := web.NewServer(web.Config{
 		CacheControlMaxAge: int64(cfg.CacheControlMaxAge),
 		Viewsfolder:        "./views",
@@ -94,8 +97,7 @@ func _main(ctx context.Context) error {
 	// starting here if the block explorer is disable.
 	// The action here assumes that all other modules has being configured
 	webServer.BuildRoute()
-	handler := cors.Default().Handler(webMux)
-	listenAndServeProto(ctx, &wg, cfg.APIListen, cfg.APIProto, handler)
+	listenAndServeProto(ctx, &wg, cfg.APIListen, cfg.APIProto, webMux)
 
 	wg.Wait()
 

@@ -5,10 +5,12 @@ go 1.17
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/decred/slog v1.2.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dustin/go-humanize v1.0.0
 	github.com/ethereum/go-ethereum v1.10.16
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-chi/chi v1.5.4
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/csrf v1.7.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/jessevdk/go-flags v1.5.0
@@ -23,10 +25,9 @@ require (
 )
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/go-chi/cors v1.2.0 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
@@ -47,7 +48,6 @@ require (
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/go-ole/go-ole v1.2.1 // indirect

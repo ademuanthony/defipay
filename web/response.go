@@ -75,6 +75,10 @@ func renderJSON(res http.ResponseWriter, data interface{}) {
 	}
 
 	res.Header().Set("Content-Type", "application/json")
+	// TODO: use a lib for better security
+	res.Header().Set("Access-Control-Allow-Origin", "*")
+	res.Header().Set("Access-Control-Allow-Methods", "*")
+	res.Header().Set("Access-Control-Allow-Headers", "*")
 	_, _ = res.Write(d)
 }
 
