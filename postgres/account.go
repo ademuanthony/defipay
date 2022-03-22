@@ -96,6 +96,12 @@ func (pg PgDb) UpdateAccountDetail(ctx context.Context, accountID string, input 
 	return err
 }
 
+func (pg PgDb) GetRefferalCount(ctx context.Context, accountID string) (int64, error) {
+	return models.Accounts(
+		models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)),
+	).Count(ctx, pg.Db)
+}
+
 func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error) {
 	return models.Wallets(models.WalletWhere.AccountID.EQ(accountID)).One(ctx, pg.Db)
 }

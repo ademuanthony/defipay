@@ -191,6 +191,16 @@ func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, account)
 }
 
+func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
+	count, err := m.db.GetRefferalCount(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		log.Critical("GetRefferalCount", "m.db.GetRefferalCount", err)
+		web.SendErrorfJSON(w, "Error in getting referral count. Please try again later")
+		return
+	}
+	web.SendJSON(w, count)
+}
+
 func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
 	count, err := m.db.GetAllAccountsCount(r.Context())
 	if err != nil {
