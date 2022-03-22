@@ -39,6 +39,7 @@ type Account struct {
 	MaturedPrincipal   int64       `boil:"matured_principal" json:"matured_principal" toml:"matured_principal" yaml:"matured_principal"`
 	ReferralID2        null.String `boil:"referral_id_2" json:"referral_id_2,omitempty" toml:"referral_id_2" yaml:"referral_id_2,omitempty"`
 	ReferralID3        null.String `boil:"referral_id_3" json:"referral_id_3,omitempty" toml:"referral_id_3" yaml:"referral_id_3,omitempty"`
+	Role               null.Int    `boil:"role" json:"role,omitempty" toml:"role" yaml:"role,omitempty"`
 
 	R *accountR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L accountL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -60,6 +61,7 @@ var AccountColumns = struct {
 	MaturedPrincipal   string
 	ReferralID2        string
 	ReferralID3        string
+	Role               string
 }{
 	ID:                 "id",
 	Username:           "username",
@@ -76,6 +78,7 @@ var AccountColumns = struct {
 	MaturedPrincipal:   "matured_principal",
 	ReferralID2:        "referral_id_2",
 	ReferralID3:        "referral_id_3",
+	Role:               "role",
 }
 
 var AccountTableColumns = struct {
@@ -94,6 +97,7 @@ var AccountTableColumns = struct {
 	MaturedPrincipal   string
 	ReferralID2        string
 	ReferralID3        string
+	Role               string
 }{
 	ID:                 "account.id",
 	Username:           "account.username",
@@ -110,6 +114,7 @@ var AccountTableColumns = struct {
 	MaturedPrincipal:   "account.matured_principal",
 	ReferralID2:        "account.referral_id_2",
 	ReferralID3:        "account.referral_id_3",
+	Role:               "account.role",
 }
 
 // Generated where
@@ -184,6 +189,30 @@ func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
 func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
+type whereHelpernull_Int struct{ field string }
+
+func (w whereHelpernull_Int) EQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Int) NEQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Int) LT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Int) LTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Int) GT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Int) GTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var AccountWhere = struct {
 	ID                 whereHelperstring
 	Username           whereHelperstring
@@ -200,6 +229,7 @@ var AccountWhere = struct {
 	MaturedPrincipal   whereHelperint64
 	ReferralID2        whereHelpernull_String
 	ReferralID3        whereHelpernull_String
+	Role               whereHelpernull_Int
 }{
 	ID:                 whereHelperstring{field: "\"account\".\"id\""},
 	Username:           whereHelperstring{field: "\"account\".\"username\""},
@@ -216,6 +246,7 @@ var AccountWhere = struct {
 	MaturedPrincipal:   whereHelperint64{field: "\"account\".\"matured_principal\""},
 	ReferralID2:        whereHelpernull_String{field: "\"account\".\"referral_id_2\""},
 	ReferralID3:        whereHelpernull_String{field: "\"account\".\"referral_id_3\""},
+	Role:               whereHelpernull_Int{field: "\"account\".\"role\""},
 }
 
 // AccountRels is where relationship names are stored.
@@ -263,9 +294,9 @@ func (*accountR) NewStruct() *accountR {
 type accountL struct{}
 
 var (
-	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number", "matured_principal", "referral_id_2", "referral_id_3"}
+	accountAllColumns            = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email", "phone_number", "matured_principal", "referral_id_2", "referral_id_3", "role"}
 	accountColumnsWithoutDefault = []string{"id", "username", "password", "created_at", "first_name", "last_name", "referral_id", "withdrawal_addresss", "balance", "principal", "email"}
-	accountColumnsWithDefault    = []string{"phone_number", "matured_principal", "referral_id_2", "referral_id_3"}
+	accountColumnsWithDefault    = []string{"phone_number", "matured_principal", "referral_id_2", "referral_id_3", "role"}
 	accountPrimaryKeyColumns     = []string{"id"}
 )
 
