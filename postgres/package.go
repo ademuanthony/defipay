@@ -41,7 +41,9 @@ func (pg PgDb) PatchPackage(ctx context.Context, id string, input app.UpdatePack
 }
 
 func (pg PgDb) GetPackages(ctx context.Context) ([]*models.Package, error) {
-	packages, err := models.Packages().All(ctx, pg.Db)
+	packages, err := models.Packages(
+		qm.OrderBy(models.PackageColumns.Price + " desc"),
+	).All(ctx, pg.Db)
 	if err != nil {
 		return nil, err
 	}
