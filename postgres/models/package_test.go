@@ -581,7 +581,7 @@ func testPackagesSelect(t *testing.T) {
 }
 
 var (
-	packageDBTypes = map[string]string{`ID`: `character varying`, `Name`: `character varying`, `Price`: `bigint`, `MinReturnPerMonth`: `integer`, `MaxReturnPerMonth`: `integer`, `TradesPerDay`: `integer`, `Accuracy`: `integer`}
+	packageDBTypes = map[string]string{`ID`: `character varying`, `Name`: `character varying`, `Price`: `bigint`, `MinReturnPerMonth`: `integer`, `MaxReturnPerMonth`: `integer`, `TradesPerDay`: `integer`, `Accuracy`: `integer`, `Icon`: `character varying`}
 	_              = bytes.MinRead
 )
 

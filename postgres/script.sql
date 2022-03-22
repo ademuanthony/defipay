@@ -114,3 +114,4 @@ create table if not exists weekly_payout (
 alter table account add referral_id_2 character varying(256) default '';
 alter table account add referral_id_3 character varying(256) default '';
 alter table account add role int default 0;
+alter table package add icon character varying(256) default '';

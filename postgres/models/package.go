@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,13 +24,14 @@ import (
 
 // Package is an object representing the database table.
 type Package struct {
-	ID                string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name              string `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Price             int64  `boil:"price" json:"price" toml:"price" yaml:"price"`
-	MinReturnPerMonth int    `boil:"min_return_per_month" json:"min_return_per_month" toml:"min_return_per_month" yaml:"min_return_per_month"`
-	MaxReturnPerMonth int    `boil:"max_return_per_month" json:"max_return_per_month" toml:"max_return_per_month" yaml:"max_return_per_month"`
-	TradesPerDay      int    `boil:"trades_per_day" json:"trades_per_day" toml:"trades_per_day" yaml:"trades_per_day"`
-	Accuracy          int    `boil:"accuracy" json:"accuracy" toml:"accuracy" yaml:"accuracy"`
+	ID                string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name              string      `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Price             int64       `boil:"price" json:"price" toml:"price" yaml:"price"`
+	MinReturnPerMonth int         `boil:"min_return_per_month" json:"min_return_per_month" toml:"min_return_per_month" yaml:"min_return_per_month"`
+	MaxReturnPerMonth int         `boil:"max_return_per_month" json:"max_return_per_month" toml:"max_return_per_month" yaml:"max_return_per_month"`
+	TradesPerDay      int         `boil:"trades_per_day" json:"trades_per_day" toml:"trades_per_day" yaml:"trades_per_day"`
+	Accuracy          int         `boil:"accuracy" json:"accuracy" toml:"accuracy" yaml:"accuracy"`
+	Icon              null.String `boil:"icon" json:"icon,omitempty" toml:"icon" yaml:"icon,omitempty"`
 
 	R *packageR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L packageL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -43,6 +45,7 @@ var PackageColumns = struct {
 	MaxReturnPerMonth string
 	TradesPerDay      string
 	Accuracy          string
+	Icon              string
 }{
 	ID:                "id",
 	Name:              "name",
@@ -51,6 +54,7 @@ var PackageColumns = struct {
 	MaxReturnPerMonth: "max_return_per_month",
 	TradesPerDay:      "trades_per_day",
 	Accuracy:          "accuracy",
+	Icon:              "icon",
 }
 
 var PackageTableColumns = struct {
@@ -61,6 +65,7 @@ var PackageTableColumns = struct {
 	MaxReturnPerMonth string
 	TradesPerDay      string
 	Accuracy          string
+	Icon              string
 }{
 	ID:                "package.id",
 	Name:              "package.name",
@@ -69,6 +74,7 @@ var PackageTableColumns = struct {
 	MaxReturnPerMonth: "package.max_return_per_month",
 	TradesPerDay:      "package.trades_per_day",
 	Accuracy:          "package.accuracy",
+	Icon:              "package.icon",
 }
 
 // Generated where
@@ -81,6 +87,7 @@ var PackageWhere = struct {
 	MaxReturnPerMonth whereHelperint
 	TradesPerDay      whereHelperint
 	Accuracy          whereHelperint
+	Icon              whereHelpernull_String
 }{
 	ID:                whereHelperstring{field: "\"package\".\"id\""},
 	Name:              whereHelperstring{field: "\"package\".\"name\""},
@@ -89,6 +96,7 @@ var PackageWhere = struct {
 	MaxReturnPerMonth: whereHelperint{field: "\"package\".\"max_return_per_month\""},
 	TradesPerDay:      whereHelperint{field: "\"package\".\"trades_per_day\""},
 	Accuracy:          whereHelperint{field: "\"package\".\"accuracy\""},
+	Icon:              whereHelpernull_String{field: "\"package\".\"icon\""},
 }
 
 // PackageRels is where relationship names are stored.
@@ -112,9 +120,9 @@ func (*packageR) NewStruct() *packageR {
 type packageL struct{}
 
 var (
-	packageAllColumns            = []string{"id", "name", "price", "min_return_per_month", "max_return_per_month", "trades_per_day", "accuracy"}
+	packageAllColumns            = []string{"id", "name", "price", "min_return_per_month", "max_return_per_month", "trades_per_day", "accuracy", "icon"}
 	packageColumnsWithoutDefault = []string{"id", "name", "price", "min_return_per_month", "max_return_per_month", "trades_per_day", "accuracy"}
-	packageColumnsWithDefault    = []string{}
+	packageColumnsWithDefault    = []string{"icon"}
 	packagePrimaryKeyColumns     = []string{"id"}
 )
 
