@@ -11,7 +11,7 @@ import (
 )
 
 type CreateAccountInput struct {
-	ReferralID  string `json:"referralId"`
+	ReferralID  string `json:"referral_id"`
 	ReferralID2 string `json:"-"`
 	ReferralID3 string `json:"-"`
 	Email       string `json:"email"`
