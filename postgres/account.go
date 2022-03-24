@@ -124,7 +124,7 @@ func (pg PgDb) GetTeamInformation(ctx context.Context, accountID string) (*app.T
 		return nil, err
 	}
 
-	statement := "select sum(principal) as principal from account where referral_id = $1"
+	statement := "select coalesce(sum(principal), 0) as principal from account where referral_id = $1"
 	acc, err := models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -134,7 +134,7 @@ func (pg PgDb) GetTeamInformation(ctx context.Context, accountID string) (*app.T
 		p1 = acc.Principal
 	}
 
-	statement = "select sum(principal) as principal from account where referral_id_2 = $1"
+	statement = "select coalesce(sum(principal), 0) as principal from account where referral_id_2 = $1"
 	acc, err = models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
@@ -144,7 +144,7 @@ func (pg PgDb) GetTeamInformation(ctx context.Context, accountID string) (*app.T
 		p2 = acc.Principal
 	}
 
-	statement = "select sum(principal) as principal from account where referral_id_3 = $1"
+	statement = "select coalesce(sum(principal), 0) as principal from account where referral_id_3 = $1"
 	acc, err = models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
