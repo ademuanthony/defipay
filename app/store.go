@@ -13,7 +13,7 @@ type store interface {
 	GetAccountByUsername(ctx context.Context, username string) (*models.Account, error)
 	UpdateAccountDetail(ctx context.Context, accountID string, input UpdateDetailInput) error
 	GetRefferalCount(ctx context.Context, accountID string) (int64, error)
-	GetTeamInformation(ctx context.Context, accountID string) (TeamInfo, error)
+	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 
 	GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error)
 	GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error)
