@@ -35,6 +35,16 @@ type UpdateDetailInput struct {
 	WithdrawalAddress string `json:"withdrawal_addresss"`
 }
 
+type TeamInfo struct {
+	FirstGeneration   int64 `json:"first_generation"`
+	SecoundGeneration int64 `json:"secound_generation"`
+	ThirdGeneration   int64 `json:"third_generation"`
+
+	Pool1 int64 `json:"pool1"`
+	Pool2 int64 `json:"pool2"`
+	Pool3 int64 `json:"pool3"`
+}
+
 func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var input CreateAccountInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -199,6 +209,16 @@ func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.SendJSON(w, count)
+}
+
+func (m module) TeamInformation(w http.ResponseWriter, r *http.Request) {
+	info, err := m.db.GetTeamInformation(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		log.Critical("GetTeamInformation", "m.db.GetTeamInformation", err)
+		web.SendErrorfJSON(w, "Error in getting team information. Please try again later")
+		return
+	}
+	web.SendJSON(w, info)
 }
 
 func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {

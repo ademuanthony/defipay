@@ -102,6 +102,68 @@ func (pg PgDb) GetRefferalCount(ctx context.Context, accountID string) (int64, e
 	).Count(ctx, pg.Db)
 }
 
+func (pg PgDb) GetTeamInformation(ctx context.Context, accountID string) (*app.TeamInfo, error) {
+	g1, err := models.Accounts(
+		models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)),
+	).Count(ctx, pg.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	g2, err := models.Accounts(
+		models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID)),
+	).Count(ctx, pg.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	g3, err := models.Accounts(
+		models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID)),
+	).Count(ctx, pg.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	statement := "select sum(principal) as principal from account where referral_id = $1"
+	acc, err := models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	var p1 int64
+	if acc != nil {
+		p1 = acc.Principal
+	}
+
+	statement = "select sum(principal) as principal from account where referral_id_2 = $1"
+	acc, err = models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	var p2 int64
+	if acc != nil {
+		p2 = acc.Principal
+	}
+
+	statement = "select sum(principal) as principal from account where referral_id_3 = $1"
+	acc, err = models.Accounts(qm.SQL(statement, accountID)).One(ctx, pg.Db)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	var p3 int64
+	if acc != nil {
+		p3 = acc.Principal
+	}
+
+	return &app.TeamInfo{
+		FirstGeneration:   g1,
+		SecoundGeneration: g2,
+		ThirdGeneration:   g3,
+		Pool1:             p1,
+		Pool2:             p2,
+		Pool3:             p3,
+	}, nil
+}
+
 func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error) {
 	return models.Wallets(models.WalletWhere.AccountID.EQ(accountID)).One(ctx, pg.Db)
 }
