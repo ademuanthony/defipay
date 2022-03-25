@@ -311,7 +311,7 @@ func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
 		return errors.New("no investment was released")
 	}
 
-	statement := `update account set balance = balance + $1, principal = principal - $1 where id = $2`
+	statement := `update account set balance = balance + $1, principal = principal - $1, matured_principal = matured_principal - $1 where id = $2`
 	if _, err = models.Accounts(qm.SQL(statement, investment.Amount, investment.AccountID)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
