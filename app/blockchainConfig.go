@@ -8,4 +8,5 @@ type BlockchainConfig struct {
 	// PremiumPrivateKey  string `long:"PREMIUM_PRIVATE_KEY" env:"PREMIUM_PRIVATE_KEY"`
 	PrivateWallet      string `long:"RESERVE_WALLET" env:"RESERVE_WALLET"`
 	// PremiumWallet      string `long:"PREMIUM_ADDRESS" env:"PREMIUM_ADDRESS"`
+	USDTContractAddress string `long:"USDT_CONTRACT_ADDRESS" env:"USDT_CONTRACT_ADDRESS"`
 }

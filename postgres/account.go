@@ -171,6 +171,7 @@ func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models
 func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error) {
 	deposits, err := models.Deposits(
 		models.DepositWhere.AccountID.EQ(accountID),
+		qm.OrderBy(models.DepositColumns.Date + " desc"),
 		qm.Limit(limit), qm.Offset(offset),
 	).All(ctx, pg.Db)
 

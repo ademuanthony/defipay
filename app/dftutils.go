@@ -18,7 +18,7 @@ import (
 
 var (
 	dfcContractAddress = common.HexToAddress("0x996c1bf72Ec220289ae0edd3a8d77080642121a2")
-	tokenTransferFee   = "0.000192"
+	tokenTransferFee   = "0.00036274" // automate the extimate
 )
 
 func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, error) {
@@ -105,13 +105,7 @@ func dfcToDecimal(eth *big.Float) *big.Int {
 
 
 func (m module) sendTokenTransferFee(ctx context.Context, address string) error {
-	feeFloat, err := ParseBigFloat(tokenTransferFee)
-	if err != nil {
-		log.Error(err)
-		return errors.New("Error in processing payment. Please try again later or contact the admin for help")
-	}
-
-	amount := etherToWei(feeFloat)
+	amount := m.feeAmount()
 
 	bal, err := m.checkBalance(ctx, address)
 	if err != nil {
@@ -126,7 +120,16 @@ func (m module) sendTokenTransferFee(ctx context.Context, address string) error 
 		return err
 	}
 
-	return errors.New("fee just sent")
+	return nil
+}
+
+func (m module) feeAmount() *big.Int {
+	feeFloat, err := ParseBigFloat(tokenTransferFee)
+	if err != nil {
+		panic(err)
+	}
+
+	return etherToWei(feeFloat)
 }
 
 func (m module) transferDfc(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {

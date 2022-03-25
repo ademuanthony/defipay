@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"merryworld/metatradas/postgres/models"
 	"time"
 
@@ -11,7 +12,8 @@ import (
 )
 
 func (pg PgDb) GetWellatByAddress(ctx context.Context, address string) (*models.Wallet, error) {
-	return models.Wallets(models.WalletWhere.Address.EQ(address)).One(ctx, pg.Db)
+	where := fmt.Sprintf("lower(%s) = lower($1)", models.WalletColumns.Address)
+	return models.Wallets(qm.Where(where, address)).One(ctx, pg.Db)
 }
 
 func (pg PgDb) CreateDeposit(ctx context.Context, accountID, txHash string, amount int64) error {
@@ -31,14 +33,16 @@ func (pg PgDb) CreateDeposit(ctx context.Context, accountID, txHash string, amou
 	}
 
 	if deposit.Insert(ctx, tx, boil.Infer()); err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	if err := pg.CreditAccountTx(ctx, tx, accountID, amount, date, "deposit ref: "+txHash); err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (pg PgDb) GetWalletByAddresses(ctx context.Context) ([]string, error) {
