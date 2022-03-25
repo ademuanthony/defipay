@@ -275,6 +275,11 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := m.db.ActiveSubscription(r.Context(), acc.ID); err != nil {
+		web.SendErrorfJSON(w, "You do not have an active subscription")
+		return;
+	}
+
 	if acc.Balance < input.Amount {
 		web.SendErrorfJSON(w, "Insufficient fund. Please deposit fund to continue")
 		return
