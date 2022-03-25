@@ -348,6 +348,13 @@ func (m module) MyInvestments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, inv := range rec {
+		mDate := time.Unix(inv.Date, 0).Add(30 * 24 * time.Hour)
+		if time.Now().Unix() >= mDate.Unix() && inv.Status == 0 {
+			inv.Status = 1
+		}
+	}
+
 	web.SendPagedJSON(w, rec, total)
 }
 
