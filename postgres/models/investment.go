@@ -28,6 +28,7 @@ type Investment struct {
 	Amount         int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Date           int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
 	ActivationDate int64  `boil:"activation_date" json:"activation_date" toml:"activation_date" yaml:"activation_date"`
+	Status         int    `boil:"status" json:"status" toml:"status" yaml:"status"`
 
 	R *investmentR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L investmentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +40,14 @@ var InvestmentColumns = struct {
 	Amount         string
 	Date           string
 	ActivationDate string
+	Status         string
 }{
 	ID:             "id",
 	AccountID:      "account_id",
 	Amount:         "amount",
 	Date:           "date",
 	ActivationDate: "activation_date",
+	Status:         "status",
 }
 
 var InvestmentTableColumns = struct {
@@ -53,12 +56,14 @@ var InvestmentTableColumns = struct {
 	Amount         string
 	Date           string
 	ActivationDate string
+	Status         string
 }{
 	ID:             "investment.id",
 	AccountID:      "investment.account_id",
 	Amount:         "investment.amount",
 	Date:           "investment.date",
 	ActivationDate: "investment.activation_date",
+	Status:         "investment.status",
 }
 
 // Generated where
@@ -69,12 +74,14 @@ var InvestmentWhere = struct {
 	Amount         whereHelperint64
 	Date           whereHelperint64
 	ActivationDate whereHelperint64
+	Status         whereHelperint
 }{
 	ID:             whereHelperstring{field: "\"investment\".\"id\""},
 	AccountID:      whereHelperstring{field: "\"investment\".\"account_id\""},
 	Amount:         whereHelperint64{field: "\"investment\".\"amount\""},
 	Date:           whereHelperint64{field: "\"investment\".\"date\""},
 	ActivationDate: whereHelperint64{field: "\"investment\".\"activation_date\""},
+	Status:         whereHelperint{field: "\"investment\".\"status\""},
 }
 
 // InvestmentRels is where relationship names are stored.
@@ -98,9 +105,9 @@ func (*investmentR) NewStruct() *investmentR {
 type investmentL struct{}
 
 var (
-	investmentAllColumns            = []string{"id", "account_id", "amount", "date", "activation_date"}
+	investmentAllColumns            = []string{"id", "account_id", "amount", "date", "activation_date", "status"}
 	investmentColumnsWithoutDefault = []string{"id", "account_id", "amount", "date", "activation_date"}
-	investmentColumnsWithDefault    = []string{}
+	investmentColumnsWithDefault    = []string{"status"}
 	investmentPrimaryKeyColumns     = []string{"id"}
 )
 

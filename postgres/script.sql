@@ -102,7 +102,8 @@ create table if not exists investment (
     account_id character varying(64) not null references account(id),
     amount bigint not null,
     date bigint not null,
-    activation_date bigint not null
+    activation_date bigint not null,
+    status int not null default 0
 );
 
 create table if not exists weekly_payout (

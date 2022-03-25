@@ -267,6 +267,7 @@ func (pg PgDb) Invest(ctx context.Context, accountID string, amount int64) error
 func (pg PgDb) Investments(ctx context.Context, accountId string, offset, limit int) ([]*models.Investment, int64, error) {
 	rec, err := models.Investments(
 		models.InvestmentWhere.AccountID.EQ(accountId),
+		models.InvestmentWhere.Status.EQ(0),
 		qm.Offset(offset),
 		qm.Limit(limit),
 		qm.OrderBy(models.InvestmentColumns.Date+" desc"),
@@ -282,6 +283,42 @@ func (pg PgDb) Investments(ctx context.Context, accountId string, offset, limit 
 	}
 
 	return rec, count, nil
+}
+
+func (pg PgDb) Investment(ctx context.Context, id string) (*models.Investment, error) {
+	return models.FindInvestment(ctx, pg.Db, id)
+}
+
+func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
+	investment, err := pg.Investment(ctx, id)
+	if err != nil {
+		return err
+	}
+	
+	tx, err := pg.Db.Begin()
+	if err != nil {
+		return err
+	}
+
+	no, err := investment.Delete(ctx, tx);
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if no < 1 {
+		tx.Rollback()
+		return errors.New("no investment was released")
+	}
+
+	ref := fmt.Sprintf("release of investment: %s", investment.ID)
+
+	if err := pg.CreditAccountTx(ctx, tx, investment.AccountID, investment.Amount, time.Now().Unix(), ref); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (pg PgDb) DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) {

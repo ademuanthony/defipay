@@ -6,6 +6,7 @@ import (
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,6 +44,10 @@ type TeamInfo struct {
 	Pool1 int64 `json:"pool1"`
 	Pool2 int64 `json:"pool2"`
 	Pool3 int64 `json:"pool3"`
+}
+
+type ReleaseInvestmentInput struct {
+	ID string `json:"id"`
 }
 
 func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
@@ -263,8 +268,8 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Amount <= 0 {
-		web.SendErrorfJSON(w, "Invalid amount")
+	if input.Amount <= 200000 {
+		web.SendErrorfJSON(w, "Invalid amount. Amount must be $20 or more")
 		return
 	}
 
@@ -277,7 +282,7 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := m.db.ActiveSubscription(r.Context(), acc.ID); err != nil {
 		web.SendErrorfJSON(w, "You do not have an active subscription")
-		return;
+		return
 	}
 
 	if acc.Balance < input.Amount {
@@ -288,6 +293,46 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 	if err := m.db.Invest(r.Context(), acc.ID, input.Amount); err != nil {
 		log.Critical("Invest", "Invest", err)
 		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	web.SendJSON(w, true)
+}
+
+func (m module) ReleaseInvestment(w http.ResponseWriter, r *http.Request) {
+	var input ReleaseInvestmentInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Critical("UpdatePackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error in decoding request. Please try again later")
+		return
+	}
+
+	investment, err := m.db.Investment(r.Context(), input.ID)
+	if err == sql.ErrNoRows {
+		web.SendErrorfJSON(w, "Invalid request")
+		return
+	}
+
+	if err != nil {
+		log.Critical("UpdatePackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
+		return
+	}
+
+	if investment.AccountID != m.server.GetUserIDTokenCtx(r) {
+		web.SendErrorfJSON(w, "Invalid request")
+		return
+	}
+
+	mDate := time.Unix(investment.Date, 0).Add(30 * 24 * time.Hour)
+	if time.Now().Unix() < mDate.Unix() {
+		web.SendErrorfJSON(w, "Please wait for the maturity date")
+		return
+	}
+
+	if err := m.db.ReleaseInvestment(r.Context(), input.ID); err != nil {
+		log.Critical("UpdatePackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
 		return
 	}
 

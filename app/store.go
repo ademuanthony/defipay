@@ -27,6 +27,8 @@ type store interface {
 	ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error)
 	Invest(ctx context.Context, accountID string, amount int64) error
 	Investments(ctx context.Context, accountId string, offset, limit int) ([]*models.Investment, int64, error)
+	Investment(ctx context.Context, id string) (*models.Investment, error)
+	ReleaseInvestment(ctx context.Context, id string) error
 	PopulateEarnings(ctx context.Context) error
 	DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) 
 	ProcessWeeklyPayout(ctx context.Context) error

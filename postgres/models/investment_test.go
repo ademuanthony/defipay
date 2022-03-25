@@ -536,7 +536,7 @@ func testInvestmentsSelect(t *testing.T) {
 }
 
 var (
-	investmentDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `Amount`: `bigint`, `Date`: `bigint`, `ActivationDate`: `bigint`}
+	investmentDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `Amount`: `bigint`, `Date`: `bigint`, `ActivationDate`: `bigint`, `Status`: `integer`}
 	_                 = bytes.MinRead
 )
 
