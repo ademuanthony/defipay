@@ -61,7 +61,7 @@ create table if not exists deposit
     amount bigint not null,
     account_id character varying(64) not null references account(id),
     date bigint not null,
-    ref character varying(256) not null
+    ref character varying(256) not null unique
 );
 
 create table if not exists transfer
