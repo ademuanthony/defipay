@@ -189,17 +189,17 @@ func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit 
 }
 
 func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
-	transaction := models.AccountTransaction{
-		AccountID:   accountID,
-		Amount:      amount,
-		TXType:      app.TxTypeCredit,
-		Date:        date,
-		Description: ref,
-	}
+	// transaction := models.AccountTransaction{
+	// 	AccountID:   accountID,
+	// 	Amount:      amount,
+	// 	TXType:      app.TxTypeCredit,
+	// 	Date:        date,
+	// 	Description: ref,
+	// }
 
-	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
-		return err
-	}
+	// if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
+	// 	return err
+	// }
 
 	statement := `update account set balance = balance + $1 where id = $2`
 	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, pg.Db)
