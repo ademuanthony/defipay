@@ -113,8 +113,17 @@ func (m module) GetPackages(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, packages)
 }
 
+type buyPackageInput struct {
+	ID string `json:"id"`
+}
+
 func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
-	id := r.FormValue("id")
+	var input buyPackageInput
+	if err := json.NewDecoder(r.Body).Decode(&pkg); err != nil {
+		log.Critical("BuyPackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error is decoding request. Please try again later")
+		return
+	}
 	acc, err := m.currentAccount(r)
 	if err != nil {
 		log.Info("BuyPackage", "currentAccount", err)
@@ -127,7 +136,7 @@ func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pkg, err := m.db.GetPackage(r.Context(), id)
+	pkg, err := m.db.GetPackage(r.Context(), input.ID)
 	if err != nil {
 		web.SendErrorfJSON(w, "Invalid package ID")
 		return
