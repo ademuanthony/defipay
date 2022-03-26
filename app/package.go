@@ -119,7 +119,7 @@ type buyPackageInput struct {
 
 func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 	var input buyPackageInput
-	if err := json.NewDecoder(r.Body).Decode(&pkg); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Critical("BuyPackage", "json::Decode", err)
 		web.SendErrorfJSON(w, "Error is decoding request. Please try again later")
 		return
