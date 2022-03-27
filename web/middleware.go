@@ -36,7 +36,7 @@ func (s Server) RequireLogin(next http.Handler) http.Handler {
 func (s Server) ValidAPIKey(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.FormValue("API_AUTH_KEY")
-		if key != os.Getenv("API_AUTH_KEY") {
+		if key != os.Getenv("ACCESS_SECRET") {
 			sendAuthErrorfJSON(w, "Invalid access token. Please login to continue")
 			return
 		}
