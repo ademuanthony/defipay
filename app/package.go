@@ -175,7 +175,7 @@ func (m module) createSubscriptionC250(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := m.db.CreateSubscription(r.Context(), input.PackageID, acc.ID, true); err != nil {
-		log.Error("BuyPackage", "CreateSubscription", err)
+		log.Error("createSubscriptionC250", "CreateSubscription", err)
 		web.SendErrorfJSON(w, "Error in creating subscription")
 		return
 	}

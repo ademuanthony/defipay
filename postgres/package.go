@@ -62,17 +62,17 @@ func (pg PgDb) GetPackageByName(ctx context.Context, name string) (*models.Packa
 func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error {
 	pkg, err := pg.GetPackage(ctx, packageID)
 	if err != nil {
-		return err
+		return fmt.Errorf("GetPackage %v", err)
 	}
 
 	acc, err := pg.GetAccount(ctx, accountID)
 	if err != nil {
-		return err
+		return fmt.Errorf("GetAccount %v", err)
 	}
 
 	tx, err := pg.Db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("Begin %v", err)
 	}
 
 	date := time.Now()
@@ -81,7 +81,7 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 		note := "subscription to " + pkg.Name + " package"
 		if err := pg.DebitAccountTx(ctx, tx, accountID, pkg.Price, date.Unix(), note); err != nil {
 			tx.Rollback()
-			return err
+			return fmt.Errorf("DebitAccountTx %v", err)
 		}
 	}
 
@@ -95,7 +95,7 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 
 	if err := sub.Insert(ctx, tx, boil.Infer()); err != nil {
 		tx.Rollback()
-		return err
+		return fmt.Errorf("Insert %v", err)
 	}
 
 	if acc.ReferralID.String != "" {
