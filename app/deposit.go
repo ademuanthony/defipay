@@ -107,9 +107,6 @@ func (m module) watchDeposit() {
 			continue
 		}
 
-		// $0.2 blockchain fee
-		amount = amount - 5000
-
 		if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, tx.Raw.TxHash.Hex(), amount); err != nil {
 			log.Critical("CreateDeposit", err)
 			continue
