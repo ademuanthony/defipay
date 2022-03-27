@@ -44,6 +44,79 @@ func (m module) DepositHistories(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (m module) watchBNBDeposit() {
+	for {
+		var addressCount int
+		func() {
+			ctx := context.Background()
+			addresses, err := m.db.GetWalletByAddresses(ctx)
+			if err != nil {
+				log.Error("GetWalletByAddresses", err)
+			}
+			if len(addresses) == addressCount {
+				return
+			}
+			addressCount = len(addresses)
+
+			for _, add := range addresses {
+				// check balance of each address
+				// and process those with min deposit
+				bnbBal, err := m.checkBalance(ctx, add)
+				if err != nil {
+					log.Error("checkBalance", err)
+					continue
+				}
+
+				bnbBalCopy := *bnbBal
+
+				dollarAmount, err := m.convertBnbBusd(ctx, bnbBal)
+				if err != nil {
+					log.Error("convertBnbBusd", err)
+					continue
+				}
+				clubDollar := dollarAmount.Quo(dollarAmount, big.NewInt(1e14))
+				if clubDollar.Int64() < 200000 {
+					continue
+				}
+
+				gasLimit := uint64(21000)
+
+				feeStr := "0.00000001"
+				feeFloat, err := ParseBigFloat(feeStr)
+				if err != nil {
+					log.Errorf("ParseBigFloat %v", err)
+					continue
+				}
+				gasPrice := etherToWei(feeFloat)
+
+				gasFee := gasPrice.Mul(gasPrice, big.NewInt(int64(gasLimit)))
+				amountToSend := bnbBalCopy.Sub(&bnbBalCopy, gasFee)
+
+				wallet, err := m.db.GetWellatByAddress(ctx, add)
+				if err != nil {
+					log.Error("GetWellatByAddress", err)
+					continue
+				}
+				txHash, err := m.transfer(ctx, wallet.PrivateKey, m.config.MasterAddress, amountToSend)
+				if err != nil {
+					log.Errorf("m.transfer %v", err)
+					continue
+				}
+
+				amount := clubDollar.Int64() - 5000 // 0.5$ fee
+
+				if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, txHash, amount); err != nil {
+					log.Critical("CreateDeposit", err)
+					continue
+				}
+				log.Info(amount, "bnb processed from", add)
+			}
+
+			time.Sleep(5 * time.Minute)
+		}()
+	}
+}
+
 func (m module) watchDeposit() {
 
 	dfcToken, err := usdt.NewUsdt(common.HexToAddress(os.Getenv("USDT_CONTRACT_ADDRESS")), m.client)
@@ -77,8 +150,8 @@ func (m module) watchDeposit() {
 					log.Error("watchTranfer", err)
 					return
 				}
-				log.Info("bsc watching...")
 				defer sub.Unsubscribe()
+
 				time.Sleep(5 * time.Minute)
 			}()
 		}
