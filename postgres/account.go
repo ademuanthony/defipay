@@ -349,7 +349,11 @@ func (pg PgDb) DailyEarnings(ctx context.Context, accountId string, offset, limi
 }
 
 func (pg PgDb) PopulateEarnings(ctx context.Context) error {
-
+	// no earnings on sundays
+	if now.BeginningOfDay().Weekday() == time.Sunday {
+		return nil
+	}
+	
 	date := now.BeginningOfDay().Unix()
 	count, err := models.DailyEarnings(models.DailyEarningWhere.Date.EQ(date)).Count(ctx, pg.Db)
 	if err != nil {
