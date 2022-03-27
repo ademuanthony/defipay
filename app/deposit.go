@@ -106,11 +106,12 @@ func (m module) watchDeposit() {
 			continue
 		}
 
-		_, err = m.moveBalanceToMaster(ctx, dfcToken, wallet)
+		txHash, err := m.moveBalanceToMaster(ctx, dfcToken, wallet)
 		if err != nil {
 			log.Error("moveBalanceToMaster", wallet.Address, err)
 			continue
 		}
+		log.Info("Deposit moved", txHash)
 
 		if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, tx.Raw.TxHash.Hex(), amount); err != nil {
 			log.Critical("CreateDeposit", err)
