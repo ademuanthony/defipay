@@ -102,7 +102,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	if input.ReferralID != "" {
 		ref1, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
 		if err != nil && input.From250 {
-			ref1, err = m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+			ref1, err = m.db.GetAccountByUsername(r.Context(), "main")
 		}
 
 		if err != nil {
