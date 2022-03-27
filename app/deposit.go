@@ -108,7 +108,7 @@ func (m module) watchDeposit() {
 		}
 
 		// $0.2 blockchain fee
-		amount = amount - 2000
+		amount = amount - 5000
 
 		if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, tx.Raw.TxHash.Hex(), amount); err != nil {
 			log.Critical("CreateDeposit", err)
@@ -166,7 +166,7 @@ func (m module) transferToken(ctx context.Context, privateKeyStr, to string, val
 	if err != nil {
 		return "", fmt.Errorf("bind.NewKeyedTransactorWithChainID %v", err)
 	}
-	opts.GasLimit = 60000
+	opts.GasLimit = 40000
 
 	tx, err := dfcToken.Transfer(opts, toAddress, value)
 	if err != nil {
