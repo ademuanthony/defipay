@@ -113,6 +113,8 @@ func (m module) watchDeposit() {
 		}
 		log.Info("Deposit moved", txHash)
 
+		amount = amount - 5000 // 0.5$ fee
+
 		if err := m.db.CreateDeposit(context.Background(), wallet.AccountID, tx.Raw.TxHash.Hex(), amount); err != nil {
 			log.Critical("CreateDeposit", err)
 			continue
