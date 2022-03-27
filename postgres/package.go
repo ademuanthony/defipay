@@ -62,7 +62,7 @@ func (pg PgDb) GetPackageByName(ctx context.Context, name string) (*models.Packa
 func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error {
 	pkg, err := pg.GetPackage(ctx, packageID)
 	if err != nil {
-		return fmt.Errorf("GetPackage %v", err)
+		return fmt.Errorf("GetPackage %v - %s", err, packageID)
 	}
 
 	acc, err := pg.GetAccount(ctx, accountID)
