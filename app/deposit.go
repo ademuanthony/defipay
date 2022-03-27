@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"merryworld/metatradas/app/usdt"
@@ -159,7 +160,7 @@ func (m module) watchDeposit() {
 
 	for {
 		tx := <-sink
-		
+
 		log.Info("processing deposit at " + tx.To.Hex())
 		amount := tx.Value.Quo(tx.Value, big.NewInt(1e14)).Int64()
 		// mi deposit is 20$
@@ -180,10 +181,15 @@ func (m module) watchDeposit() {
 			continue
 		}
 
-		txHash, err := m.moveBalanceToMaster(ctx, dfcToken, wallet)
+		txHash, err := m.moveBalanceToMaster(ctx, dfcToken, wallet, 1)
 		if err != nil {
-			log.Error("moveBalanceToMaster", wallet.Address, err)
-			continue
+			if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
+				txHash, err = m.moveBalanceToMaster(ctx, dfcToken, wallet, 2)
+			}
+			if err != nil {
+				log.Error("moveBalanceToMaster", wallet.Address, err)
+				continue
+			}
 		}
 		log.Info("Deposit moved", txHash)
 
@@ -197,7 +203,7 @@ func (m module) watchDeposit() {
 
 }
 
-func (m module) moveBalanceToMaster(ctx context.Context, token *usdt.Usdt, wallet *models.Wallet) (string, error) {
+func (m module) moveBalanceToMaster(ctx context.Context, token *usdt.Usdt, wallet *models.Wallet, attempt int) (string, error) {
 
 	bnbBal, err := m.checkBalance(ctx, wallet.Address)
 	if err != nil {
@@ -205,8 +211,8 @@ func (m module) moveBalanceToMaster(ctx context.Context, token *usdt.Usdt, walle
 		return "", errors.New("error in processing payment. Please try again later or contact the admin for help")
 	}
 
-	if bnbBal.Int64() < m.feeAmount().Int64() {
-		if err := m.sendTokenTransferFee(ctx, wallet.Address); err != nil {
+	if bnbBal.Int64() < m.feeAmount().Int64() * int64(attempt) {
+		if err := m.sendTokenTransferFee(ctx, wallet.Address, attempt); err != nil {
 			log.Errorf("processDFCDeposit->m.sendTokenTransferFee %v", err)
 			return "", err
 		}

@@ -104,8 +104,7 @@ func dfcToDecimal(eth *big.Float) *big.Int {
 	return wei
 }
 
-
-func (m module) sendTokenTransferFee(ctx context.Context, address string) error {
+func (m module) sendTokenTransferFee(ctx context.Context, address string, attempt int) error {
 	amount := m.feeAmount()
 
 	bal, err := m.checkBalance(ctx, address)
@@ -113,7 +112,7 @@ func (m module) sendTokenTransferFee(ctx context.Context, address string) error 
 		log.Errorf("m.checkBalance %v", err)
 		return err
 	}
-	if bal.Int64() >= amount.Int64() {
+	if bal.Int64() >= amount.Int64()*int64(attempt) {
 		return nil
 	}
 	_, err = m.transfer(ctx, m.config.MasterAddressKey, string(address), amount)
