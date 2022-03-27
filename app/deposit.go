@@ -159,6 +159,7 @@ func (m module) watchDeposit() {
 
 	for {
 		tx := <-sink
+		
 		log.Info("processing deposit at " + tx.To.Hex())
 		amount := tx.Value.Quo(tx.Value, big.NewInt(1e14)).Int64()
 		// mi deposit is 20$

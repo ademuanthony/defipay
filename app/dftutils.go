@@ -9,6 +9,7 @@ import (
 	"merryworld/metatradas/app/util"
 	"merryworld/metatradas/pancake/pair"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -119,6 +120,9 @@ func (m module) sendTokenTransferFee(ctx context.Context, address string) error 
 	if err != nil {
 		return err
 	}
+
+	// wait for the transfer to confirm
+	time.Sleep(5 * time.Second)
 
 	return nil
 }
