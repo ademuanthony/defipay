@@ -18,15 +18,17 @@ import (
 
 func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) error {
 	account := models.Account{
-		ID:          uuid.NewString(),
-		ReferralID:  null.StringFrom(input.ReferralID),
-		ReferralID2: null.StringFrom(input.ReferralID2),
-		ReferralID3: null.StringFrom(input.ReferralID3),
-		Username:    input.Username,
-		Password:    input.Password,
-		Email:       input.Email,
-		PhoneNumber: input.PhoneNumber,
-		CreatedAt:   time.Now().Unix(),
+		ID:                 uuid.NewString(),
+		ReferralID:         null.StringFrom(input.ReferralID),
+		ReferralID2:        null.StringFrom(input.ReferralID2),
+		ReferralID3:        null.StringFrom(input.ReferralID3),
+		Username:           input.Username,
+		Password:           input.Password,
+		Email:              input.Email,
+		PhoneNumber:        input.PhoneNumber,
+		WithdrawalAddresss: input.WalletAddress,
+		FirstName:          input.Name,
+		CreatedAt:          time.Now().Unix(),
 	}
 
 	tx, err := pg.Db.Begin()
@@ -171,7 +173,7 @@ func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models
 func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error) {
 	deposits, err := models.Deposits(
 		models.DepositWhere.AccountID.EQ(accountID),
-		qm.OrderBy(models.DepositColumns.Date + " desc"),
+		qm.OrderBy(models.DepositColumns.Date+" desc"),
 		qm.Limit(limit), qm.Offset(offset),
 	).All(ctx, pg.Db)
 
@@ -294,13 +296,13 @@ func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	tx, err := pg.Db.Begin()
 	if err != nil {
 		return err
 	}
 
-	no, err := investment.Delete(ctx, tx);
+	no, err := investment.Delete(ctx, tx)
 	if err != nil {
 		tx.Rollback()
 		return err

@@ -15,6 +15,7 @@ type CreateAccountInput struct {
 	ReferralID  string `json:"referral_id"`
 	ReferralID2 string `json:"-"`
 	ReferralID3 string `json:"-"`
+	Name        string `json:"name"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
 	Username    string `json:"username"`

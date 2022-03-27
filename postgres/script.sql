@@ -1,3 +1,14 @@
+drop table if exists account_transaction;
+drop table if exists daily_earning;
+drop table if exists investment;
+drop table if exists subscription;
+drop table if exists transfer;
+drop table if exists wallet;
+drop table if exists weekly_payout;
+drop table if exists withdrawal;
+drop table if exists deposit;
+drop table if exists account;
+
 
 CREATE TABLE IF NOT EXISTS account 
 (
