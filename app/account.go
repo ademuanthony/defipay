@@ -273,7 +273,7 @@ func (m module) Invest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Amount <= 200000 {
+	if input.Amount < 200000 {
 		web.SendErrorfJSON(w, "Invalid amount. Amount must be $20 or more")
 		return
 	}
