@@ -4,6 +4,7 @@ import (
 	"context"
 	"merryworld/metatradas/web"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -40,8 +41,10 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 
 	app.buildRoute()
 
-	go app.runProcessor(context.Background())
-	go app.watchDeposit()
+	if os.Getenv("RUN_BG_PROCESSES") == "1" {
+		go app.runProcessor(context.Background())
+		go app.watchDeposit()
+	}
 
 	return nil
 }
@@ -64,7 +67,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/account/investments", web.GET, m.MyInvestments, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/release-investment", web.POST, m.ReleaseInvestment, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/daily-earnings", web.GET, m.MyDailyEarnings, m.server.RequireLogin)
-	
+
 	// C250
 	m.server.AddRoute("/api/c250/subscribe", web.POST, m.createSubscriptionC250, m.server.ValidAPIKey)
 
