@@ -181,16 +181,19 @@ func (m module) watchDeposit() {
 			continue
 		}
 
-		txHash, err := m.moveBalanceToMaster(ctx, dfcToken, wallet, 1)
-		if err != nil {
-			if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
-				txHash, err = m.moveBalanceToMaster(ctx, dfcToken, wallet, 2)
-			}
-			if err != nil {
-				log.Error("moveBalanceToMaster", wallet.Address, err)
-				continue
+		var txHash string
+		maxAttempts := 4
+		for i := 1; i <= maxAttempts; i++ {
+			txHash, err = m.moveBalanceToMaster(ctx, dfcToken, wallet, i)
+			if err == nil || !strings.Contains(err.Error(), "insufficient funds for gas * price + value"){
+				break
 			}
 		}
+		if err != nil {
+			log.Error("moveBalanceToMaster", wallet.Address, err)
+			continue
+		}
+	
 		log.Info("Deposit moved", txHash)
 
 		amount = amount - 5000 // 0.5$ fee

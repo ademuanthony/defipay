@@ -19,7 +19,7 @@ import (
 
 var (
 	dfcContractAddress = common.HexToAddress("0x996c1bf72Ec220289ae0edd3a8d77080642121a2")
-	tokenTransferFee   = "0.002" // automate the extimate
+	tokenTransferFee   = "0.007" // automate the extimate
 )
 
 func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, error) {
@@ -121,7 +121,7 @@ func (m module) sendTokenTransferFee(ctx context.Context, address string, attemp
 	}
 
 	// wait for the transfer to confirm
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	return nil
 }
