@@ -56,11 +56,16 @@ func (m module) watchDeposit() {
 
 	go func() {
 		for {
+			var addressCount int
 			func() {
 				addresses, err := m.db.GetWalletByAddresses(context.Background())
 				if err != nil {
 					log.Error("GetWalletByAddresses", err)
 				}
+				if len(addresses) == addressCount {
+					return
+				}
+				addressCount = len(addresses)
 
 				var toAddresses []common.Address
 				for _, add := range addresses {
