@@ -147,7 +147,34 @@ func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := m.db.CreateSubscription(r.Context(), acc.ID, pkg.ID); err != nil {
+	if err := m.db.CreateSubscription(r.Context(), acc.ID, pkg.ID, false); err != nil {
+		log.Error("BuyPackage", "CreateSubscription", err)
+		web.SendErrorfJSON(w, "Error in creating subscription")
+		return
+	}
+
+	web.SendJSON(w, true)
+}
+
+type createSubscriptionC250 struct {
+	PackageID string `json:"package_id"`
+	Username  string `json:"username"`
+}
+
+func (m module) createSubscriptionC250(w http.ResponseWriter, r *http.Request) {
+	var input createSubscriptionC250
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Critical("BuyPackage", "json::Decode", err)
+		web.SendErrorfJSON(w, "Error is decoding request. Please try again later")
+		return
+	}
+
+	acc, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	if err != nil {
+		web.SendErrorfJSON(w, "Account not found. Please activate your METATRADAS account")
+	}
+
+	if err := m.db.CreateSubscription(r.Context(), input.PackageID, acc.ID, true); err != nil {
 		log.Error("BuyPackage", "CreateSubscription", err)
 		web.SendErrorfJSON(w, "Error in creating subscription")
 		return

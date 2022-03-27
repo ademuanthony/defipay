@@ -19,6 +19,7 @@ type CreateAccountInput struct {
 	PhoneNumber string `json:"phone_number"`
 	Username    string `json:"username"`
 	Password    string `json:"password"`
+	From250     bool   `json:"from250"`
 
 	WalletAddress string `json:"-"`
 	PrivateKey    string `json:"-"`
@@ -100,6 +101,10 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	if input.ReferralID != "" {
 		ref1, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+		if err != nil && input.From250 {
+			ref1, err = m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+		}
+
 		if err != nil {
 			web.SendErrorfJSON(w, "Invalid referral ID, please try again")
 			return

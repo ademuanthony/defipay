@@ -23,14 +23,14 @@ type store interface {
 	GetPackages(ctx context.Context) ([]*models.Package, error)
 	GetPackage(ctx context.Context, id string) (*models.Package, error)
 	GetPackageByName(ctx context.Context, name string) (*models.Package, error)
-	CreateSubscription(ctx context.Context, accountID, packageID string) error
+	CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error
 	ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error)
 	Invest(ctx context.Context, accountID string, amount int64) error
 	Investments(ctx context.Context, accountId string, offset, limit int) ([]*models.Investment, int64, error)
 	Investment(ctx context.Context, id string) (*models.Investment, error)
 	ReleaseInvestment(ctx context.Context, id string) error
 	PopulateEarnings(ctx context.Context) error
-	DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) 
+	DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error)
 	ProcessWeeklyPayout(ctx context.Context) error
 
 	Transfer(ctx context.Context, senderID, receiverID string, amount int64) error

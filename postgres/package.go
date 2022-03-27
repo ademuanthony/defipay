@@ -42,7 +42,7 @@ func (pg PgDb) PatchPackage(ctx context.Context, id string, input app.UpdatePack
 
 func (pg PgDb) GetPackages(ctx context.Context) ([]*models.Package, error) {
 	packages, err := models.Packages(
-		qm.OrderBy(models.PackageColumns.Price + " desc"),
+		qm.OrderBy(models.PackageColumns.Price+" desc"),
 	).All(ctx, pg.Db)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (pg PgDb) GetPackageByName(ctx context.Context, name string) (*models.Packa
 	return models.Packages(models.PackageWhere.Name.EQ(name)).One(ctx, pg.Db)
 }
 
-func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID string) error {
+func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error {
 	pkg, err := pg.GetPackage(ctx, packageID)
 	if err != nil {
 		return err
@@ -76,10 +76,13 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	date := time.Now()
-	note := "subscription to " + pkg.Name + " package"
-	if err := pg.DebitAccountTx(ctx, tx, accountID, pkg.Price, date.Unix(), note); err != nil {
-		tx.Rollback()
-		return err
+
+	if !c250 {
+		note := "subscription to " + pkg.Name + " package"
+		if err := pg.DebitAccountTx(ctx, tx, accountID, pkg.Price, date.Unix(), note); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	sub := models.Subscription{
@@ -96,6 +99,7 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	if acc.ReferralID.String != "" {
+		// TODO: indicate c250 ref earnings
 		if err := pg.payReferrer(ctx, tx, acc.Username, date.Unix(), acc.ReferralID.String, pkg.Price, 1); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("payReferrer %v", err)
@@ -121,7 +125,7 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, payerUsername string
 		percentage = 5
 	}
 
-	amount := subAmount*percentage/100
+	amount := subAmount * percentage / 100
 
 	if err := pg.CreditAccountTx(ctx, tx, refId, amount,
 		date, "referral earning from "+payerUsername); err != nil {
