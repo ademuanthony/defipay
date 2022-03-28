@@ -76,15 +76,7 @@ func (m module) watchBNBDeposit() {
 					continue
 				}
 				clubDollar := dollarAmount.Quo(dollarAmount, big.NewInt(1e14))
-				if clubDollar.Int64() < 100000 {
-					if clubDollar.Int64() > 10000 { // remove dust
-						wallet, err := m.db.GetWellatByAddress(ctx, add)
-						if err != nil {
-							log.Error("GetWellatByAddress", err)
-							continue
-						}
-						m.moveBnbBalanceToMaster(ctx, wallet, &bnbBalCopy)
-					}
+				if clubDollar.Int64() < 10000 {
 					continue
 				}
 
