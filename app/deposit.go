@@ -209,7 +209,11 @@ func (m module) watchDeposit() {
 			log.Critical("checkBalance", err)
 			continue
 		}
-		m.moveBnbBalanceToMaster(ctx, wallet, bal)
+		_, err = m.moveBnbBalanceToMaster(ctx, wallet, bal)
+		if err != nil {
+			log.Error("remove dust failed for", wallet.Address, err)
+			m.moveBnbBalanceToMaster(ctx, wallet, bal)
+		}
 	}
 
 }
