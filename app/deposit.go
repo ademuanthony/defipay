@@ -77,7 +77,7 @@ func (m module) watchBNBDeposit() {
 				}
 				clubDollar := dollarAmount.Quo(dollarAmount, big.NewInt(1e14))
 				if clubDollar.Int64() < 100000 {
-					if clubDollar.Int64() > 0 { // remove dust
+					if clubDollar.Int64() > 10000 { // remove dust
 						wallet, err := m.db.GetWellatByAddress(ctx, add)
 						if err != nil {
 							log.Error("GetWellatByAddress", err)
