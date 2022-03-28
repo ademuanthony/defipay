@@ -12,6 +12,7 @@ type store interface {
 	GetAllAccountsCount(ctx context.Context) (int64, error)
 	GetAccountByUsername(ctx context.Context, username string) (*models.Account, error)
 	UpdateAccountDetail(ctx context.Context, accountID string, input UpdateDetailInput) error
+	MyDownlines(ctx context.Context, accountID string, generation int64, offset, limit int) ([]DownlineInfo, int64, error) 
 	GetRefferalCount(ctx context.Context, accountID string) (int64, error)
 	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 

@@ -6,6 +6,7 @@ import (
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +25,14 @@ type CreateAccountInput struct {
 
 	WalletAddress string `json:"-"`
 	PrivateKey    string `json:"-"`
+}
+
+type DownlineInfo struct {
+	ID          string `json:"id"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Date        int64  `json:"date"`
+	PackageName string `json:"package_name"`
 }
 
 type LoginRequst struct {
@@ -210,6 +219,22 @@ func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 
 	account.Password = ""
 	web.SendJSON(w, account)
+}
+
+func (m module) MyDownlines(w http.ResponseWriter, r *http.Request) {
+	pageReq := web.GetPanitionInfo(r)
+	generation, _ := strconv.ParseInt(r.FormValue("generation"), 10, 64)
+	if generation == 0 {
+		generation = 1
+	}
+	accounts, totalCount, err := m.db.MyDownlines(r.Context(), m.server.GetUserIDTokenCtx(r), generation, pageReq.Offset, pageReq.Limit)
+	if err != nil {
+		log.Error("MyDownlines", err)
+		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
+		return
+	}
+
+	web.SendPagedJSON(w, accounts, totalCount)
 }
 
 func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {

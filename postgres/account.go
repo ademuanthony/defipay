@@ -353,7 +353,7 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 	if now.BeginningOfDay().Weekday() == time.Sunday {
 		return nil
 	}
-	
+
 	date := now.BeginningOfDay().Unix()
 	count, err := models.DailyEarnings(models.DailyEarningWhere.Date.EQ(date)).Count(ctx, pg.Db)
 	if err != nil {
@@ -468,4 +468,57 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	return tx.Commit()
+}
+
+func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int64, offset, limit int) ([]app.DownlineInfo, int64, error) {
+	query := []qm.QueryMod{}
+	switch generation {
+	case 1:
+		query = append(query, models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)))
+	case 2:
+		models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID))
+	case 3:
+		models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID))
+	}
+
+	totalCount, err := models.Accounts(query...).Count(ctx, pg.Db)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	query = append(query, qm.Load(models.AccountRels.Subscriptions),
+		qm.OrderBy(models.AccountColumns.CreatedAt+" desc"),
+		qm.Offset(offset),
+		qm.Limit(limit))
+
+	accounts, err := models.Accounts(
+		query...,
+	).All(ctx, pg.Db)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var downlines []app.DownlineInfo
+	for _, acc := range accounts {
+		downline := app.DownlineInfo{
+			ID:        acc.ID,
+			FirstName: acc.FirstName,
+			LastName:  acc.LastName,
+			Date:      acc.CreatedAt,
+		}
+		currcentData := time.Now().Unix()
+		for _, s := range acc.R.Subscriptions {
+			if s.StartDate <= currcentData && s.EndDate >= currcentData {
+				pkg, err := models.FindPackage(ctx, pg.Db, s.PackageID)
+				if err != nil {
+					return nil, 0, err
+				}
+				downline.PackageName = pkg.Name
+			}
+		}
+		downlines = append(downlines, downline)
+	}
+
+	return downlines, totalCount, nil
 }
