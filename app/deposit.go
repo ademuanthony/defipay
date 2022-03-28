@@ -164,7 +164,7 @@ func (m module) watchDeposit() {
 		log.Info("processing deposit at " + tx.To.Hex())
 		amount := tx.Value.Quo(tx.Value, big.NewInt(1e14)).Int64()
 		// mi deposit is 20$
-		if amount < 2*1e4 {
+		if amount < 1*1e4 {
 			log.Info("deposit amount too small")
 			continue
 		}
