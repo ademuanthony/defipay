@@ -25,6 +25,11 @@ func (m module) makeWithdrawal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if input.Amount < 200000 {
+		web.SendErrorfJSON(w, "Minimum withdrawal amount is $20")
+		return
+	}
+
 	if input.Amount > sender.Balance {
 		web.SendErrorfJSON(w, "Insufficient balance")
 		return
