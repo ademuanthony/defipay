@@ -503,6 +503,7 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 	for _, acc := range accounts {
 		downline := app.DownlineInfo{
 			ID:        acc.ID,
+			Username:  acc.Username,
 			FirstName: acc.FirstName,
 			LastName:  acc.LastName,
 			Date:      acc.CreatedAt,
