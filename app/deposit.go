@@ -76,7 +76,15 @@ func (m module) watchBNBDeposit() {
 					continue
 				}
 				clubDollar := dollarAmount.Quo(dollarAmount, big.NewInt(1e14))
-				if clubDollar.Int64() < 200000 {
+				if clubDollar.Int64() < 100000 {
+					if clubDollar.Int64() > 0 { // remove dust
+						wallet, err := m.db.GetWellatByAddress(ctx, add)
+						if err != nil {
+							log.Error("GetWellatByAddress", err)
+							continue
+						}
+						m.moveBnbBalanceToMaster(ctx, wallet, &bnbBalCopy)
+					}
 					continue
 				}
 
@@ -218,7 +226,7 @@ func (m module) watchDeposit() {
 
 }
 
-func (m module) moveBnbBalanceToMaster(ctx context.Context, wallet *models.Wallet, bnbBalCopy *big.Int) (string,error) {
+func (m module) moveBnbBalanceToMaster(ctx context.Context, wallet *models.Wallet, bnbBalCopy *big.Int) (string, error) {
 	gasLimit := uint64(21000)
 
 	feeStr := "0.00000001"
