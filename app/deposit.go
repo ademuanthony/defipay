@@ -185,7 +185,7 @@ func (m module) watchDeposit() {
 		maxAttempts := 4
 		for i := 1; i <= maxAttempts; i++ {
 			txHash, err = m.moveBalanceToMaster(ctx, dfcToken, wallet, i)
-			if err == nil || !strings.Contains(err.Error(), "insufficient funds for gas * price + value"){
+			if err == nil || !strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
 				break
 			}
 		}
@@ -193,7 +193,7 @@ func (m module) watchDeposit() {
 			log.Error("moveBalanceToMaster", wallet.Address, err)
 			continue
 		}
-	
+
 		log.Info("Deposit moved", txHash)
 
 		amount = amount - 5000 // 0.5$ fee
@@ -202,8 +202,37 @@ func (m module) watchDeposit() {
 			log.Critical("CreateDeposit", err)
 			continue
 		}
+
+		// revome bnb dust from address
+		bal, err := m.checkBalance(ctx, wallet.Address)
+		if err != nil {
+			log.Critical("checkBalance", err)
+			continue
+		}
+		m.moveBnbBalanceToMaster(ctx, wallet, bal)
 	}
 
+}
+
+func (m module) moveBnbBalanceToMaster(ctx context.Context, wallet *models.Wallet, bnbBalCopy *big.Int) (string,error) {
+	gasLimit := uint64(21000)
+
+	feeStr := "0.00000001"
+	feeFloat, err := ParseBigFloat(feeStr)
+	if err != nil {
+		return "", fmt.Errorf("ParseBigFloat %v", err)
+	}
+	gasPrice := etherToWei(feeFloat)
+
+	gasFee := gasPrice.Mul(gasPrice, big.NewInt(int64(gasLimit)))
+	amountToSend := bnbBalCopy.Sub(bnbBalCopy, gasFee)
+
+	txHash, err := m.transfer(ctx, wallet.PrivateKey, m.config.MasterAddress, amountToSend)
+	if err != nil {
+		return "", fmt.Errorf("m.transfer %v", err)
+	}
+
+	return txHash, nil
 }
 
 func (m module) moveBalanceToMaster(ctx context.Context, token *usdt.Usdt, wallet *models.Wallet, attempt int) (string, error) {
@@ -214,7 +243,7 @@ func (m module) moveBalanceToMaster(ctx context.Context, token *usdt.Usdt, walle
 		return "", errors.New("error in processing payment. Please try again later or contact the admin for help")
 	}
 
-	if bnbBal.Int64() < m.feeAmount().Int64() * int64(attempt) {
+	if bnbBal.Int64() < m.feeAmount().Int64()*int64(attempt) {
 		if err := m.sendTokenTransferFee(ctx, wallet.Address, attempt); err != nil {
 			log.Errorf("processDFCDeposit->m.sendTokenTransferFee %v", err)
 			return "", err
