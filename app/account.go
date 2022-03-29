@@ -14,12 +14,12 @@ import (
 
 const (
 	PAYMENTMETHOD_C250D = 0
-	PAYMENTMETHOD_BNB = 1
-	PAYMENTMETHOD_USDT = 2
+	PAYMENTMETHOD_BNB   = 1
+	PAYMENTMETHOD_USDT  = 2
 
-	PAYMENTSTATUS_PENDING = 0
+	PAYMENTSTATUS_PENDING     = 0
 	PAYMENTSTATUS_PROCCESSING = 1
-	PAYMENTSTATUS_COMPLETED = 2
+	PAYMENTSTATUS_COMPLETED   = 2
 )
 
 type CreateAccountInput struct {
@@ -33,8 +33,8 @@ type CreateAccountInput struct {
 	Password    string `json:"password"`
 	From250     bool   `json:"from250"`
 
-	WalletAddress string `json:"-"`
-	PrivateKey    string `json:"-"`
+	DepositWalletAddress string `json:"-"`
+	PrivateKey           string `json:"-"`
 }
 
 type DownlineInfo struct {
@@ -132,6 +132,13 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 			input.ReferralID3 = ref2.ReferralID.String
 		}
 	}
+
+	wallet, privateKey, err := GenerateWallet()
+	if err != nil {
+		m.sendSomethingWentWrong(w, "GenerateWallet", err)
+	}
+	input.DepositWalletAddress = wallet
+	input.PrivateKey = privateKey
 
 	if err := m.db.CreateAccount(r.Context(), input); err != nil {
 		log.Error("CreeateAccount", "db.CreateAccount", err)

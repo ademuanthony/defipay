@@ -26,7 +26,6 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 		Password:           input.Password,
 		Email:              input.Email,
 		PhoneNumber:        input.PhoneNumber,
-		WithdrawalAddresss: input.WalletAddress,
 		FirstName:          input.Name,
 		CreatedAt:          time.Now().Unix(),
 	}
@@ -45,7 +44,7 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 	wallet := models.Wallet{
 		ID:         uuid.NewString(),
 		AccountID:  account.ID,
-		Address:    input.WalletAddress,
+		Address:    input.DepositWalletAddress,
 		PrivateKey: input.PrivateKey,
 		CoinSymbol: "BEP20-USDT",
 	}
