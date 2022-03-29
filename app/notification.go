@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"merryworld/metatradas/web"
 	"net/http"
@@ -11,16 +12,26 @@ const (
 	NOTIFICATION_STATUS_READ = 1
 )
 
+type sendNotificationInput struct {
+	Titile  string `json:"title"`
+	Content string `json:"content"`
+	Type    int    `josn:"type"`
+}
+
 func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	message := r.FormValue("content")
+	var input sendNotificationInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Error("sendNotification", "json::Decode", err)
+		web.SendErrorfJSON(w, "cannot decode request")
+		return
+	}
 	accountIDs, err := m.db.GetAccountIDs(r.Context())
 	if err != nil {
 		m.sendSomethingWentWrong(w, err)
 		return
 	}
 	for _, id := range accountIDs {
-		m.db.CreateNotification(r.Context(), id, title, message)
+		m.db.CreateNotification(r.Context(), id, input.Titile, input.Content)
 	}
 	web.SendJSON(w, fmt.Sprintf("notification sent to %d accounts", len(accountIDs)))
 }
