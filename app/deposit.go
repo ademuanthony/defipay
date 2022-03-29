@@ -24,7 +24,7 @@ import (
 func (m module) GetDepositAddress(w http.ResponseWriter, r *http.Request) {
 	wallet, err := m.db.GetDepositAddress(r.Context(), m.server.GetUserIDTokenCtx(r))
 	if err == sql.ErrNoRows {
-		address, privateKey, err1 := GenerateWallet()
+		privateKey, address, err1 := GenerateWallet()
 		if err1 != nil {
 			m.sendSomethingWentWrong(w, "GenerateWallet", err1)
 			return
