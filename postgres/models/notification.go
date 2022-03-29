@@ -29,6 +29,7 @@ type Notification struct {
 	Title     string `boil:"title" json:"title" toml:"title" yaml:"title"`
 	Content   string `boil:"content" json:"content" toml:"content" yaml:"content"`
 	Date      int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	Type      int    `boil:"type" json:"type" toml:"type" yaml:"type"`
 
 	R *notificationR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L notificationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -41,6 +42,7 @@ var NotificationColumns = struct {
 	Title     string
 	Content   string
 	Date      string
+	Type      string
 }{
 	ID:        "id",
 	AccountID: "account_id",
@@ -48,6 +50,7 @@ var NotificationColumns = struct {
 	Title:     "title",
 	Content:   "content",
 	Date:      "date",
+	Type:      "type",
 }
 
 var NotificationTableColumns = struct {
@@ -57,6 +60,7 @@ var NotificationTableColumns = struct {
 	Title     string
 	Content   string
 	Date      string
+	Type      string
 }{
 	ID:        "notification.id",
 	AccountID: "notification.account_id",
@@ -64,6 +68,7 @@ var NotificationTableColumns = struct {
 	Title:     "notification.title",
 	Content:   "notification.content",
 	Date:      "notification.date",
+	Type:      "notification.type",
 }
 
 // Generated where
@@ -75,6 +80,7 @@ var NotificationWhere = struct {
 	Title     whereHelperstring
 	Content   whereHelperstring
 	Date      whereHelperint64
+	Type      whereHelperint
 }{
 	ID:        whereHelperstring{field: "\"notification\".\"id\""},
 	AccountID: whereHelperstring{field: "\"notification\".\"account_id\""},
@@ -82,6 +88,7 @@ var NotificationWhere = struct {
 	Title:     whereHelperstring{field: "\"notification\".\"title\""},
 	Content:   whereHelperstring{field: "\"notification\".\"content\""},
 	Date:      whereHelperint64{field: "\"notification\".\"date\""},
+	Type:      whereHelperint{field: "\"notification\".\"type\""},
 }
 
 // NotificationRels is where relationship names are stored.
@@ -105,9 +112,9 @@ func (*notificationR) NewStruct() *notificationR {
 type notificationL struct{}
 
 var (
-	notificationAllColumns            = []string{"id", "account_id", "status", "title", "content", "date"}
+	notificationAllColumns            = []string{"id", "account_id", "status", "title", "content", "date", "type"}
 	notificationColumnsWithoutDefault = []string{"id", "account_id", "status", "title", "content", "date"}
-	notificationColumnsWithDefault    = []string{}
+	notificationColumnsWithDefault    = []string{"type"}
 	notificationPrimaryKeyColumns     = []string{"id"}
 )
 

@@ -48,10 +48,10 @@ type store interface {
 	GetWellatByAddress(ctx context.Context, address string) (*models.Wallet, error)
 	CreateDeposit(ctx context.Context, accountID, txHash string, amount int64) error
 
-	CreateNotification(ctx context.Context, accountID, title, message string) error
-	NotifyAll(ctx context.Context, titile string, content string) error
-	UnReadNotificationCount(ctx context.Context, accountID string) (int64, error)
-	GetNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error)
-	GetNewNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error)
+	CreateNotification(ctx context.Context, accountID, title, message string, notificationType int) error
+	NotifyAll(ctx context.Context, titile string, content string, notificationType int) error
+	UnReadNotificationCount(ctx context.Context, accountID string, notificationType int) (int64, error)
+	GetNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)
+	GetNewNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)
 	GetNotification(ctx context.Context, id string) (*models.Notification, error)
 }

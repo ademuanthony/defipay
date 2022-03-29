@@ -536,7 +536,7 @@ func testNotificationsSelect(t *testing.T) {
 }
 
 var (
-	notificationDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `Status`: `integer`, `Title`: `character varying`, `Content`: `character varying`, `Date`: `bigint`}
+	notificationDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `Status`: `integer`, `Title`: `character varying`, `Content`: `character varying`, `Date`: `bigint`, `Type`: `integer`}
 	_                   = bytes.MinRead
 )
 

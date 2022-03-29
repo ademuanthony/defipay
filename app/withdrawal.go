@@ -110,7 +110,7 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 		message := fmt.Sprintf("A referral commission of $%.4f was sent to your %s for %s",
 			float64(payout.Amount)/float64(10000), destination, senderAccount.Username)
 
-		return m.db.CreateNotification(ctx, payout.AccountID, notificationTitle, message)
+		return m.db.CreateNotification(ctx, payout.AccountID, notificationTitle, message, NOTIFICATION_TYPE_TOPBAR)
 	}
 
 	if payout.PaymentMethod == PAYMENTMETHOD_C250D {

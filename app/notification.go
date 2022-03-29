@@ -4,11 +4,15 @@ import (
 	"encoding/json"
 	"merryworld/metatradas/web"
 	"net/http"
+	"strconv"
 )
 
 const (
 	NOTIFICATION_STATUS_NEW  = 0
 	NOTIFICATION_STATUS_READ = 1
+
+	NOTIFICATION_TYPE_TOPBAR    = 0
+	NOTIFICATION_TYPE_DASHBOARD = 1
 )
 
 type sendNotificationInput struct {
@@ -24,7 +28,7 @@ func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
-	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content); err != nil {
+	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content, input.Type); err != nil {
 		m.sendSomethingWentWrong(w, "sendNotification", err)
 		return
 	}
@@ -32,7 +36,8 @@ func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
-	count, err := m.db.UnReadNotificationCount(r.Context(), m.server.GetUserIDTokenCtx(r))
+	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
+	count, err := m.db.UnReadNotificationCount(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType))
 	if err != nil {
 		log.Error("getNotificationCount", "UnReadNotificationCount", err)
 		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
@@ -42,7 +47,8 @@ func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Reques
 
 func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
-	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
+	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
+	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "GetNewNotifications", err)
 		return
@@ -52,7 +58,8 @@ func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 
 func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
-	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
+	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
+	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "GetNotifications", err)
 		return

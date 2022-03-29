@@ -13,36 +13,37 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message string) error {
+func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message string, notificationType int) error {
 	tx, err := pg.Db.Begin()
 	if err != nil {
 		return err
 	}
 
-	if err := pg.createNotificationTx(ctx, tx, accountID, title, message); err != nil {
+	if err := pg.createNotificationTx(ctx, tx, accountID, title, message, notificationType); err != nil {
 		return tx.Rollback()
 	}
 
 	return tx.Commit()
 }
 
-func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string) error {
+func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string, notificationType int) error {
 	date := time.Now().Unix()
 
 	statement := `
-			insert into notification (id, account_id, date, title, content, status)
+			insert into notification (id, account_id, date, title, content, status, type)
 				select 
 					md5(concat(account.id, '-', '%s')),
 					account.id,
 					%d, 
 					'%s', 
 					'%s',
+					%d,
 					%d
 				from account
 		`
 	if _, err := models.DailyEarnings(
 		qm.SQL(fmt.Sprintf(statement, uuid.NewString(), date,
-			titile, content, app.NOTIFICATION_STATUS_NEW),
+			titile, content, app.NOTIFICATION_STATUS_NEW, notificationType),
 		),
 	).ExecContext(ctx, pg.Db); err != nil {
 		return err
@@ -51,7 +52,7 @@ func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string) err
 	return nil
 }
 
-func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message string) error {
+func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message string, notificationType int) error {
 	notification := models.Notification{
 		ID:        uuid.NewString(),
 		AccountID: accountID,
@@ -59,21 +60,24 @@ func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, 
 		Status:    app.NOTIFICATION_STATUS_NEW,
 		Title:     title,
 		Content:   message,
+		Type:      notificationType,
 	}
 
 	return notification.Insert(ctx, tx, boil.Infer())
 }
 
-func (pg PgDb) UnReadNotificationCount(ctx context.Context, accountID string) (int64, error) {
+func (pg PgDb) UnReadNotificationCount(ctx context.Context, accountID string, notificationType int) (int64, error) {
 	return models.Notifications(
 		models.NotificationWhere.AccountID.EQ(accountID),
 		models.NotificationWhere.Status.EQ(app.NOTIFICATION_STATUS_NEW),
+		models.NotificationWhere.Type.EQ(notificationType),
 	).Count(ctx, pg.Db)
 }
 
-func (pg PgDb) GetNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error) {
+func (pg PgDb) GetNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error) {
 	query := []qm.QueryMod{
 		models.NotificationWhere.AccountID.EQ(accountID),
+		models.NotificationWhere.Type.EQ(notificationType),
 	}
 	totalCount, err := models.Notifications(query...).Count(ctx, pg.Db)
 	if err != nil {
@@ -89,10 +93,11 @@ func (pg PgDb) GetNotifications(ctx context.Context, accountID string, offset, l
 	return notifications, totalCount, err
 }
 
-func (pg PgDb) GetNewNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error) {
+func (pg PgDb) GetNewNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error) {
 	query := []qm.QueryMod{
 		models.NotificationWhere.AccountID.EQ(accountID),
 		models.NotificationWhere.Status.EQ(app.NOTIFICATION_STATUS_NEW),
+		models.NotificationWhere.Type.EQ(notificationType),
 	}
 	totalCount, err := models.Notifications(query...).Count(ctx, pg.Db)
 	if err != nil {
