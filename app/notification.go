@@ -19,6 +19,16 @@ func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Reques
 	web.SendJSON(w, count)
 }
 
+func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
+	pagedReq := web.GetPanitionInfo(r)
+	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
+	if err != nil {
+		m.sendSomethingWentWrong(w, err)
+		return
+	}
+	web.SendPagedJSON(w, notification, count)
+}
+
 func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)

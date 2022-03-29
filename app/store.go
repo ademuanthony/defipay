@@ -50,5 +50,6 @@ type store interface {
 	CreateNotification(ctx context.Context, accountID, title, message string) error
 	UnReadNotificationCount(ctx context.Context, accountID string) (int64, error)
 	GetNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error)
+	GetNewNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error)
 	GetNotification(ctx context.Context, id string) (*models.Notification, error)
 }
