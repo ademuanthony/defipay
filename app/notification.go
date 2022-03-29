@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"merryworld/metatradas/web"
 	"net/http"
 )
@@ -25,15 +24,11 @@ func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
-	accountIDs, err := m.db.GetAccountIDs(r.Context())
-	if err != nil {
-		m.sendSomethingWentWrong(w, err)
+	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content); err != nil {
+		m.sendSomethingWentWrong(w, "sendNotification", err)
 		return
 	}
-	for _, id := range accountIDs {
-		m.db.CreateNotification(r.Context(), id, input.Titile, input.Content)
-	}
-	web.SendJSON(w, fmt.Sprintf("notification sent to %d accounts", len(accountIDs)))
+	web.SendJSON(w, "Sent to all users")
 }
 
 func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +44,7 @@ func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
-		m.sendSomethingWentWrong(w, err)
+		m.sendSomethingWentWrong(w, "GetNewNotifications", err)
 		return
 	}
 	web.SendPagedJSON(w, notification, count)
@@ -59,7 +54,7 @@ func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
-		m.sendSomethingWentWrong(w, err)
+		m.sendSomethingWentWrong(w, "GetNotifications", err)
 		return
 	}
 	web.SendPagedJSON(w, notification, count)
@@ -68,7 +63,7 @@ func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
 func (m module) getNotification(w http.ResponseWriter, r *http.Request) {
 	notification, err := m.db.GetNotification(r.Context(), r.FormValue("id"))
 	if err != nil {
-		m.sendSomethingWentWrong(w, err)
+		m.sendSomethingWentWrong(w, "GetNotification", err)
 		return
 	}
 	if notification.AccountID != m.server.GetUserIDTokenCtx(r) {
@@ -78,7 +73,7 @@ func (m module) getNotification(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, notification)
 }
 
-func (m module) sendSomethingWentWrong(w http.ResponseWriter, err error) {
-	log.Error("getNotificationCount", "UnReadNotificationCount", err)
+func (m module) sendSomethingWentWrong(w http.ResponseWriter, fn string, err error) {
+	log.Error("getNotificationCount", fn, err)
 	web.SendErrorfJSON(w, "Something went wrong. Please try again later")
 }

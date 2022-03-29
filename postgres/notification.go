@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 	"time"
@@ -23,6 +24,31 @@ func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message
 	}
 
 	return tx.Commit()
+}
+
+func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string) error {
+	date := time.Now().Unix()
+
+	statement := `
+			insert into notification (id, account_id, date, title, content, status)
+				select 
+					md5(concat(account.id, '-', '%s')),
+					account.id,
+					%d, 
+					'%s', 
+					'%s',
+					%d
+				from account
+		`
+	if _, err := models.DailyEarnings(
+		qm.SQL(fmt.Sprintf(statement, uuid.NewString(), date,
+			titile, content, app.NOTIFICATION_STATUS_NEW),
+		),
+	).ExecContext(ctx, pg.Db); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message string) error {
@@ -54,7 +80,7 @@ func (pg PgDb) GetNotifications(ctx context.Context, accountID string, offset, l
 		return nil, 0, err
 	}
 
-	query = append(query, qm.Offset(offset), qm.Limit(limit), 
+	query = append(query, qm.Offset(offset), qm.Limit(limit),
 		qm.OrderBy(models.NotificationColumns.Date+" desc"),
 	)
 
@@ -73,7 +99,7 @@ func (pg PgDb) GetNewNotifications(ctx context.Context, accountID string, offset
 		return nil, 0, err
 	}
 
-	query = append(query, qm.Offset(offset), qm.Limit(limit), 
+	query = append(query, qm.Offset(offset), qm.Limit(limit),
 		qm.OrderBy(models.NotificationColumns.Date+" desc"),
 	)
 
@@ -95,6 +121,6 @@ func (pg PgDb) GetNotification(ctx context.Context, id string) (*models.Notifica
 			return nil, err
 		}
 	}
-	
+
 	return notification, nil
 }
