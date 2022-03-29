@@ -45,6 +45,7 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		go app.runProcessor(context.Background())
 		// go app.watchDeposit()
 		go app.watchBNBDeposit()
+		go app.processReferralPayouts()
 	}
 
 	return nil
