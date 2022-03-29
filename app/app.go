@@ -104,12 +104,10 @@ func welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) runProcessor(ctx context.Context) {
-	log.Info("run processor")
 	if err := m.db.PopulateEarnings(ctx); err != nil {
 		log.Critical("runProcessor", "PopulateEarnings", err)
 	}
 
-	log.Info("run processor")
 	if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
 		log.Critical("runProcessor", "ProcessWeeklyPayout", err)
 	}
@@ -118,7 +116,6 @@ func (m module) runProcessor(ctx context.Context) {
 	time.Sleep(time.Since(next))
 
 	for {
-		log.Info("run processor")
 		if err := m.db.PopulateEarnings(ctx); err != nil {
 			log.Critical("runProcessor", "PopulateEarnings", err)
 		}

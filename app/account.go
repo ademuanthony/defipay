@@ -113,13 +113,6 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	input.Password = passwordHash
 
-	privateKey, wallet, err := GenerateWallet()
-	if err != nil {
-		log.Critical("CreateAccount", "GenerateWallet", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
-	}
-
 	if input.ReferralID != "" {
 		ref1, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
 		if err != nil && input.From250 {
@@ -139,9 +132,6 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 			input.ReferralID3 = ref2.ReferralID.String
 		}
 	}
-
-	input.WalletAddress = wallet
-	input.PrivateKey = privateKey
 
 	if err := m.db.CreateAccount(r.Context(), input); err != nil {
 		log.Error("CreeateAccount", "db.CreateAccount", err)

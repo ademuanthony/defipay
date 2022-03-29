@@ -127,7 +127,7 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 		return markCompletedAndNotify()
 	}
 
-	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount)
+	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount - 5000)//blockchain fee
 	if err != nil {
 		return err
 	}

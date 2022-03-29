@@ -154,7 +154,7 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, paye
 	// 	return err
 	// }
 	acc, err := models.FindAccount(ctx, tx, refId)
-	if err == sql.ErrNoRows {
+	if err == sql.ErrNoRows || acc.ReferralID.String == "" {
 		return nil
 	}
 	if err != nil {

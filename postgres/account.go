@@ -212,7 +212,7 @@ func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string
 	// }
 
 	statement := `update account set balance = balance + $1 where id = $2`
-	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, pg.Db)
+	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
 
 	return err
 }
@@ -231,7 +231,7 @@ func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string,
 	// }
 
 	statement := `update account set balance = balance - $1 where id = $2`
-	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, pg.Db)
+	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
 
 	return err
 }
