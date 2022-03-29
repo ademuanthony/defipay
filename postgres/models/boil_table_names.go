@@ -9,7 +9,9 @@ var TableNames = struct {
 	DailyEarning       string
 	Deposit            string
 	Investment         string
+	Notification       string
 	Package            string
+	ReferralPayout     string
 	Subscription       string
 	Transfer           string
 	Wallet             string
@@ -21,7 +23,9 @@ var TableNames = struct {
 	DailyEarning:       "daily_earning",
 	Deposit:            "deposit",
 	Investment:         "investment",
+	Notification:       "notification",
 	Package:            "package",
+	ReferralPayout:     "referral_payout",
 	Subscription:       "subscription",
 	Transfer:           "transfer",
 	Wallet:             "wallet",

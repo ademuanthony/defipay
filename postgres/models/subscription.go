@@ -79,17 +79,20 @@ var SubscriptionWhere = struct {
 
 // SubscriptionRels is where relationship names are stored.
 var SubscriptionRels = struct {
-	Account string
-	Package string
+	Account         string
+	Package         string
+	ReferralPayouts string
 }{
-	Account: "Account",
-	Package: "Package",
+	Account:         "Account",
+	Package:         "Package",
+	ReferralPayouts: "ReferralPayouts",
 }
 
 // subscriptionR is where relationships are stored.
 type subscriptionR struct {
-	Account *Account `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
-	Package *Package `boil:"Package" json:"Package" toml:"Package" yaml:"Package"`
+	Account         *Account            `boil:"Account" json:"Account" toml:"Account" yaml:"Account"`
+	Package         *Package            `boil:"Package" json:"Package" toml:"Package" yaml:"Package"`
+	ReferralPayouts ReferralPayoutSlice `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
 }
 
 // NewStruct creates a new relationship struct
@@ -222,6 +225,27 @@ func (o *Subscription) Package(mods ...qm.QueryMod) packageQuery {
 
 	query := Packages(queryMods...)
 	queries.SetFrom(query.Query, "\"package\"")
+
+	return query
+}
+
+// ReferralPayouts retrieves all the referral_payout's ReferralPayouts with an executor.
+func (o *Subscription) ReferralPayouts(mods ...qm.QueryMod) referralPayoutQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"referral_payout\".\"subscription_id\"=?", o.ID),
+	)
+
+	query := ReferralPayouts(queryMods...)
+	queries.SetFrom(query.Query, "\"referral_payout\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"referral_payout\".*"})
+	}
 
 	return query
 }
@@ -418,6 +442,97 @@ func (subscriptionL) LoadPackage(ctx context.Context, e boil.ContextExecutor, si
 	return nil
 }
 
+// LoadReferralPayouts allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (subscriptionL) LoadReferralPayouts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubscription interface{}, mods queries.Applicator) error {
+	var slice []*Subscription
+	var object *Subscription
+
+	if singular {
+		object = maybeSubscription.(*Subscription)
+	} else {
+		slice = *maybeSubscription.(*[]*Subscription)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subscriptionR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subscriptionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`referral_payout`),
+		qm.WhereIn(`referral_payout.subscription_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load referral_payout")
+	}
+
+	var resultSlice []*ReferralPayout
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice referral_payout")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on referral_payout")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for referral_payout")
+	}
+
+	if singular {
+		object.R.ReferralPayouts = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &referralPayoutR{}
+			}
+			foreign.R.Subscription = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.SubscriptionID {
+				local.R.ReferralPayouts = append(local.R.ReferralPayouts, foreign)
+				if foreign.R == nil {
+					foreign.R = &referralPayoutR{}
+				}
+				foreign.R.Subscription = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetAccount of the subscription to the related item.
 // Sets o.R.Account to related.
 // Adds o to related.R.Subscriptions.
@@ -509,6 +624,59 @@ func (o *Subscription) SetPackage(ctx context.Context, exec boil.ContextExecutor
 		related.R.Subscriptions = append(related.R.Subscriptions, o)
 	}
 
+	return nil
+}
+
+// AddReferralPayouts adds the given related objects to the existing relationships
+// of the subscription, optionally inserting them as new records.
+// Appends related to o.R.ReferralPayouts.
+// Sets related.R.Subscription appropriately.
+func (o *Subscription) AddReferralPayouts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*ReferralPayout) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.SubscriptionID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"referral_payout\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"subscription_id"}),
+				strmangle.WhereClause("\"", "\"", 2, referralPayoutPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.SubscriptionID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &subscriptionR{
+			ReferralPayouts: related,
+		}
+	} else {
+		o.R.ReferralPayouts = append(o.R.ReferralPayouts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &referralPayoutR{
+				Subscription: o,
+			}
+		} else {
+			rel.R.Subscription = o
+		}
+	}
 	return nil
 }
 

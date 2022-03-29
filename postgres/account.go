@@ -190,6 +190,14 @@ func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit 
 	return deposits, totalCount, nil
 }
 
+func (pg PgDb) CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error {
+	tx, err := pg.Db.Begin()
+	if err != nil {
+		return err
+	}
+	return pg.CreditAccountTx(ctx, tx, accountID, amount, date, ref)
+}
+
 func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
 	// transaction := models.AccountTransaction{
 	// 	AccountID:   accountID,

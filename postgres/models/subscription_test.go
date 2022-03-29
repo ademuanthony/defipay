@@ -353,6 +353,159 @@ func testSubscriptionsInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testSubscriptionToManyReferralPayouts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Subscription
+	var b, c ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, subscriptionDBTypes, true, subscriptionColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subscription struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.SubscriptionID = a.ID
+	c.SubscriptionID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.ReferralPayouts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.SubscriptionID == b.SubscriptionID {
+			bFound = true
+		}
+		if v.SubscriptionID == c.SubscriptionID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := SubscriptionSlice{&a}
+	if err = a.L.LoadReferralPayouts(ctx, tx, false, (*[]*Subscription)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.ReferralPayouts = nil
+	if err = a.L.LoadReferralPayouts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testSubscriptionToManyAddOpReferralPayouts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Subscription
+	var b, c, d, e ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*ReferralPayout{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, referralPayoutDBTypes, false, strmangle.SetComplement(referralPayoutPrimaryKeyColumns, referralPayoutColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*ReferralPayout{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddReferralPayouts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.SubscriptionID {
+			t.Error("foreign key was wrong value", a.ID, first.SubscriptionID)
+		}
+		if a.ID != second.SubscriptionID {
+			t.Error("foreign key was wrong value", a.ID, second.SubscriptionID)
+		}
+
+		if first.R.Subscription != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Subscription != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.ReferralPayouts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.ReferralPayouts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.ReferralPayouts().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testSubscriptionToOneAccountUsingAccount(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))

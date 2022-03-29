@@ -123,6 +123,29 @@ create table if not exists weekly_payout (
     amount bigint not null
 );
 
+create table if not exists referral_payout (
+    id character varying(64) not null primary key,
+    account_id character varying(64) not null references account(id),
+    from_account_id character varying(64) not null references account(id),
+    subscription_id character varying(64) not null references subscription(id),
+    generation int not null,
+    amount bigint not null,
+    date bigint not null,
+    payment_method int not null,
+    payment_status int not null,
+    payment_ref string not null,
+    unique(subscription_id, generation)
+);
+
+create table if not exists notification (
+    id character varying(64) not null primary key,
+    account_id character varying(64) not null references account(id),
+    status int not null,
+    title character varying(128) not null,
+    content character varying(500) not null,
+    date bigint not null
+);
+
 alter table account add referral_id_2 character varying(256) default '';
 alter table account add referral_id_3 character varying(256) default '';
 alter table account add role int default 0;

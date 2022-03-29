@@ -100,7 +100,7 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 
 	if acc.ReferralID.String != "" {
 		// TODO: indicate c250 ref earnings
-		if err := pg.payReferrer(ctx, tx, acc.Username, date.Unix(), acc.ReferralID.String, pkg.Price, 1); err != nil {
+		if err := pg.payReferrer(ctx, tx, sub.ID, acc.ID, date.Unix(), acc.ReferralID.String, pkg.Price, 1, c250); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("payReferrer %v", err)
 		}
@@ -109,7 +109,8 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	return tx.Commit()
 }
 
-func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, payerUsername string, date int64, refId string, subAmount int64, level int) error {
+func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, payerID string, 
+	date int64, refId string, subAmount int64, level int, c250 bool) error {
 	// first level is 15%
 	if level > 3 {
 		return nil
@@ -127,11 +128,31 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, payerUsername string
 
 	amount := subAmount * percentage / 100
 
-	if err := pg.CreditAccountTx(ctx, tx, refId, amount,
-		date, "referral earning from "+payerUsername); err != nil {
-		tx.Rollback()
+	method := app.PAYMENTMETHOD_BNB
+	if c250 {
+		method = app.PAYMENTMETHOD_C250D
+	}
+
+	refPayout := models.ReferralPayout {
+		ID: uuid.NewString(),
+		AccountID: refId,
+		Generation: level,
+		Date: date,
+		Amount: amount,
+		SubscriptionID: subscriptionID,
+		FromAccountID: payerID,
+		PaymentStatus: app.PAYMENTSTATUS_PENDING,
+		PaymentRef: "",
+		PaymentMethod: method,
+	}
+
+	if err := refPayout.Insert(ctx, tx, boil.Infer()); err != nil {
 		return err
 	}
+	// if err := pg.CreditAccountTx(ctx, tx, refId, amount,
+	// 	date, "referral earning from "+payerUsername); err != nil {
+	// 	return err
+	// }
 	acc, err := models.FindAccount(ctx, tx, refId)
 	if err == sql.ErrNoRows {
 		return nil
@@ -139,7 +160,18 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, payerUsername string
 	if err != nil {
 		return err
 	}
-	return pg.payReferrer(ctx, tx, payerUsername, date, acc.ReferralID.String, subAmount, level+1)
+	return pg.payReferrer(ctx, tx, subscriptionID, payerID, date, acc.ReferralID.String, subAmount, level+1, c250)
+}
+
+func (pg PgDb) PendingReferralPayouts(ctx context.Context) (models.ReferralPayoutSlice, error) {
+	return models.ReferralPayouts(
+		models.ReferralPayoutWhere.PaymentStatus.EQ(app.PAYMENTSTATUS_PENDING),
+	).All(ctx, pg.Db)
+}
+
+func (pg PgDb) UpdateReferralPayout(ctx context.Context, payout *models.ReferralPayout) error {
+	_, err := payout.Update(ctx, pg.Db, boil.Infer())
+	return err
 }
 
 func (pg PgDb) ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error) {

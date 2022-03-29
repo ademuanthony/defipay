@@ -1,9 +1,17 @@
 package app
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
+	"net/url"
+	"os"
+	"time"
 )
 
 type MakeWithdrawalInput struct {
@@ -54,4 +62,156 @@ func (m module) withdrawalHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendPagedJSON(w, rec, total)
+}
+
+func (m module) processReferralPayouts() {
+	for {
+		func() {
+			defer time.Sleep(5 * time.Minute)
+			ctx := context.Background()
+			pendingPayouts, err := m.db.PendingReferralPayouts(ctx)
+			if err != nil {
+				log.Error("processReferralPayouts", "PendingReferralPayouts", err)
+				return
+			}
+			for _, payout := range pendingPayouts {
+				if err := m.proccessPayout(ctx, payout); err != nil {
+					log.Error("processReferralPayouts", "proccessPayout", err)
+				}
+			}
+		}()
+	}
+}
+
+func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayout) error {
+	account, err := m.db.GetAccount(ctx, payout.AccountID)
+	if err != nil {
+		return fmt.Errorf("GetAccount", err)
+	}
+
+	markCompletedAndNotify := func() error {
+		payout.PaymentStatus = PAYMENTSTATUS_COMPLETED
+		if err := m.db.UpdateReferralPayout(ctx, payout); err != nil {
+			return err
+		}
+
+		notificationTitle := "Referral payment received"
+		senderAccount, err := m.db.GetAccount(ctx, payout.FromAccountID)
+		if err != nil {
+			return err
+		}
+		destination := "wallet"
+		if payout.PaymentMethod == PAYMENTMETHOD_C250D {
+			destination = "Club250Cent backoffice"
+		} else if account.WithdrawalAddresss == "" {
+			destination = "available balance"
+		}
+		message := fmt.Sprintf("A referral commission of $%.4f was sent to your %s for %s",
+			float64(payout.Amount)/float64(10000), destination, senderAccount.Username)
+
+		return m.db.CreateNotification(ctx, payout.AccountID, notificationTitle, message)
+	}
+
+	if payout.PaymentMethod == PAYMENTMETHOD_C250D {
+		if err := m.transferC250Dollar(ctx, account.Username, payout.Amount); err != nil {
+			return err
+		}
+
+		return markCompletedAndNotify()
+	}
+
+	if account.WithdrawalAddresss == "" {
+		if m.db.CreditAccount(ctx, payout.AccountID, payout.Amount, time.Now().Unix(), "referral payout from "+payout.FromAccountID); err != nil {
+			return err
+		}
+		return markCompletedAndNotify()
+	}
+
+	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount)
+	if err != nil {
+		return err
+	}
+	txHash, err := m.transfer(ctx, m.config.MasterAddressKey, account.WithdrawalAddresss, bnbAmount)
+	if err != nil {
+		return err
+	}
+	payout.PaymentRef = txHash
+	return markCompletedAndNotify()
+}
+
+type c250TransferInput struct {
+	Username string `json:"username"`
+	Amount   int64  `json:"amount"`
+}
+
+type c250TransferOutput struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+func (m module) transferC250Dollar(ctx context.Context, username string, amount int64) error {
+	input := c250TransferInput{Username: username, Amount: amount}
+	var resp c250TransferOutput
+	path := "/api/metatradas/transfer-payout?API_AUTH_KEY=" + url.QueryEscape(os.Getenv("ACCESS_SECRET"))
+	if err := sendJsonRequest(ctx, &http.Client{}, http.MethodPost, path, input, &resp); err != nil {
+		return err
+	}
+	if !resp.Success {
+		return errors.New(resp.Message)
+	}
+	return nil
+}
+
+// GetResponse attempts to collect json data from the given url string and decodes it into
+// the destination
+func sendJsonRequest(ctx context.Context, client *http.Client, method, url string, reqBody, destination interface{}) error {
+	// if client has no timeout, set one
+	if client.Timeout == time.Duration(0) {
+		client.Timeout = 10 * time.Second
+	}
+	resp := new(http.Response)
+
+	baseURL := "https://club250cent.com"
+	url = baseURL + url
+
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		return fmt.Errorf("json.Marshal %v", err)
+	}
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	req = req.WithContext(ctx)
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
+
+	maxRetryAttempts := 1
+	retryDelay := 0 * time.Second
+
+	for i := 1; i <= maxRetryAttempts; i++ {
+		res, err := client.Do(req)
+		if err != nil {
+			if res != nil {
+				res.Body.Close()
+			}
+			if i == maxRetryAttempts {
+				return err
+			}
+			time.Sleep(retryDelay)
+			continue
+		}
+		resp = res
+		break
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(destination)
+	if err != nil {
+		return err
+	}
+	return nil
 }

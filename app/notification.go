@@ -1,0 +1,6 @@
+package app
+
+const (
+	NOTIFICATION_STATUS_NEW = 0
+	NOTIFICATION_STATUS_READ = 1
+)

@@ -12,6 +12,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	PAYMENTMETHOD_C250D = 0
+	PAYMENTMETHOD_BNB = 1
+	PAYMENTMETHOD_USDT = 2
+
+	PAYMENTSTATUS_PENDING = 0
+	PAYMENTSTATUS_PROCCESSING = 1
+	PAYMENTSTATUS_COMPLETED = 2
+)
+
 type CreateAccountInput struct {
 	ReferralID  string `json:"referral_id"`
 	ReferralID2 string `json:"-"`

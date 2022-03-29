@@ -665,6 +665,240 @@ func testAccountToManyInvestments(t *testing.T) {
 	}
 }
 
+func testAccountToManyNotifications(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c Notification
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, notificationDBTypes, false, notificationColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, notificationDBTypes, false, notificationColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.AccountID = a.ID
+	c.AccountID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Notifications().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.AccountID == b.AccountID {
+			bFound = true
+		}
+		if v.AccountID == c.AccountID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadNotifications(ctx, tx, false, (*[]*Account)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Notifications); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Notifications = nil
+	if err = a.L.LoadNotifications(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Notifications); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testAccountToManyReferralPayouts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.AccountID = a.ID
+	c.AccountID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.ReferralPayouts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.AccountID == b.AccountID {
+			bFound = true
+		}
+		if v.AccountID == c.AccountID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadReferralPayouts(ctx, tx, false, (*[]*Account)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.ReferralPayouts = nil
+	if err = a.L.LoadReferralPayouts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.ReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testAccountToManyFromAccountReferralPayouts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.FromAccountID = a.ID
+	c.FromAccountID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.FromAccountReferralPayouts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.FromAccountID == b.FromAccountID {
+			bFound = true
+		}
+		if v.FromAccountID == c.FromAccountID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadFromAccountReferralPayouts(ctx, tx, false, (*[]*Account)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.FromAccountReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.FromAccountReferralPayouts = nil
+	if err = a.L.LoadFromAccountReferralPayouts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.FromAccountReferralPayouts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testAccountToManySubscriptions(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -1347,6 +1581,231 @@ func testAccountToManyAddOpInvestments(t *testing.T) {
 		}
 
 		count, err := a.Investments().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpNotifications(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c, d, e Notification
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Notification{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, notificationDBTypes, false, strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Notification{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddNotifications(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.AccountID {
+			t.Error("foreign key was wrong value", a.ID, first.AccountID)
+		}
+		if a.ID != second.AccountID {
+			t.Error("foreign key was wrong value", a.ID, second.AccountID)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Notifications[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Notifications[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Notifications().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpReferralPayouts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c, d, e ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*ReferralPayout{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, referralPayoutDBTypes, false, strmangle.SetComplement(referralPayoutPrimaryKeyColumns, referralPayoutColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*ReferralPayout{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddReferralPayouts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.AccountID {
+			t.Error("foreign key was wrong value", a.ID, first.AccountID)
+		}
+		if a.ID != second.AccountID {
+			t.Error("foreign key was wrong value", a.ID, second.AccountID)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.ReferralPayouts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.ReferralPayouts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.ReferralPayouts().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpFromAccountReferralPayouts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Account
+	var b, c, d, e ReferralPayout
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*ReferralPayout{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, referralPayoutDBTypes, false, strmangle.SetComplement(referralPayoutPrimaryKeyColumns, referralPayoutColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*ReferralPayout{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddFromAccountReferralPayouts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.FromAccountID {
+			t.Error("foreign key was wrong value", a.ID, first.FromAccountID)
+		}
+		if a.ID != second.FromAccountID {
+			t.Error("foreign key was wrong value", a.ID, second.FromAccountID)
+		}
+
+		if first.R.FromAccount != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.FromAccount != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.FromAccountReferralPayouts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.FromAccountReferralPayouts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.FromAccountReferralPayouts().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}

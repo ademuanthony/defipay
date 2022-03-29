@@ -16,6 +16,7 @@ type store interface {
 	GetRefferalCount(ctx context.Context, accountID string) (int64, error)
 	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 
+	CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error
 	GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error)
 	GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error)
 
@@ -26,6 +27,8 @@ type store interface {
 	GetPackageByName(ctx context.Context, name string) (*models.Package, error)
 	CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error
 	ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error)
+	PendingReferralPayouts(ctx context.Context) (models.ReferralPayoutSlice, error) 
+	UpdateReferralPayout(ctx context.Context, payout *models.ReferralPayout) error
 	Invest(ctx context.Context, accountID string, amount int64) error
 	Investments(ctx context.Context, accountId string, offset, limit int) ([]*models.Investment, int64, error)
 	Investment(ctx context.Context, id string) (*models.Investment, error)
@@ -43,4 +46,9 @@ type store interface {
 	GetWalletByAddresses(ctx context.Context) ([]string, error)
 	GetWellatByAddress(ctx context.Context, address string) (*models.Wallet, error)
 	CreateDeposit(ctx context.Context, accountID, txHash string, amount int64) error
+
+	CreateNotification(ctx context.Context, accountID, title, message string) error
+	UnReadNotificationCount(ctx context.Context, accountID string) (int64, error)
+	GetNotifications(ctx context.Context, accountID string, offset, limit int) (models.NotificationSlice, int64, error)
+	GetNotification(ctx context.Context, id string) (*models.Notification, error)
 }
