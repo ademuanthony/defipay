@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"merryworld/metatradas/app/util"
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
@@ -120,17 +121,18 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 		return markCompletedAndNotify()
 	}
 
-	if account.WithdrawalAddresss == "" {
+	if account.WithdrawalAddresss == "" || !util.IsValidAddress(account.WithdrawalAddresss) {
 		if m.db.CreditAccount(ctx, payout.AccountID, payout.Amount, time.Now().Unix(), "referral payout from "+payout.FromAccountID); err != nil {
 			return err
 		}
 		return markCompletedAndNotify()
 	}
 
-	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount - 5000)//blockchain fee
+	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount-5000) //blockchain fee
 	if err != nil {
 		return err
 	}
+
 	txHash, err := m.transfer(ctx, m.config.MasterAddressKey, account.WithdrawalAddresss, bnbAmount)
 	if err != nil {
 		return err
