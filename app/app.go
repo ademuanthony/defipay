@@ -93,6 +93,8 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/withdrawals/create", web.POST, m.makeWithdrawal, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/withdrawals/history", web.GET, m.withdrawalHistory, m.server.RequireLogin)
 
+
+	m.server.AddRoute("/api/notifications/send", web.POST, m.sendNotification, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/notifications/total-pending", web.GET, m.getUnReadNotificationCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/pending", web.GET, m.getNewNotifications, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/getall", web.GET, m.getNotifications, m.server.RequireLogin)

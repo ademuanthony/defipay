@@ -73,6 +73,22 @@ func (pg PgDb) GetAccounts(ctx context.Context, skip, limit int) ([]*models.Acco
 	).All(ctx, pg.Db)
 }
 
+func (pg PgDb) GetAccountIDs(ctx context.Context) ([]string, error) {
+	accounts, err := models.Accounts(
+		qm.Select(models.AccountColumns.ID),
+	).All(ctx, pg.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []string
+	for _, acc := range accounts {
+		ids = append(ids, acc.ID)
+	}
+
+	return ids, nil
+}
+
 func (pg PgDb) GetAccountByUsername(ctx context.Context, username string) (*models.Account, error) {
 	return models.Accounts(
 		models.AccountWhere.Username.EQ(username),

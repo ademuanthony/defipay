@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"merryworld/metatradas/web"
 	"net/http"
 )
@@ -9,6 +10,20 @@ const (
 	NOTIFICATION_STATUS_NEW  = 0
 	NOTIFICATION_STATUS_READ = 1
 )
+
+func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
+	title := r.FormValue("title")
+	message := r.FormValue("content")
+	accountIDs, err := m.db.GetAccountIDs(r.Context())
+	if err != nil {
+		m.sendSomethingWentWrong(w, err)
+		return
+	}
+	for _, id := range accountIDs {
+		m.db.CreateNotification(r.Context(), id, title, message)
+	}
+	web.SendJSON(w, fmt.Sprintf("notification sent to %d accounts", len(accountIDs)))
+}
 
 func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
 	count, err := m.db.UnReadNotificationCount(r.Context(), m.server.GetUserIDTokenCtx(r))
