@@ -57,6 +57,19 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 	return tx.Commit()
 }
 
+func (pg PgDb) CreateDepositWallet(ctx context.Context, accountID, address, privateKey string) (*models.Wallet, error) {
+	wallet := models.Wallet{
+		ID:         uuid.NewString(),
+		AccountID:  accountID,
+		Address:    address,
+		PrivateKey: privateKey,
+		CoinSymbol: "BEP20-USDT",
+	}
+
+	err := wallet.Insert(ctx, pg.Db, boil.Infer())
+	return &wallet, err
+}
+
 func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, error) {
 	return models.FindAccount(ctx, pg.Db, id)
 }

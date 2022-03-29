@@ -18,6 +18,7 @@ type store interface {
 	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 
 	CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error
+	CreateDepositWallet(ctx context.Context, accountID, address, privateKey string) (*models.Wallet, error)
 	GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error)
 	GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error)
 
