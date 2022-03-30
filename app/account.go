@@ -80,6 +80,11 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
+	
+	if input.Password == "" || input.Username == "" {
+		web.SendErrorfJSON(w, "Username and password is required")
+		return
+	}
 
 	if input.Email == "" {
 		web.SendErrorfJSON(w, "Email is required")
