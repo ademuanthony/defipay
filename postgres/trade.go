@@ -145,7 +145,7 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) ([]app.Trade,
 			Profit: t.Profit,
 		}
 
-		if t.EndDate >= time.Now().Unix() {
+		if t.EndDate <= time.Now().Unix() {
 			tradeView = append(tradeView, trade)
 			continue
 		}
