@@ -13,37 +13,39 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message string, notificationType int) error {
+func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message, actionText, actionLink string, notificationType int) error {
 	tx, err := pg.Db.Begin()
 	if err != nil {
 		return err
 	}
 
-	if err := pg.createNotificationTx(ctx, tx, accountID, title, message, notificationType); err != nil {
+	if err := pg.createNotificationTx(ctx, tx, accountID, title, message, actionText, actionLink, notificationType); err != nil {
 		return tx.Rollback()
 	}
 
 	return tx.Commit()
 }
 
-func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string, notificationType int) error {
+func (pg PgDb) NotifyAll(ctx context.Context, titile, content, actionText, actionLink string, notificationType int) error {
 	date := time.Now().Unix()
 
 	statement := `
-			insert into notification (id, account_id, date, title, content, status, type)
+			insert into notification (id, account_id, date, title, content, status, type, action_text, action_link)
 				select 
-					md5(concat(account.id, '-', '%s')),
+					gen_random_uuid(),
 					account.id,
 					%d, 
 					'%s', 
 					'%s',
 					%d,
-					%d
+					%d,
+					%s,
+					%s
 				from account
 		`
 	if _, err := models.DailyEarnings(
-		qm.SQL(fmt.Sprintf(statement, uuid.NewString(), date,
-			titile, content, app.NOTIFICATION_STATUS_NEW, notificationType),
+		qm.SQL(fmt.Sprintf(statement, date,
+			titile, content, app.NOTIFICATION_STATUS_NEW, notificationType, actionText, actionLink),
 		),
 	).ExecContext(ctx, pg.Db); err != nil {
 		return err
@@ -52,15 +54,17 @@ func (pg PgDb) NotifyAll(ctx context.Context, titile string, content string, not
 	return nil
 }
 
-func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message string, notificationType int) error {
+func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message, actionText, actionLink string, notificationType int) error {
 	notification := models.Notification{
-		ID:        uuid.NewString(),
-		AccountID: accountID,
-		Date:      time.Now().Unix(),
-		Status:    app.NOTIFICATION_STATUS_NEW,
-		Title:     title,
-		Content:   message,
-		Type:      notificationType,
+		ID:         uuid.NewString(),
+		AccountID:  accountID,
+		Date:       time.Now().Unix(),
+		Status:     app.NOTIFICATION_STATUS_NEW,
+		Title:      title,
+		Content:    message,
+		Type:       notificationType,
+		ActionLink: actionLink,
+		ActionText: actionText,
 	}
 
 	return notification.Insert(ctx, tx, boil.Infer())

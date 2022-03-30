@@ -146,8 +146,14 @@ create table if not exists notification (
     date bigint not null
 );
 
+create table if not exists trade (
+    id uuid not null default gen_random_uuid(),
+);
+
 alter table account add referral_id_2 character varying(256) default '';
 alter table account add referral_id_3 character varying(256) default '';
 alter table account add role int default 0;
 alter table package add icon character varying(256) default '';
 alter table notification add type int not null default 0;
+alter table notification add action_link character varying(64) not null default 0;
+alter table notification add action_text character varying(32) not null default 0;

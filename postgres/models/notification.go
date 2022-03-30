@@ -23,72 +23,86 @@ import (
 
 // Notification is an object representing the database table.
 type Notification struct {
-	ID        string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	AccountID string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
-	Status    int    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Title     string `boil:"title" json:"title" toml:"title" yaml:"title"`
-	Content   string `boil:"content" json:"content" toml:"content" yaml:"content"`
-	Date      int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
-	Type      int    `boil:"type" json:"type" toml:"type" yaml:"type"`
+	ID         string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	AccountID  string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	Status     int    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Title      string `boil:"title" json:"title" toml:"title" yaml:"title"`
+	Content    string `boil:"content" json:"content" toml:"content" yaml:"content"`
+	Date       int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	Type       int    `boil:"type" json:"type" toml:"type" yaml:"type"`
+	ActionLink string `boil:"action_link" json:"action_link" toml:"action_link" yaml:"action_link"`
+	ActionText string `boil:"action_text" json:"action_text" toml:"action_text" yaml:"action_text"`
 
 	R *notificationR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L notificationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var NotificationColumns = struct {
-	ID        string
-	AccountID string
-	Status    string
-	Title     string
-	Content   string
-	Date      string
-	Type      string
+	ID         string
+	AccountID  string
+	Status     string
+	Title      string
+	Content    string
+	Date       string
+	Type       string
+	ActionLink string
+	ActionText string
 }{
-	ID:        "id",
-	AccountID: "account_id",
-	Status:    "status",
-	Title:     "title",
-	Content:   "content",
-	Date:      "date",
-	Type:      "type",
+	ID:         "id",
+	AccountID:  "account_id",
+	Status:     "status",
+	Title:      "title",
+	Content:    "content",
+	Date:       "date",
+	Type:       "type",
+	ActionLink: "action_link",
+	ActionText: "action_text",
 }
 
 var NotificationTableColumns = struct {
-	ID        string
-	AccountID string
-	Status    string
-	Title     string
-	Content   string
-	Date      string
-	Type      string
+	ID         string
+	AccountID  string
+	Status     string
+	Title      string
+	Content    string
+	Date       string
+	Type       string
+	ActionLink string
+	ActionText string
 }{
-	ID:        "notification.id",
-	AccountID: "notification.account_id",
-	Status:    "notification.status",
-	Title:     "notification.title",
-	Content:   "notification.content",
-	Date:      "notification.date",
-	Type:      "notification.type",
+	ID:         "notification.id",
+	AccountID:  "notification.account_id",
+	Status:     "notification.status",
+	Title:      "notification.title",
+	Content:    "notification.content",
+	Date:       "notification.date",
+	Type:       "notification.type",
+	ActionLink: "notification.action_link",
+	ActionText: "notification.action_text",
 }
 
 // Generated where
 
 var NotificationWhere = struct {
-	ID        whereHelperstring
-	AccountID whereHelperstring
-	Status    whereHelperint
-	Title     whereHelperstring
-	Content   whereHelperstring
-	Date      whereHelperint64
-	Type      whereHelperint
+	ID         whereHelperstring
+	AccountID  whereHelperstring
+	Status     whereHelperint
+	Title      whereHelperstring
+	Content    whereHelperstring
+	Date       whereHelperint64
+	Type       whereHelperint
+	ActionLink whereHelperstring
+	ActionText whereHelperstring
 }{
-	ID:        whereHelperstring{field: "\"notification\".\"id\""},
-	AccountID: whereHelperstring{field: "\"notification\".\"account_id\""},
-	Status:    whereHelperint{field: "\"notification\".\"status\""},
-	Title:     whereHelperstring{field: "\"notification\".\"title\""},
-	Content:   whereHelperstring{field: "\"notification\".\"content\""},
-	Date:      whereHelperint64{field: "\"notification\".\"date\""},
-	Type:      whereHelperint{field: "\"notification\".\"type\""},
+	ID:         whereHelperstring{field: "\"notification\".\"id\""},
+	AccountID:  whereHelperstring{field: "\"notification\".\"account_id\""},
+	Status:     whereHelperint{field: "\"notification\".\"status\""},
+	Title:      whereHelperstring{field: "\"notification\".\"title\""},
+	Content:    whereHelperstring{field: "\"notification\".\"content\""},
+	Date:       whereHelperint64{field: "\"notification\".\"date\""},
+	Type:       whereHelperint{field: "\"notification\".\"type\""},
+	ActionLink: whereHelperstring{field: "\"notification\".\"action_link\""},
+	ActionText: whereHelperstring{field: "\"notification\".\"action_text\""},
 }
 
 // NotificationRels is where relationship names are stored.
@@ -112,9 +126,9 @@ func (*notificationR) NewStruct() *notificationR {
 type notificationL struct{}
 
 var (
-	notificationAllColumns            = []string{"id", "account_id", "status", "title", "content", "date", "type"}
+	notificationAllColumns            = []string{"id", "account_id", "status", "title", "content", "date", "type", "action_link", "action_text"}
 	notificationColumnsWithoutDefault = []string{"id", "account_id", "status", "title", "content", "date"}
-	notificationColumnsWithDefault    = []string{"type"}
+	notificationColumnsWithDefault    = []string{"type", "action_link", "action_text"}
 	notificationPrimaryKeyColumns     = []string{"id"}
 )
 

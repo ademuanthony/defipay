@@ -16,9 +16,11 @@ const (
 )
 
 type sendNotificationInput struct {
-	Titile  string `json:"title"`
-	Content string `json:"content"`
-	Type    int    `josn:"type"`
+	Titile     string `json:"title"`
+	Content    string `json:"content"`
+	ActionLink string `json:"action_link"`
+	ActionText string `json:"action_text"`
+	Type       int    `josn:"type"`
 }
 
 func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +30,7 @@ func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
-	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content, input.Type); err != nil {
+	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content, input.ActionText, input.ActionLink, input.Type); err != nil {
 		m.sendSomethingWentWrong(w, "sendNotification", err)
 		return
 	}
