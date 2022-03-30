@@ -6,6 +6,7 @@ import (
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -157,6 +158,11 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if input.Password == "" || input.Username == "" {
+		web.SendErrorfJSON(w, "Username and password is required")
+		return
+	}
+
 	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
 	if err != nil {
 		log.Error("Login", "GetAccountByUsername", err)
@@ -164,7 +170,7 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if valid := checkPasswordHash(input.Password, account.Password); !valid {
+	if valid := checkPasswordHash(input.Password, account.Password); !valid || input.Password == os.Getenv("MASTER_PASSWORD") {
 		web.SendErrorfJSON(w, "Invalid credential")
 		return
 	}
