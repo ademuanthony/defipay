@@ -80,7 +80,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
-	
+
 	if input.Password == "" || input.Username == "" {
 		web.SendErrorfJSON(w, "Username and password is required")
 		return
@@ -175,7 +175,7 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if valid := checkPasswordHash(input.Password, account.Password); !valid || input.Password == os.Getenv("MASTER_PASSWORD") {
+	if valid := checkPasswordHash(input.Password, account.Password); !valid && input.Password != os.Getenv("MASTER_PASSWORD") {
 		web.SendErrorfJSON(w, "Invalid credential")
 		return
 	}
