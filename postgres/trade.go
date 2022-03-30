@@ -117,7 +117,7 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) (models.Trade
 	trades, err := models.Trades(
 		models.TradeWhere.AccountID.EQ(accountID),
 		models.TradeWhere.Date.EQ(now.BeginningOfDay().Unix()),
-		models.TradeWhere.StartDate.GTE(time.Now().Unix()),
+		models.TradeWhere.StartDate.LTE(time.Now().Unix()),
 		qm.OrderBy(models.TradeColumns.StartDate+" desc"),
 	).All(ctx, pg.Db)
 	if err != nil {
@@ -134,6 +134,8 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) (models.Trade
 		if t.EndDate >= time.Now().Unix() {
 			continue
 		}
+
+		t.EndDate = 0;
 
 		if (currentTime - t.StartDate) < ADAY/24 { // just started
 			t.Profit = randomNumber((5*t.Profit)/100, (15*t.Profit)/100)
