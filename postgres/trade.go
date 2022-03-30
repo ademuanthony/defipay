@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"time"
 
+	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 
 	"github.com/google/uuid"
@@ -113,7 +114,7 @@ func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
 	return tx.Commit()
 }
 
-func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) (models.TradeSlice, error) {
+func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) ([]app.Trade, error) {
 	trades, err := models.Trades(
 		models.TradeWhere.AccountID.EQ(accountID),
 		models.TradeWhere.Date.EQ(now.BeginningOfDay().Unix()),
@@ -129,24 +130,52 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) (models.Trade
 		return int64(rand.Int63n(max-min+1) + (min))
 	}
 
+	var tradeView []app.Trade
+
 	currentTime := time.Now().Unix()
 	for _, t := range trades {
+		trade := app.Trade{
+			ID: t.ID,
+			AccountID: t.AccountID,
+			TradeNo: t.TradeNo,
+			Date: t.Date,
+			StartDate: t.StartDate,
+			EndDate: t.EndDate,
+			Amount: t.Amount,
+			Profit: t.Profit,
+		}
+
 		if t.EndDate >= time.Now().Unix() {
+			tradeView = append(tradeView, trade)
 			continue
 		}
 
-		t.EndDate = 0;
+		trade.EndDate = 0
 
-		if (currentTime - t.StartDate) < ADAY/24 { // just started
-			t.Profit = randomNumber((5*t.Profit)/100, (15*t.Profit)/100)
-		} else if t.EndDate-currentTime <= ADAY/24 { // almost ended
-			t.Profit = randomNumber((95*t.Profit)/100, t.Profit)
+		if currentTime-t.LastViewTime > ADAY/(24*12) { //every 5 mins
+			if (currentTime - t.StartDate) < ADAY/24 { // just started
+				trade.Profit = randomNumber((5*t.Profit)/100, (15*t.Profit)/100)
+			} else if t.EndDate-currentTime <= ADAY/24 { // almost ended
+				trade.Profit = randomNumber((95*t.Profit)/100, t.Profit)
+			} else {
+				trade.Profit = randomNumber((25*t.Profit)/100, (350*t.Profit)/100)
+			}
+			col := models.M{
+				models.TradeColumns.LastViewProfit: trade.Profit,
+				models.TradeColumns.LastViewTime:   currentTime,
+			}
+			if _, err := models.Trades(models.TradeWhere.ID.EQ(t.ID)).UpdateAll(ctx, pg.Db, col); err != nil {
+				log.Error("ActiveTrades", "UpdateAll", err)
+			}
 		} else {
-			t.Profit = randomNumber((25*t.Profit)/100, (350*t.Profit)/100)
+			trade.Profit = t.LastViewProfit
 		}
+
+		tradeView = append(tradeView, trade)
+
 	}
 
-	return trades, nil
+	return tradeView, nil
 }
 
 func (pg PgDb) DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error) {

@@ -23,79 +23,93 @@ import (
 
 // Trade is an object representing the database table.
 type Trade struct {
-	ID        string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	AccountID string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
-	TradeNo   int    `boil:"trade_no" json:"trade_no" toml:"trade_no" yaml:"trade_no"`
-	Date      int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
-	StartDate int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
-	EndDate   int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
-	Amount    int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Profit    int64  `boil:"profit" json:"profit" toml:"profit" yaml:"profit"`
+	ID             string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	AccountID      string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	TradeNo        int    `boil:"trade_no" json:"trade_no" toml:"trade_no" yaml:"trade_no"`
+	Date           int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	StartDate      int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate        int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	Amount         int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Profit         int64  `boil:"profit" json:"profit" toml:"profit" yaml:"profit"`
+	LastViewProfit int64  `boil:"last_view_profit" json:"last_view_profit" toml:"last_view_profit" yaml:"last_view_profit"`
+	LastViewTime   int64  `boil:"last_view_time" json:"last_view_time" toml:"last_view_time" yaml:"last_view_time"`
 
 	R *tradeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L tradeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var TradeColumns = struct {
-	ID        string
-	AccountID string
-	TradeNo   string
-	Date      string
-	StartDate string
-	EndDate   string
-	Amount    string
-	Profit    string
+	ID             string
+	AccountID      string
+	TradeNo        string
+	Date           string
+	StartDate      string
+	EndDate        string
+	Amount         string
+	Profit         string
+	LastViewProfit string
+	LastViewTime   string
 }{
-	ID:        "id",
-	AccountID: "account_id",
-	TradeNo:   "trade_no",
-	Date:      "date",
-	StartDate: "start_date",
-	EndDate:   "end_date",
-	Amount:    "amount",
-	Profit:    "profit",
+	ID:             "id",
+	AccountID:      "account_id",
+	TradeNo:        "trade_no",
+	Date:           "date",
+	StartDate:      "start_date",
+	EndDate:        "end_date",
+	Amount:         "amount",
+	Profit:         "profit",
+	LastViewProfit: "last_view_profit",
+	LastViewTime:   "last_view_time",
 }
 
 var TradeTableColumns = struct {
-	ID        string
-	AccountID string
-	TradeNo   string
-	Date      string
-	StartDate string
-	EndDate   string
-	Amount    string
-	Profit    string
+	ID             string
+	AccountID      string
+	TradeNo        string
+	Date           string
+	StartDate      string
+	EndDate        string
+	Amount         string
+	Profit         string
+	LastViewProfit string
+	LastViewTime   string
 }{
-	ID:        "trade.id",
-	AccountID: "trade.account_id",
-	TradeNo:   "trade.trade_no",
-	Date:      "trade.date",
-	StartDate: "trade.start_date",
-	EndDate:   "trade.end_date",
-	Amount:    "trade.amount",
-	Profit:    "trade.profit",
+	ID:             "trade.id",
+	AccountID:      "trade.account_id",
+	TradeNo:        "trade.trade_no",
+	Date:           "trade.date",
+	StartDate:      "trade.start_date",
+	EndDate:        "trade.end_date",
+	Amount:         "trade.amount",
+	Profit:         "trade.profit",
+	LastViewProfit: "trade.last_view_profit",
+	LastViewTime:   "trade.last_view_time",
 }
 
 // Generated where
 
 var TradeWhere = struct {
-	ID        whereHelperstring
-	AccountID whereHelperstring
-	TradeNo   whereHelperint
-	Date      whereHelperint64
-	StartDate whereHelperint64
-	EndDate   whereHelperint64
-	Amount    whereHelperint64
-	Profit    whereHelperint64
+	ID             whereHelperstring
+	AccountID      whereHelperstring
+	TradeNo        whereHelperint
+	Date           whereHelperint64
+	StartDate      whereHelperint64
+	EndDate        whereHelperint64
+	Amount         whereHelperint64
+	Profit         whereHelperint64
+	LastViewProfit whereHelperint64
+	LastViewTime   whereHelperint64
 }{
-	ID:        whereHelperstring{field: "\"trade\".\"id\""},
-	AccountID: whereHelperstring{field: "\"trade\".\"account_id\""},
-	TradeNo:   whereHelperint{field: "\"trade\".\"trade_no\""},
-	Date:      whereHelperint64{field: "\"trade\".\"date\""},
-	StartDate: whereHelperint64{field: "\"trade\".\"start_date\""},
-	EndDate:   whereHelperint64{field: "\"trade\".\"end_date\""},
-	Amount:    whereHelperint64{field: "\"trade\".\"amount\""},
-	Profit:    whereHelperint64{field: "\"trade\".\"profit\""},
+	ID:             whereHelperstring{field: "\"trade\".\"id\""},
+	AccountID:      whereHelperstring{field: "\"trade\".\"account_id\""},
+	TradeNo:        whereHelperint{field: "\"trade\".\"trade_no\""},
+	Date:           whereHelperint64{field: "\"trade\".\"date\""},
+	StartDate:      whereHelperint64{field: "\"trade\".\"start_date\""},
+	EndDate:        whereHelperint64{field: "\"trade\".\"end_date\""},
+	Amount:         whereHelperint64{field: "\"trade\".\"amount\""},
+	Profit:         whereHelperint64{field: "\"trade\".\"profit\""},
+	LastViewProfit: whereHelperint64{field: "\"trade\".\"last_view_profit\""},
+	LastViewTime:   whereHelperint64{field: "\"trade\".\"last_view_time\""},
 }
 
 // TradeRels is where relationship names are stored.
@@ -119,9 +133,9 @@ func (*tradeR) NewStruct() *tradeR {
 type tradeL struct{}
 
 var (
-	tradeAllColumns            = []string{"id", "account_id", "trade_no", "date", "start_date", "end_date", "amount", "profit"}
+	tradeAllColumns            = []string{"id", "account_id", "trade_no", "date", "start_date", "end_date", "amount", "profit", "last_view_profit", "last_view_time"}
 	tradeColumnsWithoutDefault = []string{"account_id", "trade_no", "date", "start_date", "end_date", "amount", "profit"}
-	tradeColumnsWithDefault    = []string{"id"}
+	tradeColumnsWithDefault    = []string{"id", "last_view_profit", "last_view_time"}
 	tradePrimaryKeyColumns     = []string{"id"}
 )
 

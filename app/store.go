@@ -5,6 +5,17 @@ import (
 	"merryworld/metatradas/postgres/models"
 )
 
+type Trade struct {
+	ID             string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	AccountID      string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	TradeNo        int    `boil:"trade_no" json:"trade_no" toml:"trade_no" yaml:"trade_no"`
+	Date           int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	StartDate      int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate        int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	Amount         int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Profit         int64  `boil:"profit" json:"profit" toml:"profit" yaml:"profit"`
+}
+
 type store interface {
 	CreateAccount(ctx context.Context, input CreateAccountInput) error
 	GetAccount(ctx context.Context, id string) (*models.Account, error)
@@ -38,7 +49,7 @@ type store interface {
 	BuildTradingSchedule(ctx context.Context) error 
 	PopulateTrades(ctx context.Context) error
 	PopulateEarnings(ctx context.Context) error
-	ActiveTrades(ctx context.Context, accountID string) (models.TradeSlice, error)
+	ActiveTrades(ctx context.Context, accountID string) ([]Trade, error)
 	DailyEarnings(ctx context.Context, accountId string, offset, limit int) ([]*models.DailyEarning, int64, error)
 	ProcessWeeklyPayout(ctx context.Context) error
 

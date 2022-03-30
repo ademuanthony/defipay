@@ -26,6 +26,7 @@ type TradeSchedule struct {
 	ID                     string `boil:"id" json:"id" toml:"id" yaml:"id"`
 	AccountID              string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
 	TradeNo                int    `boil:"trade_no" json:"trade_no" toml:"trade_no" yaml:"trade_no"`
+	TotalTrades            int    `boil:"total_trades" json:"total_trades" toml:"total_trades" yaml:"total_trades"`
 	Date                   int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
 	TargetProfitPercentage int    `boil:"target_profit_percentage" json:"target_profit_percentage" toml:"target_profit_percentage" yaml:"target_profit_percentage"`
 	StartDate              int    `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
@@ -38,6 +39,7 @@ var TradeScheduleColumns = struct {
 	ID                     string
 	AccountID              string
 	TradeNo                string
+	TotalTrades            string
 	Date                   string
 	TargetProfitPercentage string
 	StartDate              string
@@ -45,6 +47,7 @@ var TradeScheduleColumns = struct {
 	ID:                     "id",
 	AccountID:              "account_id",
 	TradeNo:                "trade_no",
+	TotalTrades:            "total_trades",
 	Date:                   "date",
 	TargetProfitPercentage: "target_profit_percentage",
 	StartDate:              "start_date",
@@ -54,6 +57,7 @@ var TradeScheduleTableColumns = struct {
 	ID                     string
 	AccountID              string
 	TradeNo                string
+	TotalTrades            string
 	Date                   string
 	TargetProfitPercentage string
 	StartDate              string
@@ -61,6 +65,7 @@ var TradeScheduleTableColumns = struct {
 	ID:                     "trade_schedule.id",
 	AccountID:              "trade_schedule.account_id",
 	TradeNo:                "trade_schedule.trade_no",
+	TotalTrades:            "trade_schedule.total_trades",
 	Date:                   "trade_schedule.date",
 	TargetProfitPercentage: "trade_schedule.target_profit_percentage",
 	StartDate:              "trade_schedule.start_date",
@@ -72,6 +77,7 @@ var TradeScheduleWhere = struct {
 	ID                     whereHelperstring
 	AccountID              whereHelperstring
 	TradeNo                whereHelperint
+	TotalTrades            whereHelperint
 	Date                   whereHelperint64
 	TargetProfitPercentage whereHelperint
 	StartDate              whereHelperint
@@ -79,6 +85,7 @@ var TradeScheduleWhere = struct {
 	ID:                     whereHelperstring{field: "\"trade_schedule\".\"id\""},
 	AccountID:              whereHelperstring{field: "\"trade_schedule\".\"account_id\""},
 	TradeNo:                whereHelperint{field: "\"trade_schedule\".\"trade_no\""},
+	TotalTrades:            whereHelperint{field: "\"trade_schedule\".\"total_trades\""},
 	Date:                   whereHelperint64{field: "\"trade_schedule\".\"date\""},
 	TargetProfitPercentage: whereHelperint{field: "\"trade_schedule\".\"target_profit_percentage\""},
 	StartDate:              whereHelperint{field: "\"trade_schedule\".\"start_date\""},
@@ -105,8 +112,8 @@ func (*tradeScheduleR) NewStruct() *tradeScheduleR {
 type tradeScheduleL struct{}
 
 var (
-	tradeScheduleAllColumns            = []string{"id", "account_id", "trade_no", "date", "target_profit_percentage", "start_date"}
-	tradeScheduleColumnsWithoutDefault = []string{"account_id", "trade_no", "date"}
+	tradeScheduleAllColumns            = []string{"id", "account_id", "trade_no", "total_trades", "date", "target_profit_percentage", "start_date"}
+	tradeScheduleColumnsWithoutDefault = []string{"account_id", "trade_no", "total_trades", "date"}
 	tradeScheduleColumnsWithDefault    = []string{"id", "target_profit_percentage", "start_date"}
 	tradeSchedulePrimaryKeyColumns     = []string{"id"}
 )

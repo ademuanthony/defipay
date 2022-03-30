@@ -536,7 +536,7 @@ func testTradesSelect(t *testing.T) {
 }
 
 var (
-	tradeDBTypes = map[string]string{`ID`: `uuid`, `AccountID`: `character varying`, `TradeNo`: `integer`, `Date`: `bigint`, `StartDate`: `bigint`, `EndDate`: `bigint`, `Amount`: `bigint`, `Profit`: `bigint`}
+	tradeDBTypes = map[string]string{`ID`: `uuid`, `AccountID`: `character varying`, `TradeNo`: `integer`, `Date`: `bigint`, `StartDate`: `bigint`, `EndDate`: `bigint`, `Amount`: `bigint`, `Profit`: `bigint`, `LastViewProfit`: `bigint`, `LastViewTime`: `bigint`}
 	_            = bytes.MinRead
 )
 
