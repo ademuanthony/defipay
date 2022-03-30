@@ -70,6 +70,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/account/investments", web.GET, m.MyInvestments, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/release-investment", web.POST, m.ReleaseInvestment, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/daily-earnings", web.GET, m.MyDailyEarnings, m.server.RequireLogin)
+	m.server.AddRoute("/api/account/active-trades", web.GET, m.MyActiveTrades, m.server.RequireLogin)
 
 	// C250
 	m.server.AddRoute("/api/c250/subscribe", web.POST, m.createSubscriptionC250, m.server.ValidAPIKey)
@@ -107,21 +108,32 @@ func welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) runProcessor(ctx context.Context) {
-	if err := m.db.PopulateEarnings(ctx); err != nil {
-		log.Critical("runProcessor", "PopulateEarnings", err)
+	runner := func ()  {
+		log.Info("runners are running")
+		if err := m.db.BuildTradingSchedule(ctx); err != nil {
+			log.Critical("runProcessor", "BuildTradingSchedule", err)
+		}
+
+		if err := m.db.PopulateTrades(ctx); err != nil {
+			log.Critical("runProcessor", "PopulateTrades", err)
+		}
+	
+		if err := m.db.PopulateEarnings(ctx); err != nil {
+			log.Critical("runProcessor", "PopulateEarnings", err)
+		}
+	
+		if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
+			log.Critical("runProcessor", "ProcessWeeklyPayout", err)
+		}
 	}
 
-	if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
-		log.Critical("runProcessor", "ProcessWeeklyPayout", err)
-	}
+	runner()
 
 	next := now.BeginningOfDay().Add(24 * time.Hour)
 	time.Sleep(time.Since(next))
 
 	for {
-		if err := m.db.PopulateEarnings(ctx); err != nil {
-			log.Critical("runProcessor", "PopulateEarnings", err)
-		}
+		runner()
 
 		select {
 		case <-ctx.Done():

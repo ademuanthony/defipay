@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -25,7 +24,7 @@ type PgDb struct {
 type pgLogWriter struct{}
 
 func (l pgLogWriter) Write(p []byte) (n int, err error) {
-	log.Println(string(p))
+	log.Info(string(p))
 	return len(p), nil
 }
 
@@ -46,7 +45,7 @@ func NewPgDb(host, port, user, pass, dbname string, debug bool) (*PgDb, error) {
 }
 
 func (pg *PgDb) Close() error {
-	log.Println("Closing postgresql connection")
+	log.Info("Closing postgresql connection")
 	return pg.Db.Close()
 }
 

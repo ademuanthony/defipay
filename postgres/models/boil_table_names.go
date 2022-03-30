@@ -13,6 +13,8 @@ var TableNames = struct {
 	Package            string
 	ReferralPayout     string
 	Subscription       string
+	Trade              string
+	TradeSchedule      string
 	Transfer           string
 	Wallet             string
 	WeeklyPayout       string
@@ -27,6 +29,8 @@ var TableNames = struct {
 	Package:            "package",
 	ReferralPayout:     "referral_payout",
 	Subscription:       "subscription",
+	Trade:              "trade",
+	TradeSchedule:      "trade_schedule",
 	Transfer:           "transfer",
 	Wallet:             "wallet",
 	WeeklyPayout:       "weekly_payout",

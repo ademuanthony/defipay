@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"merryworld/metatradas/app"
+	"merryworld/metatradas/postgres"
 	"merryworld/metatradas/web"
 
 	"github.com/decred/slog"
@@ -40,12 +41,14 @@ var (
 	log       = backendLog.Logger("MTRS")
 	homeLog   = backendLog.Logger("HOME")
 	webLogger = backendLog.Logger("WEBL")
+	pgLog = backendLog.Logger("PGLO")
 )
 
 // Initialize package-global logger variables.
 func init() {
 	app.UseLogger(homeLog)
 	web.UseLogger(webLogger)
+	postgres.UseLogger(pgLog)
 }
 
 // subsystemLoggers maps each subsystem identifier to its associated logger.
@@ -53,6 +56,7 @@ var subsystemLoggers = map[string]slog.Logger{
 	"PDAN": log,
 	"HOME": homeLog,
 	"WEBL": webLogger,
+	"PGLO": pgLog,
 }
 
 // initLogRotator initializes the logging rotater to write logs to logFile and

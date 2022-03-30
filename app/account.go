@@ -408,6 +408,17 @@ func (m module) MyInvestments(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, rec, total)
 }
 
+func (m module) MyActiveTrades(w http.ResponseWriter, r *http.Request) {
+	trades, err := m.db.ActiveTrades(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		log.Error("ActiveTrades", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
+	web.SendJSON(w, trades)
+}
+
 func (m module) MyDailyEarnings(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	rec, total, err := m.db.DailyEarnings(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)

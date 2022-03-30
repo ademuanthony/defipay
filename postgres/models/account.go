@@ -259,6 +259,8 @@ var AccountRels = struct {
 	ReferralPayouts            string
 	FromAccountReferralPayouts string
 	Subscriptions              string
+	Trades                     string
+	TradeSchedules             string
 	ReceiverTransfers          string
 	SenderTransfers            string
 	Wallets                    string
@@ -272,6 +274,8 @@ var AccountRels = struct {
 	ReferralPayouts:            "ReferralPayouts",
 	FromAccountReferralPayouts: "FromAccountReferralPayouts",
 	Subscriptions:              "Subscriptions",
+	Trades:                     "Trades",
+	TradeSchedules:             "TradeSchedules",
 	ReceiverTransfers:          "ReceiverTransfers",
 	SenderTransfers:            "SenderTransfers",
 	Wallets:                    "Wallets",
@@ -288,6 +292,8 @@ type accountR struct {
 	ReferralPayouts            ReferralPayoutSlice     `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
 	FromAccountReferralPayouts ReferralPayoutSlice     `boil:"FromAccountReferralPayouts" json:"FromAccountReferralPayouts" toml:"FromAccountReferralPayouts" yaml:"FromAccountReferralPayouts"`
 	Subscriptions              SubscriptionSlice       `boil:"Subscriptions" json:"Subscriptions" toml:"Subscriptions" yaml:"Subscriptions"`
+	Trades                     TradeSlice              `boil:"Trades" json:"Trades" toml:"Trades" yaml:"Trades"`
+	TradeSchedules             TradeScheduleSlice      `boil:"TradeSchedules" json:"TradeSchedules" toml:"TradeSchedules" yaml:"TradeSchedules"`
 	ReceiverTransfers          TransferSlice           `boil:"ReceiverTransfers" json:"ReceiverTransfers" toml:"ReceiverTransfers" yaml:"ReceiverTransfers"`
 	SenderTransfers            TransferSlice           `boil:"SenderTransfers" json:"SenderTransfers" toml:"SenderTransfers" yaml:"SenderTransfers"`
 	Wallets                    WalletSlice             `boil:"Wallets" json:"Wallets" toml:"Wallets" yaml:"Wallets"`
@@ -563,6 +569,48 @@ func (o *Account) Subscriptions(mods ...qm.QueryMod) subscriptionQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"subscription\".*"})
+	}
+
+	return query
+}
+
+// Trades retrieves all the trade's Trades with an executor.
+func (o *Account) Trades(mods ...qm.QueryMod) tradeQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"trade\".\"account_id\"=?", o.ID),
+	)
+
+	query := Trades(queryMods...)
+	queries.SetFrom(query.Query, "\"trade\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"trade\".*"})
+	}
+
+	return query
+}
+
+// TradeSchedules retrieves all the trade_schedule's TradeSchedules with an executor.
+func (o *Account) TradeSchedules(mods ...qm.QueryMod) tradeScheduleQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"trade_schedule\".\"account_id\"=?", o.ID),
+	)
+
+	query := TradeSchedules(queryMods...)
+	queries.SetFrom(query.Query, "\"trade_schedule\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"trade_schedule\".*"})
 	}
 
 	return query
@@ -1380,6 +1428,188 @@ func (accountL) LoadSubscriptions(ctx context.Context, e boil.ContextExecutor, s
 	return nil
 }
 
+// LoadTrades allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadTrades(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`trade`),
+		qm.WhereIn(`trade.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load trade")
+	}
+
+	var resultSlice []*Trade
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice trade")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on trade")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for trade")
+	}
+
+	if singular {
+		object.R.Trades = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &tradeR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.Trades = append(local.R.Trades, foreign)
+				if foreign.R == nil {
+					foreign.R = &tradeR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadTradeSchedules allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadTradeSchedules(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`trade_schedule`),
+		qm.WhereIn(`trade_schedule.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load trade_schedule")
+	}
+
+	var resultSlice []*TradeSchedule
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice trade_schedule")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on trade_schedule")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for trade_schedule")
+	}
+
+	if singular {
+		object.R.TradeSchedules = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &tradeScheduleR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.TradeSchedules = append(local.R.TradeSchedules, foreign)
+				if foreign.R == nil {
+					foreign.R = &tradeScheduleR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadReceiverTransfers allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (accountL) LoadReceiverTransfers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
@@ -2159,6 +2389,112 @@ func (o *Account) AddSubscriptions(ctx context.Context, exec boil.ContextExecuto
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &subscriptionR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
+		}
+	}
+	return nil
+}
+
+// AddTrades adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Trades.
+// Sets related.R.Account appropriately.
+func (o *Account) AddTrades(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Trade) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"trade\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, tradePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			Trades: related,
+		}
+	} else {
+		o.R.Trades = append(o.R.Trades, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &tradeR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
+		}
+	}
+	return nil
+}
+
+// AddTradeSchedules adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.TradeSchedules.
+// Sets related.R.Account appropriately.
+func (o *Account) AddTradeSchedules(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*TradeSchedule) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"trade_schedule\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, tradeSchedulePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			TradeSchedules: related,
+		}
+	} else {
+		o.R.TradeSchedules = append(o.R.TradeSchedules, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &tradeScheduleR{
 				Account: o,
 			}
 		} else {
