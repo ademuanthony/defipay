@@ -209,7 +209,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 		}
 
 		for tradeNo := 1; tradeNo <= p.TradesPerDay; tradeNo += 1 {
-			seed := (20/p.TradesPerDay)*tradeNo
+			seed := (20 / p.TradesPerDay) * tradeNo
 			maxStartDate := now.BeginningOfDay().Add(time.Hour * time.Duration(seed)).Unix()
 			statement := `
 				insert into trade_schedule(account_id, trade_no, total_trades, date, target_profit_percentage, start_date)
@@ -312,24 +312,12 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 		return nil
 	}
 
-	packages, err := pg.GetPackages(ctx)
-	if err != nil {
-		return err
-	}
 	tx, err := pg.Db.Begin()
 	if err != nil {
 		return err
 	}
 
-	for _, p := range packages {
-		count, _ := models.Subscriptions(
-			models.SubscriptionWhere.PackageID.EQ(p.ID),
-		).Count(ctx, tx)
-		if count == 0 {
-			continue
-		}
-
-		statement := `
+	statement := `
 			insert into daily_earning (account_id, date, percentage, principal)
 				select 
 				distinct account_id, 
@@ -340,12 +328,11 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 				inner join account on account.id = trade.account_id
 				where date = %d group by account_id, date, account.principal
 		`
-		if _, err := models.DailyEarnings(
-			qm.SQL(fmt.Sprintf(statement, date)),
-		).ExecContext(ctx, tx); err != nil {
-			tx.Rollback()
-			return err
-		}
+	if _, err := models.DailyEarnings(
+		qm.SQL(fmt.Sprintf(statement, date)),
+	).ExecContext(ctx, tx); err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	return tx.Commit()
