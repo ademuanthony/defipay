@@ -139,7 +139,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	wallet, privateKey, err := GenerateWallet()
+	privateKey, wallet, err := GenerateWallet()
 	if err != nil {
 		m.sendSomethingWentWrong(w, "GenerateWallet", err)
 	}

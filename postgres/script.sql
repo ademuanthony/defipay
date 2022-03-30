@@ -147,7 +147,29 @@ create table if not exists notification (
 );
 
 create table if not exists trade (
-    id uuid not null default gen_random_uuid(),
+    id uuid not null default gen_random_uuid() primary key,
+    account_id character varying(64) not null references account(id), 
+    date bigint not null,
+    start_date bigint not null,
+    end_date bigint not null,
+    amount bigint not null,
+    profit bigint not null
+);
+
+create table if not exists captian_ratio (
+    id uuid not null default gen_random_uuid() primary key,
+    account_id character varying(64) not null references account(id),
+    p1 int not null default 0,
+    p2 int not null default 0,
+    p3 int not null default 0,
+    p4 int not null default 0,
+    p5 int not null default 0,
+    
+    d1 int not null default 0,
+    d2 int not null default 0,
+    d3 int not null default 0,
+    d4 int not null default 0,
+    d5 int not null default 0,
 );
 
 alter table account add referral_id_2 character varying(256) default '';
