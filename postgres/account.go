@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 	"time"
@@ -243,6 +244,13 @@ func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string
 }
 
 func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
+	acc, err := models.Accounts(qm.Select(models.AccountColumns.Balance), models.AccountWhere.ID.EQ(accountID)).One(ctx, tx)
+	if err != nil {
+		return err
+	}
+	if acc.Balance < amount {
+		return errors.New("insufficient balance")
+	}
 	// transaction := models.AccountTransaction{
 	// 	AccountID:   accountID,
 	// 	Amount:      amount,
@@ -256,7 +264,7 @@ func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string,
 	// }
 
 	statement := `update account set balance = balance - $1 where id = $2`
-	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
+	_, err = models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
 
 	return err
 }

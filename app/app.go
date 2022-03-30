@@ -66,7 +66,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/account/team-info", web.GET, m.TeamInformation, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/deposit-address", web.GET, m.GetDepositAddress, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/deposits", web.GET, m.DepositHistories, m.server.RequireLogin)
-	m.server.AddRoute("/api/account/invest", web.POST, m.Invest, m.server.RequireLogin)
+	m.server.AddRoute("/api/account/invest", web.POST, m.Invest, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/investments", web.GET, m.MyInvestments, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/release-investment", web.POST, m.ReleaseInvestment, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/daily-earnings", web.GET, m.MyDailyEarnings, m.server.RequireLogin)

@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"merryworld/metatradas/postgres/models"
 	"time"
+
+	"merryworld/metatradas/postgres/models"
 
 	"github.com/google/uuid"
 	"github.com/jinzhu/now"
@@ -180,7 +181,6 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 
 	date := now.BeginningOfDay().Unix()
 	minStartDate := now.BeginningOfDay().Add(time.Minute * 5).Unix()
-	maxStartDate := now.BeginningOfDay().Add(time.Hour * 20).Unix()
 
 	count, err := models.TradeSchedules(models.TradeScheduleWhere.Date.EQ(date)).Count(ctx, pg.Db)
 	if err != nil {
@@ -209,6 +209,8 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 		}
 
 		for tradeNo := 1; tradeNo <= p.TradesPerDay; tradeNo += 1 {
+			seed := (20/p.TradesPerDay)*tradeNo
+			maxStartDate := now.BeginningOfDay().Add(time.Hour * time.Duration(seed)).Unix()
 			statement := `
 				insert into trade_schedule(account_id, trade_no, total_trades, date, target_profit_percentage, start_date)
 					select
