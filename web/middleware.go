@@ -69,6 +69,10 @@ func (s Server) GetUserIDTokenCtx(r *http.Request) string {
 		return ""
 	}
 
+	if !claims.Authorized {
+		return ""
+	}
+	
 	return claims.UserID
 }
 

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 
@@ -44,6 +45,10 @@ func (pg PgDb) GetConfigValue(ctx context.Context, accountID, key string) (app.C
 		models.UserSettingWhere.AccountID.EQ(accountID),
 		models.UserSettingWhere.ConfigKey.EQ(key),
 	).One(ctx, pg.Db)
+
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
 
 	if err != nil {
 		return "", err

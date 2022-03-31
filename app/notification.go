@@ -83,6 +83,6 @@ func (m module) getNotification(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) sendSomethingWentWrong(w http.ResponseWriter, fn string, err error) {
-	log.Error("getNotificationCount", fn, err)
+	log.Error(fn, err)
 	web.SendErrorfJSON(w, "Something went wrong. Please try again later")
 }

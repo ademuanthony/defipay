@@ -45,11 +45,12 @@ func (m module) is2faEnabled(ctx context.Context, accountID string) (bool, error
 }
 
 func (m module) get2faSecret(ctx context.Context, accountID string) (string, error) {
-	confiVal, err := m.db.GetConfigValue(ctx, accountID, ConfigKeys.TwoFactorEnabled)
-	if err == nil {
+	confiVal, err := m.db.GetConfigValue(ctx, accountID, ConfigKeys.TwoFactorSecret)
+	if err == nil && confiVal != "" {
 		return string(confiVal), nil
 	}
-	if err != sql.ErrNoRows {
+	log.Info(confiVal, err)
+	if err != nil && err != sql.ErrNoRows {
 		return "", err
 	}
 

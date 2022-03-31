@@ -59,7 +59,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/auth/2fa", web.POST, m.authorizeLogin, m.server.ValidBearerToken)
 
 	//ACCOUNT
-	m.server.AddRoute("/api/account/update", web.POST, m.UpdateAccountDetail, m.server.RequireLogin)
+	m.server.AddRoute("/api/account/update", web.POST, m.UpdateAccountDetail, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/me", web.GET, m.GetAccountDetail, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/referral-count", web.GET, m.GetReferralCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/downlines", web.GET, m.MyDownlines, m.server.RequireLogin)
@@ -82,8 +82,8 @@ func (m module) buildRoute() {
 	// PACKAGES
 	m.server.AddRoute("/api/packages/list", web.GET, m.GetPackages)
 	m.server.AddRoute("/api/packages/get", web.GET, m.GetPackage)
-	m.server.AddRoute("/api/packages/create", web.POST, m.CreatePackage, m.server.RequireLogin, m.server.ValidAPIKey)
-	m.server.AddRoute("/api/packages/update", web.POST, m.UpdatePackage, m.server.RequireLogin, m.server.ValidAPIKey)
+	m.server.AddRoute("/api/packages/create", web.POST, m.CreatePackage, m.server.RequireLogin, m.server.ValidAPIKey, m.server.NoReentry)
+	m.server.AddRoute("/api/packages/update", web.POST, m.UpdatePackage, m.server.RequireLogin, m.server.ValidAPIKey, m.server.NoReentry)
 	m.server.AddRoute("/api/packages/buy", web.POST, m.BuyPackage, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/packages/subscription", web.GET, m.GetActiveSubscription, m.server.RequireLogin)
 
@@ -100,8 +100,8 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/notifications/getall", web.GET, m.getNotifications, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/get", web.GET, m.getNotification, m.server.RequireLogin)
 
-	m.server.AddRoute("/api/security/init2fa", web.POST, m.init2fa, m.server.RequireLogin)
-	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin)
+	m.server.AddRoute("/api/security/init2fa", web.POST, m.init2fa, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin, m.server.NoReentry)
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {
