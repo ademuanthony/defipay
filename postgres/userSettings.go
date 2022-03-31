@@ -2,13 +2,14 @@ package postgres
 
 import (
 	"context"
+	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
-func (pg PgDb) SetConfigValue(ctx context.Context, accountID, key, value string) error {
+func (pg PgDb) SetConfigValue(ctx context.Context, accountID, key string, value app.ConfigValue) error {
 	exists, err := models.UserSettings(
 		models.UserSettingWhere.AccountID.EQ(accountID),
 		models.UserSettingWhere.ConfigKey.EQ(key),
@@ -31,13 +32,13 @@ func (pg PgDb) SetConfigValue(ctx context.Context, accountID, key, value string)
 	config := models.UserSetting{
 		AccountID:   accountID,
 		ConfigKey:   key,
-		ConfigValue: value,
+		ConfigValue: string(value),
 	}
 
 	return config.Insert(ctx, pg.Db, boil.Infer())
 }
 
-func (pg PgDb) GetConfigValue(ctx context.Context, accountID, key string) (string, error) {
+func (pg PgDb) GetConfigValue(ctx context.Context, accountID, key string) (app.ConfigValue, error) {
 	config, err := models.UserSettings(
 		qm.Select(models.UserSettingColumns.ConfigValue),
 		models.UserSettingWhere.AccountID.EQ(accountID),
@@ -48,7 +49,7 @@ func (pg PgDb) GetConfigValue(ctx context.Context, accountID, key string) (strin
 		return "", err
 	}
 
-	return config.ConfigValue, nil
+	return app.ConfigValue(config.ConfigValue), nil
 }
 
 func (pg PgDb) GetConfigs(ctx context.Context, accountID string) (models.UserSettingSlice, error) {

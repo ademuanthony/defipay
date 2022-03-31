@@ -56,6 +56,7 @@ func (m module) buildRoute() {
 	// AUTH
 	m.server.AddRoute("/api/auth/register", web.POST, m.CreateAccount)
 	m.server.AddRoute("/api/auth/login", web.POST, m.Login)
+	m.server.AddRoute("/api/auth/2fa", web.POST, m.authorizeLogin, m.server.ValidBearerToken)
 
 	//ACCOUNT
 	m.server.AddRoute("/api/account/update", web.POST, m.UpdateAccountDetail, m.server.RequireLogin)
@@ -99,6 +100,8 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/notifications/getall", web.GET, m.getNotifications, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/get", web.GET, m.getNotification, m.server.RequireLogin)
 
+	m.server.AddRoute("/api/security/init2fa", web.POST, m.init2fa, m.server.RequireLogin)
+	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin)
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {

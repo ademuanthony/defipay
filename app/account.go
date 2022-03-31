@@ -52,6 +52,11 @@ type LoginRequst struct {
 	Password string `json:"password"`
 }
 
+type loginResponse struct {
+	Token      string `json:"token"`
+	Authorized bool   `json:"authorized"`
+}
+
 type UpdateDetailInput struct {
 	FirstName         string `json:"first_name"`
 	LastName          string `json:"last_name"`
@@ -180,14 +185,23 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := web.CreateToken(account.ID)
+	is2faEnabled, err := m.is2faEnabled(r.Context(), account.ID)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "login,is2faEnabled", err)
+		return
+	}
+
+	token, err := web.CreateToken(account.ID, !is2faEnabled)
 	if err != nil {
 		log.Error("Login", "CreateToken", err)
 		web.SendErrorfJSON(w, "Something went wrong, please try again later")
 		return
 	}
 
-	web.SendJSON(w, token)
+	web.SendJSON(w, loginResponse{
+		Token:      token,
+		Authorized: !is2faEnabled,
+	})
 }
 
 func hashPassword(password string) (string, error) {

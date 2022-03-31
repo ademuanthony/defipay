@@ -10,14 +10,16 @@ import (
 )
 
 type Claims struct {
-	UserID string `json:"userId"`
+	UserID     string `json:"userId"`
+	Authorized bool   `json:"authorized"`
 	jwt.StandardClaims
 }
 
-func CreateToken(userid string) (string, error) {
+func CreateToken(userid string, authorized bool) (string, error) {
 	expirationTime := time.Now().Add(360 * time.Minute)
 	claims := &Claims{
-		UserID: userid,
+		UserID:     userid,
+		Authorized: authorized,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
