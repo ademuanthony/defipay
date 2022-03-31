@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jinzhu/now"
 )
 
 type module struct {
@@ -94,7 +93,6 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/withdrawals/create", web.POST, m.makeWithdrawal, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/withdrawals/history", web.GET, m.withdrawalHistory, m.server.RequireLogin)
 
-
 	m.server.AddRoute("/api/notifications/send", web.POST, m.sendNotification, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/notifications/total-pending", web.GET, m.getUnReadNotificationCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/pending", web.GET, m.getNewNotifications, m.server.RequireLogin)
@@ -108,8 +106,9 @@ func welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) runProcessor(ctx context.Context) {
-	runner := func ()  {
-		log.Info("runners are running")
+	i := 1
+	runner := func() {
+		log.Info("runners are running", i)
 		if err := m.db.BuildTradingSchedule(ctx); err != nil {
 			log.Critical("runProcessor", "BuildTradingSchedule", err)
 		}
@@ -117,20 +116,21 @@ func (m module) runProcessor(ctx context.Context) {
 		if err := m.db.PopulateTrades(ctx); err != nil {
 			log.Critical("runProcessor", "PopulateTrades", err)
 		}
-	
+
 		if err := m.db.PopulateEarnings(ctx); err != nil {
 			log.Critical("runProcessor", "PopulateEarnings", err)
 		}
-	
+
 		if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
 			log.Critical("runProcessor", "ProcessWeeklyPayout", err)
 		}
+		i += 1
 	}
 
 	runner()
 
-	next := now.BeginningOfDay().Add(24 * time.Hour)
-	time.Sleep(time.Since(next))
+	next := time.Now().Add(24 * time.Hour)
+	time.Sleep(time.Until(next))
 
 	for {
 		runner()
