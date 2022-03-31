@@ -263,6 +263,7 @@ var AccountRels = struct {
 	TradeSchedules             string
 	ReceiverTransfers          string
 	SenderTransfers            string
+	UserSettings               string
 	Wallets                    string
 	Withdrawals                string
 }{
@@ -278,6 +279,7 @@ var AccountRels = struct {
 	TradeSchedules:             "TradeSchedules",
 	ReceiverTransfers:          "ReceiverTransfers",
 	SenderTransfers:            "SenderTransfers",
+	UserSettings:               "UserSettings",
 	Wallets:                    "Wallets",
 	Withdrawals:                "Withdrawals",
 }
@@ -296,6 +298,7 @@ type accountR struct {
 	TradeSchedules             TradeScheduleSlice      `boil:"TradeSchedules" json:"TradeSchedules" toml:"TradeSchedules" yaml:"TradeSchedules"`
 	ReceiverTransfers          TransferSlice           `boil:"ReceiverTransfers" json:"ReceiverTransfers" toml:"ReceiverTransfers" yaml:"ReceiverTransfers"`
 	SenderTransfers            TransferSlice           `boil:"SenderTransfers" json:"SenderTransfers" toml:"SenderTransfers" yaml:"SenderTransfers"`
+	UserSettings               UserSettingSlice        `boil:"UserSettings" json:"UserSettings" toml:"UserSettings" yaml:"UserSettings"`
 	Wallets                    WalletSlice             `boil:"Wallets" json:"Wallets" toml:"Wallets" yaml:"Wallets"`
 	Withdrawals                WithdrawalSlice         `boil:"Withdrawals" json:"Withdrawals" toml:"Withdrawals" yaml:"Withdrawals"`
 }
@@ -653,6 +656,27 @@ func (o *Account) SenderTransfers(mods ...qm.QueryMod) transferQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"transfer\".*"})
+	}
+
+	return query
+}
+
+// UserSettings retrieves all the user_setting's UserSettings with an executor.
+func (o *Account) UserSettings(mods ...qm.QueryMod) userSettingQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"user_setting\".\"account_id\"=?", o.ID),
+	)
+
+	query := UserSettings(queryMods...)
+	queries.SetFrom(query.Query, "\"user_setting\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"user_setting\".*"})
 	}
 
 	return query
@@ -1792,6 +1816,97 @@ func (accountL) LoadSenderTransfers(ctx context.Context, e boil.ContextExecutor,
 	return nil
 }
 
+// LoadUserSettings allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadUserSettings(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`user_setting`),
+		qm.WhereIn(`user_setting.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_setting")
+	}
+
+	var resultSlice []*UserSetting
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_setting")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_setting")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_setting")
+	}
+
+	if singular {
+		object.R.UserSettings = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userSettingR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.UserSettings = append(local.R.UserSettings, foreign)
+				if foreign.R == nil {
+					foreign.R = &userSettingR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadWallets allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (accountL) LoadWallets(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
@@ -2605,6 +2720,59 @@ func (o *Account) AddSenderTransfers(ctx context.Context, exec boil.ContextExecu
 			}
 		} else {
 			rel.R.Sender = o
+		}
+	}
+	return nil
+}
+
+// AddUserSettings adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.UserSettings.
+// Sets related.R.Account appropriately.
+func (o *Account) AddUserSettings(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserSetting) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"user_setting\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, userSettingPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			UserSettings: related,
+		}
+	} else {
+		o.R.UserSettings = append(o.R.UserSettings, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userSettingR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
 		}
 	}
 	return nil

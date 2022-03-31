@@ -69,4 +69,8 @@ type store interface {
 	GetNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)
 	GetNewNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)
 	GetNotification(ctx context.Context, id string) (*models.Notification, error)
+
+	SetConfigValue(ctx context.Context, accountID, key, value string) error
+	GetConfigValue(ctx context.Context, accountID, key string) (string, error)
+	GetConfigs(ctx context.Context, accountID string) (models.UserSettingSlice, error)
 }

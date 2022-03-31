@@ -169,6 +169,14 @@ create table if not exists trade (
     unique(account_id, date, trade_no)
 );
 
+create table if not exists user_setting (
+    id uuid not null default gen_random_uuid() primary key,
+    account_id character varying(64) not null references account(id),
+    config_key character varying(64) not null,
+    config_value character varying(500) not null,
+    unique(account_id, config_key)
+);
+
 alter table account add referral_id_2 character varying(256) default '';
 alter table account add referral_id_3 character varying(256) default '';
 alter table account add role int default 0;

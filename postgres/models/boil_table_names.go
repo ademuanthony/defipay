@@ -16,6 +16,7 @@ var TableNames = struct {
 	Trade              string
 	TradeSchedule      string
 	Transfer           string
+	UserSetting        string
 	Wallet             string
 	WeeklyPayout       string
 	Withdrawal         string
@@ -32,6 +33,7 @@ var TableNames = struct {
 	Trade:              "trade",
 	TradeSchedule:      "trade_schedule",
 	Transfer:           "transfer",
+	UserSetting:        "user_setting",
 	Wallet:             "wallet",
 	WeeklyPayout:       "weekly_payout",
 	Withdrawal:         "withdrawal",

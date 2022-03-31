@@ -30,6 +30,8 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("Transfers", testTransfersUpsert)
 
+	t.Run("UserSettings", testUserSettingsUpsert)
+
 	t.Run("Wallets", testWalletsUpsert)
 
 	t.Run("WeeklyPayouts", testWeeklyPayoutsUpsert)
