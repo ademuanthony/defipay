@@ -168,7 +168,7 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) ([]app.Trade,
 				log.Error("ActiveTrades", "UpdateAll", err)
 			}
 		} else {
-			trade.Profit = t.LastViewProfit
+			trade.Profit = randomNumber((98*t.LastViewProfit)/100, (102*t.LastViewProfit)/100)
 		}
 
 		tradeView = append(tradeView, trade)
