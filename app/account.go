@@ -198,10 +198,15 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	web.SendJSON(w, loginResponse{
-		Token:      token,
-		Authorized: !is2faEnabled,
-	})
+	if r.FormValue("v") == "2" {
+		web.SendJSON(w, loginResponse{
+			Token:      token,
+			Authorized: !is2faEnabled,
+		})
+	}	else {
+		web.SendJSON(w, token)
+	}
+
 }
 
 func hashPassword(password string) (string, error) {

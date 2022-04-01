@@ -36,6 +36,23 @@ var ConfigValues = struct {
 	True: "TRUE",
 }
 
+type commonSettings struct {
+	TwoFactorEnabled bool `json:"two_factor_enabled"`
+}
+
+func (m module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
+	twoFaEnabled, err := m.is2faEnabled(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		m.sendSomethingWentWrong(w, "getCommonConfig.is2faEnabled", err)
+		return
+	}
+
+	respo := commonSettings {
+		TwoFactorEnabled: twoFaEnabled,
+	}
+	web.SendJSON(w, respo)
+}
+
 func (m module) is2faEnabled(ctx context.Context, accountID string) (bool, error) {
 	confiVal, err := m.db.GetConfigValue(ctx, accountID, ConfigKeys.TwoFactorEnabled)
 	if err != nil {
@@ -107,6 +124,10 @@ func (m module) enable2fa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	valid, err := m.validate2faOTP(r.Context(), m.server.GetUserIDTokenCtx(r), input.OTP)
+	if err != nil && err.Error() == "invalid code" {
+		web.SendErrorfJSON(w, "Invalid OTP")
+		return
+	}
 	if err != nil {
 		m.sendSomethingWentWrong(w, "validate2faOTP", err)
 		return
@@ -130,7 +151,7 @@ func (m module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
 		m.sendSomethingWentWrong(w, "json.Decode", err)
 		return
 	}
-	accountID := m.server.GetUserIDTokenCtx(r)
+	accountID := m.server.GetUserIDTokenUnAuthCtx(r)
 	valid, err := m.validate2faOTP(r.Context(), accountID, input.OTP)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "validate2faOTP", err)

@@ -76,6 +76,16 @@ func (s Server) GetUserIDTokenCtx(r *http.Request) string {
 	return claims.UserID
 }
 
+func (s Server) GetUserIDTokenUnAuthCtx(r *http.Request) string {
+	// Initialize a new instance of `Claims`
+	claims, err := getClaims(r)
+	if err != nil {
+		return ""
+	}
+	
+	return claims.UserID
+}
+
 func (s Server) RequireLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uid := s.GetUserIDTokenCtx(r)
