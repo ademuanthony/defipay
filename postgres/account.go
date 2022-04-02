@@ -55,6 +55,25 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 	return tx.Commit()
 }
 
+func (pg PgDb) AddLogin(ctx context.Context, accountID, ip, platform string, date int64) error {
+	info := models.LoginInfo{
+		AccountID: accountID,
+		Platform: platform,
+		IP: ip,
+		Date: date,
+	}
+
+	return info.Insert(ctx, pg.Db, boil.Infer())
+}
+
+func (pg PgDb) LastLogin(ctx context.Context) (*models.LoginInfo, error) {
+	maxDate := time.Now().Add(-5 * time.Minute).Unix()
+	return models.LoginInfos(
+		models.LoginInfoWhere.Date.LTE(maxDate),
+		qm.OrderBy(models.LoginInfoColumns.Date + " desc"),
+	).One(ctx, pg.Db)
+}
+
 func (pg PgDb) CreateDepositWallet(ctx context.Context, accountID, address, privateKey string) (*models.Wallet, error) {
 	wallet := models.Wallet{
 		ID:         uuid.NewString(),

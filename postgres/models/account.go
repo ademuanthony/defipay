@@ -255,6 +255,7 @@ var AccountRels = struct {
 	DailyEarnings              string
 	Deposits                   string
 	Investments                string
+	LoginInfos                 string
 	Notifications              string
 	ReferralPayouts            string
 	FromAccountReferralPayouts string
@@ -271,6 +272,7 @@ var AccountRels = struct {
 	DailyEarnings:              "DailyEarnings",
 	Deposits:                   "Deposits",
 	Investments:                "Investments",
+	LoginInfos:                 "LoginInfos",
 	Notifications:              "Notifications",
 	ReferralPayouts:            "ReferralPayouts",
 	FromAccountReferralPayouts: "FromAccountReferralPayouts",
@@ -290,6 +292,7 @@ type accountR struct {
 	DailyEarnings              DailyEarningSlice       `boil:"DailyEarnings" json:"DailyEarnings" toml:"DailyEarnings" yaml:"DailyEarnings"`
 	Deposits                   DepositSlice            `boil:"Deposits" json:"Deposits" toml:"Deposits" yaml:"Deposits"`
 	Investments                InvestmentSlice         `boil:"Investments" json:"Investments" toml:"Investments" yaml:"Investments"`
+	LoginInfos                 LoginInfoSlice          `boil:"LoginInfos" json:"LoginInfos" toml:"LoginInfos" yaml:"LoginInfos"`
 	Notifications              NotificationSlice       `boil:"Notifications" json:"Notifications" toml:"Notifications" yaml:"Notifications"`
 	ReferralPayouts            ReferralPayoutSlice     `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
 	FromAccountReferralPayouts ReferralPayoutSlice     `boil:"FromAccountReferralPayouts" json:"FromAccountReferralPayouts" toml:"FromAccountReferralPayouts" yaml:"FromAccountReferralPayouts"`
@@ -488,6 +491,27 @@ func (o *Account) Investments(mods ...qm.QueryMod) investmentQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"investment\".*"})
+	}
+
+	return query
+}
+
+// LoginInfos retrieves all the login_info's LoginInfos with an executor.
+func (o *Account) LoginInfos(mods ...qm.QueryMod) loginInfoQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"login_info\".\"account_id\"=?", o.ID),
+	)
+
+	query := LoginInfos(queryMods...)
+	queries.SetFrom(query.Query, "\"login_info\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"login_info\".*"})
 	}
 
 	return query
@@ -1078,6 +1102,97 @@ func (accountL) LoadInvestments(ctx context.Context, e boil.ContextExecutor, sin
 				local.R.Investments = append(local.R.Investments, foreign)
 				if foreign.R == nil {
 					foreign.R = &investmentR{}
+				}
+				foreign.R.Account = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadLoginInfos allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadLoginInfos(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`login_info`),
+		qm.WhereIn(`login_info.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load login_info")
+	}
+
+	var resultSlice []*LoginInfo
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice login_info")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on login_info")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for login_info")
+	}
+
+	if singular {
+		object.R.LoginInfos = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &loginInfoR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.LoginInfos = append(local.R.LoginInfos, foreign)
+				if foreign.R == nil {
+					foreign.R = &loginInfoR{}
 				}
 				foreign.R.Account = local
 				break
@@ -2292,6 +2407,59 @@ func (o *Account) AddInvestments(ctx context.Context, exec boil.ContextExecutor,
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &investmentR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
+		}
+	}
+	return nil
+}
+
+// AddLoginInfos adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.LoginInfos.
+// Sets related.R.Account appropriately.
+func (o *Account) AddLoginInfos(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*LoginInfo) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"login_info\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, loginInfoPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			LoginInfos: related,
+		}
+	} else {
+		o.R.LoginInfos = append(o.R.LoginInfos, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &loginInfoR{
 				Account: o,
 			}
 		} else {

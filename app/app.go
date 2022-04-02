@@ -101,9 +101,10 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/notifications/get", web.GET, m.getNotification, m.server.RequireLogin)
 
 	m.server.AddRoute("/api/config/common-settings", web.GET, m.getCommonConfig, m.server.RequireLogin)
-	
+
 	m.server.AddRoute("/api/security/init2fa", web.POST, m.init2fa, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/security/last-login", web.GET, m.lastLogin, m.server.RequireLogin)
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {

@@ -6,6 +6,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"math/rand"
+	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
 
@@ -47,7 +48,7 @@ func (m module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respo := commonSettings {
+	respo := commonSettings{
 		TwoFactorEnabled: twoFaEnabled,
 	}
 	web.SendJSON(w, respo)
@@ -178,4 +179,18 @@ func (m module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
 		Token:      token,
 		Authorized: true,
 	})
+}
+
+func (m module) lastLogin(w http.ResponseWriter, r *http.Request) {
+	login, err := m.db.LastLogin(r.Context())
+	if err == sql.ErrNoRows {
+		web.SendJSON(w, models.LoginInfo{})
+		return
+	}
+	if err != nil {
+		m.sendSomethingWentWrong(w, "LastLogin", err)
+		return
+	}
+
+	web.SendJSON(w, login)
 }

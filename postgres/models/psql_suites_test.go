@@ -16,6 +16,8 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("Investments", testInvestmentsUpsert)
 
+	t.Run("LoginInfos", testLoginInfosUpsert)
+
 	t.Run("Notifications", testNotificationsUpsert)
 
 	t.Run("Packages", testPackagesUpsert)

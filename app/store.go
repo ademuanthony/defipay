@@ -73,4 +73,6 @@ type store interface {
 	SetConfigValue(ctx context.Context, accountID, key string, value ConfigValue) error
 	GetConfigValue(ctx context.Context, accountID, key string) (ConfigValue, error)
 	GetConfigs(ctx context.Context, accountID string) (models.UserSettingSlice, error)
+	AddLogin(ctx context.Context, accountID, ip, platform string, date int64) error
+	LastLogin(ctx context.Context) (*models.LoginInfo, error)
 }

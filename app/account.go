@@ -185,6 +185,15 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	platform := "Device/Mobile"
+	if r.FormValue("p") == "web" {
+		platform = "Device/Web"
+	}
+	if err := m.db.AddLogin(r.Context(), account.ID, r.Host, platform, time.Now().Unix()); err != nil {
+		m.sendSomethingWentWrong(w, "login,AddLogin", err)
+		return
+	}
+
 	is2faEnabled, err := m.is2faEnabled(r.Context(), account.ID)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "login,is2faEnabled", err)

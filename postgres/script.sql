@@ -177,6 +177,14 @@ create table if not exists user_setting (
     unique(account_id, config_key)
 );
 
+create table if not exists login_info (
+    id uuid not null default gen_random_uuid() primary key,
+    account_id character varying(64) not null references account(id),
+    date bigint not null,
+    ip character varying(128) not null,
+    platform character varying(128) not null
+);
+
 alter table account add referral_id_2 character varying(256) default '';
 alter table account add referral_id_3 character varying(256) default '';
 alter table account add role int default 0;
