@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -189,7 +190,14 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("p") == "web" {
 		platform = "Device/Web"
 	}
-	if err := m.db.AddLogin(r.Context(), account.ID, r.RemoteAddr, platform, time.Now().Unix()); err != nil {
+	var ip string
+	ipseg := strings.Split(r.RemoteAddr, ":")
+	for i, seg := range ipseg {
+		if i < len(ipseg)-1 {
+			ip += seg
+		}
+	}
+	if err := m.db.AddLogin(r.Context(), account.ID, ip, platform, time.Now().Unix()); err != nil {
 		m.sendSomethingWentWrong(w, "login,AddLogin", err)
 		return
 	}
