@@ -67,7 +67,7 @@ func (pg PgDb) AddLogin(ctx context.Context, accountID, ip, platform string, dat
 }
 
 func (pg PgDb) LastLogin(ctx context.Context) (*models.LoginInfo, error) {
-	maxDate := time.Now().Add(-5 * time.Minute).Unix()
+	maxDate := time.Now().Add(-1 * time.Minute).Unix()
 	return models.LoginInfos(
 		models.LoginInfoWhere.Date.LTE(maxDate),
 		qm.OrderBy(models.LoginInfoColumns.Date + " desc"),
