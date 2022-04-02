@@ -189,7 +189,7 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("p") == "web" {
 		platform = "Device/Web"
 	}
-	if err := m.db.AddLogin(r.Context(), account.ID, r.Host, platform, time.Now().Unix()); err != nil {
+	if err := m.db.AddLogin(r.Context(), account.ID, r.RemoteAddr, platform, time.Now().Unix()); err != nil {
 		m.sendSomethingWentWrong(w, "login,AddLogin", err)
 		return
 	}
