@@ -455,57 +455,6 @@ func testReferralPayoutToOneAccountUsingFromAccount(t *testing.T) {
 	}
 }
 
-func testReferralPayoutToOneSubscriptionUsingSubscription(t *testing.T) {
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var local ReferralPayout
-	var foreign Subscription
-
-	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, referralPayoutDBTypes, false, referralPayoutColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize ReferralPayout struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &foreign, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Subscription struct: %s", err)
-	}
-
-	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	local.SubscriptionID = foreign.ID
-	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.Subscription().One(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := ReferralPayoutSlice{&local}
-	if err = local.L.LoadSubscription(ctx, tx, false, (*[]*ReferralPayout)(&slice), nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Subscription == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Subscription = nil
-	if err = local.L.LoadSubscription(ctx, tx, true, &local, nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Subscription == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testReferralPayoutToOneSetOpAccountUsingAccount(t *testing.T) {
 	var err error
 
@@ -617,63 +566,6 @@ func testReferralPayoutToOneSetOpAccountUsingFromAccount(t *testing.T) {
 
 		if a.FromAccountID != x.ID {
 			t.Error("foreign key was wrong value", a.FromAccountID, x.ID)
-		}
-	}
-}
-func testReferralPayoutToOneSetOpSubscriptionUsingSubscription(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a ReferralPayout
-	var b, c Subscription
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, referralPayoutDBTypes, false, strmangle.SetComplement(referralPayoutPrimaryKeyColumns, referralPayoutColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Subscription{&b, &c} {
-		err = a.SetSubscription(ctx, tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Subscription != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.ReferralPayouts[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.SubscriptionID != x.ID {
-			t.Error("foreign key was wrong value", a.SubscriptionID)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.SubscriptionID))
-		reflect.Indirect(reflect.ValueOf(&a.SubscriptionID)).Set(zero)
-
-		if err = a.Reload(ctx, tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.SubscriptionID != x.ID {
-			t.Error("foreign key was wrong value", a.SubscriptionID, x.ID)
 		}
 	}
 }

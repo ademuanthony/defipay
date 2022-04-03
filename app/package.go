@@ -203,3 +203,51 @@ func (m module) GetActiveSubscription(w http.ResponseWriter, r *http.Request) {
 
 	web.SendJSON(w, resp)
 }
+
+func (m module) upgradeSubscription(w http.ResponseWriter, r *http.Request) {
+	var input buyPackageInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		m.sendSomethingWentWrong(w, "updateSubscription->json.Decode", err)
+		return
+	}
+	accountID := m.server.GetUserIDTokenCtx(r)
+	activeSubscription, err := m.db.ActiveSubscription(r.Context(), accountID)
+	if err == sql.ErrNoRows {
+		web.SendErrorfJSON(w, "You don't have active subscription. Please buy a package")
+		return
+	}
+
+	if err != nil {
+		m.sendSomethingWentWrong(w, "upgradeSubscription->GetUserIDTokenCtx", err)
+		return
+	}
+
+	selectedPackage, err := m.db.GetPackage(r.Context(), input.ID)
+	if err == sql.ErrNoRows {
+		web.SendErrorfJSON(w, "Invalid package ID")
+		return
+	}
+
+	if err != nil {
+		m.sendSomethingWentWrong(w, "upgradeSubscription->GetPackage", err)
+		return
+	}
+
+	oldPackage, err := m.db.GetPackage(r.Context(), activeSubscription.PackageID)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "upgradeSubscription->GetPackage", err)
+		return
+	}
+
+	if oldPackage.Price >= selectedPackage.Price {
+		web.SendErrorfJSON(w, "Please select a higher package")
+		return
+	}
+
+	if err := m.db.UpgradePackage(r.Context(), activeSubscription.ID, accountID, input.ID, selectedPackage.Price-oldPackage.Price, false); err != nil {
+		m.sendSomethingWentWrong(w, "m.db.UpdategradePackage", err)
+		return
+	}
+
+	web.SendJSON(w, true)
+}

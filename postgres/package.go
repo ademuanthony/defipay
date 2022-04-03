@@ -99,7 +99,6 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	}
 
 	if acc.ReferralID.String != "" {
-		// TODO: indicate c250 ref earnings
 		if err := pg.payReferrer(ctx, tx, sub.ID, acc.ID, date.Unix(), acc.ReferralID.String, pkg.Price, 1, c250); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("payReferrer %v", err)
@@ -109,7 +108,52 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 	return tx.Commit()
 }
 
-func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, payerID string, 
+func (pg PgDb) UpgradePackage(ctx context.Context, oldSubscriptionID, accountID, packageID string,
+	priceDifference int64, c250 bool) error {
+
+	tx, err := pg.Db.Begin()
+	if err != nil {
+		return err
+	}
+
+	date := time.Now()
+
+	if !c250 {
+		note := "subscription upgrade"
+		if err := pg.DebitAccountTx(ctx, tx, accountID, priceDifference, date.Unix(), note); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("DebitAccountTx %v", err)
+		}
+	}
+
+	col := models.M{
+		models.SubscriptionColumns.PackageID: packageID,
+	}
+	if _, err := models.Subscriptions(
+		models.SubscriptionWhere.ID.EQ(oldSubscriptionID),
+	).UpdateAll(ctx, tx, col); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	account, err := models.FindAccount(ctx, tx, accountID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if account.ReferralID.String != "" {
+		if err := pg.payReferrer(ctx, tx, oldSubscriptionID+"_upgrade",
+			accountID, date.Unix(), account.ReferralID.String, priceDifference, 1, c250); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, payerID string,
 	date int64, refId string, subAmount int64, level int, c250 bool) error {
 	// first level is 15%
 	if level > 3 {
@@ -133,17 +177,17 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, paye
 		method = app.PAYMENTMETHOD_C250D
 	}
 
-	refPayout := models.ReferralPayout {
-		ID: uuid.NewString(),
-		AccountID: refId,
-		Generation: level,
-		Date: date,
-		Amount: amount,
+	refPayout := models.ReferralPayout{
+		ID:             uuid.NewString(),
+		AccountID:      refId,
+		Generation:     level,
+		Date:           date,
+		Amount:         amount,
 		SubscriptionID: subscriptionID,
-		FromAccountID: payerID,
-		PaymentStatus: app.PAYMENTSTATUS_PENDING,
-		PaymentRef: "",
-		PaymentMethod: method,
+		FromAccountID:  payerID,
+		PaymentStatus:  app.PAYMENTSTATUS_PENDING,
+		PaymentRef:     "",
+		PaymentMethod:  method,
 	}
 
 	if err := refPayout.Insert(ctx, tx, boil.Infer()); err != nil {

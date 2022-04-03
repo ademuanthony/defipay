@@ -39,6 +39,8 @@ type store interface {
 	GetPackage(ctx context.Context, id string) (*models.Package, error)
 	GetPackageByName(ctx context.Context, name string) (*models.Package, error)
 	CreateSubscription(ctx context.Context, accountID, packageID string, c250 bool) error
+	UpgradePackage(ctx context.Context, oldSubscriptionID, accountID, packageID string,
+		priceDifference int64, c250 bool) error 
 	ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error)
 	PendingReferralPayouts(ctx context.Context) (models.ReferralPayoutSlice, error) 
 	UpdateReferralPayout(ctx context.Context, payout *models.ReferralPayout) error

@@ -259,7 +259,6 @@ func TestToOne(t *testing.T) {
 	t.Run("NotificationToAccountUsingAccount", testNotificationToOneAccountUsingAccount)
 	t.Run("ReferralPayoutToAccountUsingAccount", testReferralPayoutToOneAccountUsingAccount)
 	t.Run("ReferralPayoutToAccountUsingFromAccount", testReferralPayoutToOneAccountUsingFromAccount)
-	t.Run("ReferralPayoutToSubscriptionUsingSubscription", testReferralPayoutToOneSubscriptionUsingSubscription)
 	t.Run("SubscriptionToAccountUsingAccount", testSubscriptionToOneAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingPackage", testSubscriptionToOnePackageUsingPackage)
 	t.Run("TradeToAccountUsingAccount", testTradeToOneAccountUsingAccount)
@@ -295,7 +294,6 @@ func TestToMany(t *testing.T) {
 	t.Run("AccountToWallets", testAccountToManyWallets)
 	t.Run("AccountToWithdrawals", testAccountToManyWithdrawals)
 	t.Run("PackageToSubscriptions", testPackageToManySubscriptions)
-	t.Run("SubscriptionToReferralPayouts", testSubscriptionToManyReferralPayouts)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -309,7 +307,6 @@ func TestToOneSet(t *testing.T) {
 	t.Run("NotificationToAccountUsingNotifications", testNotificationToOneSetOpAccountUsingAccount)
 	t.Run("ReferralPayoutToAccountUsingReferralPayouts", testReferralPayoutToOneSetOpAccountUsingAccount)
 	t.Run("ReferralPayoutToAccountUsingFromAccountReferralPayouts", testReferralPayoutToOneSetOpAccountUsingFromAccount)
-	t.Run("ReferralPayoutToSubscriptionUsingReferralPayouts", testReferralPayoutToOneSetOpSubscriptionUsingSubscription)
 	t.Run("SubscriptionToAccountUsingSubscriptions", testSubscriptionToOneSetOpAccountUsingAccount)
 	t.Run("SubscriptionToPackageUsingSubscriptions", testSubscriptionToOneSetOpPackageUsingPackage)
 	t.Run("TradeToAccountUsingTrades", testTradeToOneSetOpAccountUsingAccount)
@@ -353,7 +350,6 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("AccountToWallets", testAccountToManyAddOpWallets)
 	t.Run("AccountToWithdrawals", testAccountToManyAddOpWithdrawals)
 	t.Run("PackageToSubscriptions", testPackageToManyAddOpSubscriptions)
-	t.Run("SubscriptionToReferralPayouts", testSubscriptionToManyAddOpReferralPayouts)
 }
 
 // TestToManySet tests cannot be run in parallel
