@@ -76,3 +76,20 @@ func (pg PgDb) Withdrawals(ctx context.Context, accountID string, offset, limit 
 
 	return rec, count, nil
 }
+
+func (pg PgDb) GetWithdrawalsForProcessing(ctx context.Context) (models.WithdrawalSlice, error) {
+	statement := `select withdrawal.id, destination, amount, account_id from withdrawal 
+		inner join account on account.id = withdrawal.account_id
+		where withdrawal.ref = '' and account.balance >= 0 and destination <> ''`
+	return models.Withdrawals(
+		qm.SQL(statement),
+	).All(ctx, pg.Db)
+}
+
+func (pg PgDb) SetWithdrawalTxHash(ctx context.Context, withdarwalID, txHash string) error {
+	col := models.M{
+		models.WithdrawalColumns.Ref: txHash,
+	}
+	_, err := models.Withdrawals(models.WithdrawalWhere.ID.EQ(withdarwalID)).UpdateAll(ctx, pg.Db, col)
+	return err
+}

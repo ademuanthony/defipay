@@ -130,6 +130,9 @@ func (m module) runProcessor(ctx context.Context) {
 		if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
 			log.Critical("runProcessor", "ProcessWeeklyPayout", err)
 		}
+
+		m.proccessPendingWithdrawal()
+		
 		i += 1
 	}
 

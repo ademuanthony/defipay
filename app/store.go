@@ -57,6 +57,8 @@ type store interface {
 	TransferHistories(ctx context.Context, accountID string, offset, limit int) ([]TransferViewModel, int64, error)
 
 	Withdraw(ctx context.Context, accountID string, amount int64) error
+	GetWithdrawalsForProcessing(ctx context.Context) (models.WithdrawalSlice, error)
+	SetWithdrawalTxHash(ctx context.Context, withdarwalID, txHash string) error
 	Withdrawals(ctx context.Context, accountID string, offset, limit int) ([]*models.Withdrawal, int64, error)
 
 	GetWalletByAddresses(ctx context.Context) ([]string, error)

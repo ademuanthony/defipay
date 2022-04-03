@@ -65,6 +65,44 @@ func (m module) withdrawalHistory(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, rec, total)
 }
 
+func (m module) proccessPendingWithdrawal() {
+	ctx := context.Background()
+	withdrawals, err := m.db.GetWithdrawalsForProcessing(ctx)
+	if err != nil {
+		log.Error("proccessPendingWithdrawal->GetWithdrawalsForProcessing", err)
+		return
+	}
+	for _, rec := range withdrawals {
+		if err = m.proccessWithdrawal(ctx, rec); err != nil {
+			log.Error("proccessPendingWithdrawal->proccessWithdrawal")
+		}
+	}
+}
+
+func (m module) proccessWithdrawal(ctx context.Context, withdarwal *models.Withdrawal) error {
+	bnbAmount, err := m.convertClubDollarToBnb(ctx, withdarwal.Amount-5000) //blockchain fee
+	if err != nil {
+		return err
+	}
+
+	txHash, err := m.transfer(ctx, m.config.MasterAddressKey, withdarwal.Destination, bnbAmount)
+	if err != nil {
+		return fmt.Errorf("m.transfer %v", err)
+	}
+	if err := m.db.SetWithdrawalTxHash(ctx, withdarwal.ID, txHash); err != nil {
+		return fmt.Errorf("SetWithdrawalTxHash %v", err)
+	}
+
+	message := fmt.Sprintf("Your withdrawal request of %.2f has been processed successfully",
+		float64(withdarwal.Amount)/float64(10000))
+	title := "Withdrawal Proccessed"
+	if err := m.db.CreateNotification(ctx, withdarwal.ID, title, message, "", "", NOTIFICATION_TYPE_TOPBAR); err != nil {
+		return fmt.Errorf("CreateNotification %v", err)
+	}
+
+	return nil
+}
+
 func (m module) processReferralPayouts() {
 	for {
 		func() {
