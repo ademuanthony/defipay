@@ -239,6 +239,17 @@ func (m module) upgradeSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	acc, err := m.currentAccount(r)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "currentAccount", err)
+		return
+	}
+
+	if acc.Balance < selectedPackage.Price - oldPackage.Price {
+		web.SendErrorfJSON(w, "Insufficient Balance")
+		return
+	}
+
 	if oldPackage.Price >= selectedPackage.Price {
 		web.SendErrorfJSON(w, "Please select a higher package")
 		return
