@@ -199,7 +199,7 @@ func (m module) transferC250Dollar(ctx context.Context, username string, amount 
 	if !resp.Success {
 		msg := resp.Message
 		if resp.Message == "" {
-			msg = "transfer failed"
+			msg = "transfer failed for " + username
 		}
 		return errors.New(msg)
 	}
