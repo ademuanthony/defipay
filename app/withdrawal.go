@@ -137,7 +137,7 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 		notificationTitle := "Referral payment received"
 		senderAccount, err := m.db.GetAccount(ctx, payout.FromAccountID)
 		if err != nil {
-			return err
+			return fmt.Errorf("GetAccount %v", err)
 		}
 		destination := "wallet"
 		if payout.PaymentMethod == PAYMENTMETHOD_C250D {
@@ -153,7 +153,7 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 
 	if payout.PaymentMethod == PAYMENTMETHOD_C250D {
 		if err := m.transferC250Dollar(ctx, account.Username, payout.Amount); err != nil {
-			return err
+			return fmt.Errorf("transferC250Dollar %v", err)
 		}
 
 		return markCompletedAndNotify()
@@ -161,19 +161,19 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 
 	if account.WithdrawalAddresss == "" || !util.IsValidAddress(account.WithdrawalAddresss) {
 		if m.db.CreditAccount(ctx, payout.AccountID, payout.Amount, time.Now().Unix(), "referral payout from "+payout.FromAccountID); err != nil {
-			return err
+			return fmt.Errorf("CreditAccount %v", err)
 		}
 		return markCompletedAndNotify()
 	}
 
 	bnbAmount, err := m.convertClubDollarToBnb(ctx, payout.Amount-5000) //blockchain fee
 	if err != nil {
-		return err
+		return fmt.Errorf("convertClubDollarToBnb %v", err)
 	}
 
 	txHash, err := m.transfer(ctx, m.config.MasterAddressKey, account.WithdrawalAddresss, bnbAmount)
 	if err != nil {
-		return err
+		return fmt.Errorf("transfer %v", err)
 	}
 	payout.PaymentRef = txHash
 	return markCompletedAndNotify()
