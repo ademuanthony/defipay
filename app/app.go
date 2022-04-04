@@ -72,7 +72,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/account/daily-earnings", web.GET, m.MyDailyEarnings, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/active-trades", web.GET, m.MyActiveTrades, m.server.RequireLogin)
 
-	// C250
+	// C250 sub/upgrade
 	m.server.AddRoute("/api/c250/subscribe", web.POST, m.createSubscriptionC250, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/c250/upgrade", web.POST, m.upgradeSubscriptionC250, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/c250/active-package", web.POST, m.activePackageC250, m.server.ValidAPIKey)
