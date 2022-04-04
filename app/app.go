@@ -75,7 +75,7 @@ func (m module) buildRoute() {
 	// C250 sub/upgrade
 	m.server.AddRoute("/api/c250/subscribe", web.POST, m.createSubscriptionC250, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/c250/upgrade", web.POST, m.upgradeSubscriptionC250, m.server.ValidAPIKey)
-	m.server.AddRoute("/api/c250/active-package", web.POST, m.activePackageC250, m.server.ValidAPIKey)
+	m.server.AddRoute("/api/c250/active-package", web.GET, m.activePackageC250, m.server.ValidAPIKey)
 
 	// ACCOUNTS
 	m.server.AddRoute("/api/accounts/count", web.GET, m.GetAllAccountsCount, m.server.RequireLogin)
