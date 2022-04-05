@@ -42,6 +42,7 @@ type store interface {
 	UpgradePackage(ctx context.Context, oldSubscriptionID, accountID, packageID string,
 		priceDifference int64, c250 bool) error 
 	ActiveSubscription(ctx context.Context, accountID string) (*models.Subscription, error)
+	PackageSubscriptions(ctx context.Context) ([]PackageSubscribers, error) 
 	PendingReferralPayouts(ctx context.Context) (models.ReferralPayoutSlice, error) 
 	UpdateReferralPayout(ctx context.Context, payout *models.ReferralPayout) error
 	Invest(ctx context.Context, accountID string, amount int64) error

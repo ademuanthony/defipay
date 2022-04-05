@@ -227,3 +227,16 @@ func (pg PgDb) ActiveSubscription(ctx context.Context, accountID string) (*model
 		qm.Load(models.SubscriptionRels.Package),
 	).One(ctx, pg.Db)
 }
+
+func (pg PgDb) PackageSubscriptions(ctx context.Context) ([]app.PackageSubscribers, error) {
+	statement := `select 
+			p.id, 
+			p.name, 
+			p.price,
+			(select count (*) from subscription s where s.package_id = p.id) as subscribers 
+		from package p order by p.price desc;`
+		var psubs []app.PackageSubscribers
+		err := models.NewQuery(qm.SQL(statement)).Bind(ctx, pg.Db, &psubs)
+
+		return psubs, err
+}

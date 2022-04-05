@@ -27,6 +27,20 @@ type InvestInput struct {
 	Amount int64 `json:"amount"`
 }
 
+type buyPackageInput struct {
+	ID string `json:"id"`
+}
+
+type createSubscriptionC250 struct {
+	PackageID string `json:"package_id"`
+	Username  string `json:"username"`
+}
+
+type PackageSubscribers struct {
+	models.Package
+	Subscribers int64 `boil:"subscribers" json:"subscribers,omitempty" toml:"subscribers" yaml:"subscribers,omitempty"`
+}
+
 func (m module) CreatePackage(w http.ResponseWriter, r *http.Request) {
 	var pkg models.Package
 	if err := json.NewDecoder(r.Body).Decode(&pkg); err != nil {
@@ -113,10 +127,6 @@ func (m module) GetPackages(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, packages)
 }
 
-type buyPackageInput struct {
-	ID string `json:"id"`
-}
-
 func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 	var input buyPackageInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -154,11 +164,6 @@ func (m module) BuyPackage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendJSON(w, true)
-}
-
-type createSubscriptionC250 struct {
-	PackageID string `json:"package_id"`
-	Username  string `json:"username"`
 }
 
 func (m module) createSubscriptionC250(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +250,7 @@ func (m module) upgradeSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if acc.Balance < selectedPackage.Price - oldPackage.Price {
+	if acc.Balance < selectedPackage.Price-oldPackage.Price {
 		web.SendErrorfJSON(w, "Insufficient Balance")
 		return
 	}
@@ -309,7 +314,7 @@ func (m module) upgradeSubscriptionC250(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := m.db.UpgradePackage(r.Context(), activeSubscription.ID, account.ID, input.PackageID,
-	 selectedPackage.Price-oldPackage.Price, true); err != nil {
+		selectedPackage.Price-oldPackage.Price, true); err != nil {
 		m.sendSomethingWentWrong(w, "m.db.UpdategradePackage", err)
 		return
 	}
@@ -340,4 +345,13 @@ func (m module) activePackageC250(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendJSON(w, activeSub.R.Package)
+}
+
+func (m module) PackageSubscriptions(w http.ResponseWriter, r *http.Request) {
+	psubs, err := m.db.PackageSubscriptions(r.Context())
+	if err != nil {
+		m.sendSomethingWentWrong(w, "PackageSubscriptions", err)
+		return
+	}
+	web.SendJSON(w, psubs)
 }
