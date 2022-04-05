@@ -240,7 +240,12 @@ func (pg PgDb) CreditAccount(ctx context.Context, accountID string, amount, date
 	if err != nil {
 		return err
 	}
-	return pg.CreditAccountTx(ctx, tx, accountID, amount, date, ref)
+	if err := pg.CreditAccountTx(ctx, tx, accountID, amount, date, ref); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	
+	return tx.Commit()
 }
 
 func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
