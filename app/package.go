@@ -37,8 +37,9 @@ type createSubscriptionC250 struct {
 }
 
 type PackageSubscribers struct {
-	models.Package
-	Subscribers int64 `boil:"subscribers" json:"subscribers,omitempty" toml:"subscribers" yaml:"subscribers,omitempty"`
+	ID          string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name        string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Subscribers int64  `boil:"subscribers" json:"subscribers,omitempty" toml:"subscribers" yaml:"subscribers,omitempty"`
 }
 
 func (m module) CreatePackage(w http.ResponseWriter, r *http.Request) {
