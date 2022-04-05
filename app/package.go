@@ -347,7 +347,7 @@ func (m module) activePackageC250(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, activeSub.R.Package)
 }
 
-func (m module) PackageSubscriptions(w http.ResponseWriter, r *http.Request) {
+func (m module) packageSubscriptions(w http.ResponseWriter, r *http.Request) {
 	psubs, err := m.db.PackageSubscriptions(r.Context())
 	if err != nil {
 		m.sendSomethingWentWrong(w, "PackageSubscriptions", err)

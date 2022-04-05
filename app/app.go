@@ -89,6 +89,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/packages/buy", web.POST, m.BuyPackage, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/packages/upgrade", web.POST, m.upgradeSubscription, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/packages/subscription", web.GET, m.GetActiveSubscription, m.server.RequireLogin)
+	m.server.AddRoute("/api/packages/subscription-count", web.GET, m.packageSubscriptions, m.server.RequireLogin)
 
 	// TRANSFER
 	m.server.AddRoute("/api/transfers/create", web.POST, m.makeTransfer, m.server.RequireLogin, m.server.NoReentry)
