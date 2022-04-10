@@ -44,6 +44,11 @@ func (m module) makeWithdrawal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if sender.WithdrawalAddresss == "" {
+		web.SendErrorfJSON(w, "Please set your withdrawal wallet first")
+		return
+	}
+
 	if err := m.db.Withdraw(r.Context(), sender.ID, input.Amount); err != nil {
 		log.Error("Withdraw", err)
 		web.SendErrorfJSON(w, "Something went wrong, please try again later")

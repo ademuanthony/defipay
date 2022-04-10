@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/jinzhu/now"
 )
 
 type module struct {
@@ -142,7 +143,7 @@ func (m module) runProcessor(ctx context.Context) {
 
 	runner()
 
-	next := time.Now().Add(24 * time.Hour)
+	next := now.BeginningOfDay().Add(24 * time.Hour)
 	time.Sleep(time.Until(next))
 
 	for {
