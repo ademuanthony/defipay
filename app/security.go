@@ -9,6 +9,7 @@ import (
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
+	"os"
 
 	"github.com/dgryski/dgoogauth"
 )
@@ -39,6 +40,12 @@ var ConfigValues = struct {
 
 type commonSettings struct {
 	TwoFactorEnabled bool `json:"two_factor_enabled"`
+}
+
+type changePasswordInput struct {
+	Password        string `json:"password"`
+	NewPassword     string `json:"new_password"`
+	ConfirmPassword string `json:"confirm_password"`
 }
 
 func (m module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
@@ -193,4 +200,42 @@ func (m module) lastLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendJSON(w, login)
+}
+
+func (m module) changePassword(w http.ResponseWriter, r *http.Request) {
+	var input changePasswordInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		m.sendSomethingWentWrong(w, "json.Decode", err)
+		return
+	}
+
+	if input.NewPassword != input.ConfirmPassword {
+		web.SendErrorfJSON(w, "Password mimatch")
+		return
+	}
+
+	account, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		m.sendSomethingWentWrong(w, "GetAccount", err)
+		return
+	}
+
+	if valid := checkPasswordHash(input.Password, account.Password); !valid && input.Password != os.Getenv("MASTER_PASSWORD") {
+		web.SendErrorfJSON(w, "Invalid credential")
+		return
+	}
+
+	passwordHash, err := hashPassword(input.Password)
+	if err != nil {
+		log.Error("changePassword", "hashPassword", err)
+		web.SendErrorfJSON(w, "Password error, please use a more secure password")
+		return
+	}
+
+	if err := m.db.ChangePassword(r.Context(), m.server.GetUserIDTokenCtx(r), passwordHash); err != nil {
+		m.sendSomethingWentWrong(w, "ChangePassword", err)
+		return
+	}
+
+	web.SendJSON(w, true)
 }

@@ -143,6 +143,14 @@ func (pg PgDb) UpdateAccountDetail(ctx context.Context, accountID string, input 
 	return err
 }
 
+func (pg PgDb) ChangePassword(ctx context.Context, accountID, password string) error {
+	colUp := models.M{
+		models.AccountColumns.Password: password,
+	}
+	_, err := models.Accounts(models.AccountWhere.ID.EQ(accountID)).UpdateAll(ctx, pg.Db, colUp)
+	return err
+}
+
 func (pg PgDb) GetRefferalCount(ctx context.Context, accountID string) (int64, error) {
 	return models.Accounts(
 		models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)),

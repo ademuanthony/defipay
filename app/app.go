@@ -110,6 +110,8 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/security/init2fa", web.POST, m.init2fa, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/security/last-login", web.GET, m.lastLogin, m.server.RequireLogin)
+	m.server.AddRoute("/api/security/change-password", web.POST, m.changePassword, m.server.RequireLogin, m.server.NoReentry)
+	
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {
