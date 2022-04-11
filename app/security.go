@@ -225,7 +225,7 @@ func (m module) changePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordHash, err := hashPassword(input.Password)
+	passwordHash, err := hashPassword(input.NewPassword)
 	if err != nil {
 		log.Error("changePassword", "hashPassword", err)
 		web.SendErrorfJSON(w, "Password error, please use a more secure password")
