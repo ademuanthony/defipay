@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"encoding/json"
+	"merryworld/metatradas/app/util"
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
 	"net/http"
@@ -220,7 +221,7 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 			Token:      token,
 			Authorized: !is2faEnabled,
 		})
-	}	else {
+	} else {
 		web.SendJSON(w, token)
 	}
 
@@ -250,6 +251,11 @@ func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("UpdateAccountDetail", "json::Decode", err)
 		web.SendErrorfJSON(w, "cannot decode request")
+		return
+	}
+
+	if input.WithdrawalAddress != "" && !util.IsValidAddress(input.WithdrawalAddress) {
+		web.SendErrorfJSON(w, "Invalid wallet address. Please enter a valid BEP-20 address")
 		return
 	}
 

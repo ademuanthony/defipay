@@ -58,6 +58,10 @@ func (m module) makeWithdrawal(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
+func (m module) cancelWithdrawal(w http.ResponseWriter, r http.Request) {
+	
+}
+
 func (m module) withdrawalHistory(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPanitionInfo(r)
 	rec, total, err := m.db.Withdrawals(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
