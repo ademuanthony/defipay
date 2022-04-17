@@ -370,6 +370,9 @@ func (pg PgDb) PopulateEarnings(ctx context.Context) error {
 }
 
 func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
+	start := time.Now()
+	defer log.Infof("ProcessWeeklyPayout done is %v", time.Since(start))
+
 	date := now.BeginningOfDay()
 	if date.Weekday() != time.Sunday {
 		return nil
@@ -386,7 +389,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	lastPayDate := time.Unix(lastPayout.Date, 0)
-	if time.Since(lastPayDate).Hours() < 24*7 {
+	if time.Since(lastPayDate).Hours() < 24*6 {
 		return nil
 	}
 
