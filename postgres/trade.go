@@ -389,7 +389,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	lastPayDate := time.Unix(lastPayout.Date, 0)
-	if time.Since(lastPayDate).Hours() < 24*6 {
+	if time.Since(lastPayDate).Hours() < 24*7 {
 		return nil
 	}
 
