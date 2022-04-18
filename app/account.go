@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"merryworld/metatradas/app/util"
 	"merryworld/metatradas/postgres/models"
 	"merryworld/metatradas/web"
@@ -244,6 +245,16 @@ func (m module) currentAccount(r *http.Request) (*models.Account, error) {
 	acc, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
 	acc.Password = ""
 	return acc, err
+}
+
+func (m module) referralLink(w http.ResponseWriter, r *http.Request) {
+	acc, err := m.currentAccount(r)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "currentAccount", err)
+		return
+	}
+
+	web.SendJSON(w, fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.Username))
 }
 
 func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {

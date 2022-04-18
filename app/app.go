@@ -62,6 +62,7 @@ func (m module) buildRoute() {
 	//ACCOUNT
 	m.server.AddRoute("/api/account/update", web.POST, m.UpdateAccountDetail, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/account/me", web.GET, m.GetAccountDetail, m.server.RequireLogin)
+	m.server.AddRoute("/api/account/referral-link", web.GET, m.referralLink, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/referral-count", web.GET, m.GetReferralCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/downlines", web.GET, m.MyDownlines, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/team-info", web.GET, m.TeamInformation, m.server.RequireLogin)
