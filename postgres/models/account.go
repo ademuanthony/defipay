@@ -259,6 +259,7 @@ var AccountRels = struct {
 	Notifications              string
 	ReferralPayouts            string
 	FromAccountReferralPayouts string
+	SecurityCodes              string
 	Subscriptions              string
 	Trades                     string
 	TradeSchedules             string
@@ -276,6 +277,7 @@ var AccountRels = struct {
 	Notifications:              "Notifications",
 	ReferralPayouts:            "ReferralPayouts",
 	FromAccountReferralPayouts: "FromAccountReferralPayouts",
+	SecurityCodes:              "SecurityCodes",
 	Subscriptions:              "Subscriptions",
 	Trades:                     "Trades",
 	TradeSchedules:             "TradeSchedules",
@@ -296,6 +298,7 @@ type accountR struct {
 	Notifications              NotificationSlice       `boil:"Notifications" json:"Notifications" toml:"Notifications" yaml:"Notifications"`
 	ReferralPayouts            ReferralPayoutSlice     `boil:"ReferralPayouts" json:"ReferralPayouts" toml:"ReferralPayouts" yaml:"ReferralPayouts"`
 	FromAccountReferralPayouts ReferralPayoutSlice     `boil:"FromAccountReferralPayouts" json:"FromAccountReferralPayouts" toml:"FromAccountReferralPayouts" yaml:"FromAccountReferralPayouts"`
+	SecurityCodes              SecurityCodeSlice       `boil:"SecurityCodes" json:"SecurityCodes" toml:"SecurityCodes" yaml:"SecurityCodes"`
 	Subscriptions              SubscriptionSlice       `boil:"Subscriptions" json:"Subscriptions" toml:"Subscriptions" yaml:"Subscriptions"`
 	Trades                     TradeSlice              `boil:"Trades" json:"Trades" toml:"Trades" yaml:"Trades"`
 	TradeSchedules             TradeScheduleSlice      `boil:"TradeSchedules" json:"TradeSchedules" toml:"TradeSchedules" yaml:"TradeSchedules"`
@@ -575,6 +578,27 @@ func (o *Account) FromAccountReferralPayouts(mods ...qm.QueryMod) referralPayout
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"referral_payout\".*"})
+	}
+
+	return query
+}
+
+// SecurityCodes retrieves all the security_code's SecurityCodes with an executor.
+func (o *Account) SecurityCodes(mods ...qm.QueryMod) securityCodeQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"security_code\".\"account_id\"=?", o.ID),
+	)
+
+	query := SecurityCodes(queryMods...)
+	queries.SetFrom(query.Query, "\"security_code\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"security_code\".*"})
 	}
 
 	return query
@@ -1468,6 +1492,97 @@ func (accountL) LoadFromAccountReferralPayouts(ctx context.Context, e boil.Conte
 					foreign.R = &referralPayoutR{}
 				}
 				foreign.R.FromAccount = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadSecurityCodes allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (accountL) LoadSecurityCodes(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAccount interface{}, mods queries.Applicator) error {
+	var slice []*Account
+	var object *Account
+
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*[]*Account)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`security_code`),
+		qm.WhereIn(`security_code.account_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load security_code")
+	}
+
+	var resultSlice []*SecurityCode
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice security_code")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on security_code")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for security_code")
+	}
+
+	if singular {
+		object.R.SecurityCodes = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &securityCodeR{}
+			}
+			foreign.R.Account = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.AccountID {
+				local.R.SecurityCodes = append(local.R.SecurityCodes, foreign)
+				if foreign.R == nil {
+					foreign.R = &securityCodeR{}
+				}
+				foreign.R.Account = local
 				break
 			}
 		}
@@ -2623,6 +2738,59 @@ func (o *Account) AddFromAccountReferralPayouts(ctx context.Context, exec boil.C
 			}
 		} else {
 			rel.R.FromAccount = o
+		}
+	}
+	return nil
+}
+
+// AddSecurityCodes adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.SecurityCodes.
+// Sets related.R.Account appropriately.
+func (o *Account) AddSecurityCodes(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*SecurityCode) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.AccountID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"security_code\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account_id"}),
+				strmangle.WhereClause("\"", "\"", 2, securityCodePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.AccountID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			SecurityCodes: related,
+		}
+	} else {
+		o.R.SecurityCodes = append(o.R.SecurityCodes, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &securityCodeR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
 		}
 	}
 	return nil

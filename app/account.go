@@ -81,6 +81,16 @@ type ReleaseInvestmentInput struct {
 	ID string `json:"id"`
 }
 
+type initPasswordResetInput struct {
+	Username string `json:"username"`
+}
+
+type resetPasswordInput struct {
+	Username string `json:"username"`
+	Code     string `json:"code"`
+	Password string `json:"password"`
+}
+
 func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var input CreateAccountInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
@@ -239,6 +249,71 @@ func checkPasswordHash(password, hash string) bool {
 		log.Error("checkPasswordHash", err)
 	}
 	return err == nil
+}
+
+func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
+	var input initPasswordResetInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Error("getPasswordResetCode", "json::Decode", err)
+		web.SendErrorfJSON(w, "cannot decode request")
+		return
+	}
+
+	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	if err != nil {
+		log.Error(err)
+		web.SendErrorfJSON(w, "Invalid username")
+		return
+	}
+
+	code, err := m.db.GetPasswordResetCode(r.Context(), account.ID)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "GetPasswordResetCode", err)
+		return
+	}
+
+	msg := fmt.Sprintf("Hello %s, Your password reset code is %s. Do not disclose", account.Username, code)
+	m.SendEmail(r.Context(), "noreply@metatradas.com", account.Email, "Reset Password", msg)
+
+	web.SendJSON(w, true)
+}
+
+func (m module) resetPassword(w http.ResponseWriter, r *http.Request) {
+	var input resetPasswordInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Error("resetPassword", "json::Decode", err)
+		web.SendErrorfJSON(w, "cannot decode request")
+		return
+	}
+
+	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	if err != nil {
+		web.SendErrorfJSON(w, "Invalid username")
+		return
+	}
+
+	valid, err := m.db.ValidatePasswordResetCode(r.Context(), account.ID, input.Code)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "ValidatePasswordResetCode", err)
+		return
+	}
+
+	if !valid {
+		web.SendErrorfJSON(w, "Invalid Code")
+		return
+	}
+
+	passwordHash, err := hashPassword(input.Password)
+	if err != nil {
+		m.sendSomethingWentWrong(w, "hashPassword", err)
+		return
+	}
+
+	if err := m.db.ChangePassword(r.Context(), account.ID, passwordHash); err != nil {
+		m.sendSomethingWentWrong(w, "ChangePassword", err)
+	}
+
+	web.SendJSON(w, true)
 }
 
 func (m module) currentAccount(r *http.Request) (*models.Account, error) {

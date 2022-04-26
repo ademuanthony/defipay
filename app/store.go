@@ -19,7 +19,10 @@ type Trade struct {
 type store interface {
 	CreateAccount(ctx context.Context, input CreateAccountInput) error
 	GetAccount(ctx context.Context, id string) (*models.Account, error)
+	AccountBalance(ctx context.Context, accountId string) (int64, error)
 	GetAccounts(ctx context.Context, skip, limit int) ([]*models.Account, error)
+	GetPasswordResetCode(ctx context.Context, accountID string) (string, error)
+	ValidatePasswordResetCode(ctx context.Context, accountID, code string) (bool, error)
 	ChangePassword(ctx context.Context, accountID, password string) error
 	GetAccountIDs(ctx context.Context) ([]string, error)
 	GetAllAccountsCount(ctx context.Context) (int64, error)

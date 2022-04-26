@@ -24,6 +24,8 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("ReferralPayouts", testReferralPayoutsUpsert)
 
+	t.Run("SecurityCodes", testSecurityCodesUpsert)
+
 	t.Run("Subscriptions", testSubscriptionsUpsert)
 
 	t.Run("Trades", testTradesUpsert)

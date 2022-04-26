@@ -136,7 +136,7 @@ func (pg PgDb) UpgradePackage(ctx context.Context, oldSubscriptionID, accountID,
 		return err
 	}
 
-	account, err := models.FindAccount(ctx, tx, accountID)
+	account, err := pg.GetAccount(ctx, accountID)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -197,7 +197,7 @@ func (pg PgDb) payReferrer(ctx context.Context, tx *sql.Tx, subscriptionID, paye
 	// 	date, "referral earning from "+payerUsername); err != nil {
 	// 	return err
 	// }
-	acc, err := models.FindAccount(ctx, tx, refId)
+	acc, err := pg.GetAccount(ctx, refId)
 	if err == sql.ErrNoRows || acc.ReferralID.String == "" {
 		return nil
 	}

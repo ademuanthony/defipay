@@ -58,6 +58,8 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/auth/register", web.POST, m.CreateAccount)
 	m.server.AddRoute("/api/auth/login", web.POST, m.Login)
 	m.server.AddRoute("/api/auth/2fa", web.POST, m.authorizeLogin, m.server.ValidBearerToken)
+	m.server.AddRoute("/api/auth/init-password-reset", web.POST, m.initPasswordReset)
+	m.server.AddRoute("/api/auth/reset-password", web.POST, m.resetPassword)
 
 	//ACCOUNT
 	m.server.AddRoute("/api/account/update", web.POST, m.UpdateAccountDetail, m.server.RequireLogin, m.server.NoReentry)

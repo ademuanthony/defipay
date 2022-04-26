@@ -27,7 +27,7 @@ func (pg PgDb) Invest(ctx context.Context, accountID string, amount int64) error
 		return err
 	}
 
-	acc, err := models.FindAccount(ctx, tx, accountID)
+	acc, err := pg.GetAccount(ctx, accountID)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,12 @@ func (pg PgDb) Invest(ctx context.Context, accountID string, amount int64) error
 		return err
 	}
 
-	statement := `update account set balance = balance - $1, principal = principal + $1 where id = $2`
+	if err = pg.DebitAccountTx(ctx, tx, accountID, amount, investment.Date, "increase trading capital "+investment.ID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	statement := `update account set principal = principal + $1 where id = $2`
 	if _, err = models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
@@ -105,7 +110,12 @@ func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
 		return errors.New("no investment was released")
 	}
 
-	statement := `update account set balance = balance + $1, principal = principal - $1, matured_principal = matured_principal - $1 where id = $2`
+	if err = pg.CreditAccountTx(ctx, tx, id, investment.Amount, time.Now().Unix(), "release trading capital "+investment.ID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	statement := `update account set principal = principal - $1, matured_principal = matured_principal - $1 where id = $2`
 	if _, err = models.Accounts(qm.SQL(statement, investment.Amount, investment.AccountID)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
@@ -135,14 +145,14 @@ func (pg PgDb) ActiveTrades(ctx context.Context, accountID string) ([]app.Trade,
 	currentTime := time.Now().Unix()
 	for _, t := range trades {
 		trade := app.Trade{
-			ID: t.ID,
+			ID:        t.ID,
 			AccountID: t.AccountID,
-			TradeNo: t.TradeNo,
-			Date: t.Date,
+			TradeNo:   t.TradeNo,
+			Date:      t.Date,
 			StartDate: t.StartDate,
-			EndDate: t.EndDate,
-			Amount: t.Amount,
-			Profit: t.Profit,
+			EndDate:   t.EndDate,
+			Amount:    t.Amount,
+			Profit:    t.Profit,
 		}
 
 		if t.EndDate <= time.Now().Unix() {
@@ -389,7 +399,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	lastPayDate := time.Unix(lastPayout.Date, 0)
-	if time.Since(lastPayDate).Hours() < 24*7 {
+	if time.Since(now.New(lastPayDate).BeginningOfDay()).Hours() < 24*7 {
 		return nil
 	}
 
@@ -419,16 +429,19 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	statement = `
-	update account set balance  = balance + floor(sub.total) FROM (
+	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	select sub.account_id, sub.total, 'credit', $3, $2, 0, 0 FROM (
 		select distinct
 		 daily_earning.account_id,
 		 COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as total from 
 		 daily_earning
 		where daily_earning.date >= $1 and daily_earning.date < $2
 		group by daily_earning.account_id
-		) sub where id = sub.account_id`
+		) sub`
 
-	if _, err := models.DailyEarnings(qm.SQL(statement, lastPayout.Date, today)).ExecContext(ctx, pg.Db); err != nil {
+	description := fmt.Sprintf("trading profit for %s to %s", time.Unix(lastPayout.Date, 0).Local().String(),
+		time.Unix(today, 0).Local().String())
+	if _, err := models.DailyEarnings(qm.SQL(statement, lastPayout.Date, today, description)).ExecContext(ctx, pg.Db); err != nil {
 		tx.Rollback()
 		return err
 	}

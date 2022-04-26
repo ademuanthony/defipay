@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"math/rand"
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 	"time"
@@ -58,9 +60,9 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 func (pg PgDb) AddLogin(ctx context.Context, accountID, ip, platform string, date int64) error {
 	info := models.LoginInfo{
 		AccountID: accountID,
-		Platform: platform,
-		IP: ip,
-		Date: date,
+		Platform:  platform,
+		IP:        ip,
+		Date:      date,
 	}
 
 	return info.Insert(ctx, pg.Db, boil.Infer())
@@ -70,7 +72,7 @@ func (pg PgDb) LastLogin(ctx context.Context) (*models.LoginInfo, error) {
 	maxDate := time.Now().Add(-1 * time.Minute).Unix()
 	return models.LoginInfos(
 		models.LoginInfoWhere.Date.LTE(maxDate),
-		qm.OrderBy(models.LoginInfoColumns.Date + " desc"),
+		qm.OrderBy(models.LoginInfoColumns.Date+" desc"),
 	).One(ctx, pg.Db)
 }
 
@@ -88,7 +90,76 @@ func (pg PgDb) CreateDepositWallet(ctx context.Context, accountID, address, priv
 }
 
 func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, error) {
-	return models.FindAccount(ctx, pg.Db, id)
+	acc, err := models.FindAccount(ctx, pg.Db, id)
+	if err != nil {
+		return nil, err
+	}
+	bal, err := pg.AccountBalance(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	acc.Balance = bal
+
+	return acc, nil
+
+}
+
+func (pg PgDb) GetPasswordResetCode(ctx context.Context, accountID string) (string, error) {
+	// delete expired code
+	minDate := time.Now().Add(-15 * time.Minute)
+	if _, err := models.SecurityCodes(models.SecurityCodeWhere.Date.LTE(minDate.Unix())).DeleteAll(ctx, pg.Db); err != nil {
+		return "", err
+	}
+
+	code, err := models.SecurityCodes(models.SecurityCodeWhere.Date.GT(minDate.Unix())).One(ctx, pg.Db)
+	if err == sql.ErrNoRows {
+		code = &models.SecurityCode{
+			Code: randomCode(6),
+			AccountID: accountID,
+			Date: time.Now().Unix(),
+		}
+		if err = code.Insert(ctx, pg.Db, boil.Infer()); err != nil {
+			return "", err
+		}
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return code.Code, err
+}
+
+func (pg PgDb) ValidatePasswordResetCode(ctx context.Context, accountID, code string) (bool, error) {
+	minDate := time.Now().Add(-15 * time.Minute)
+	if _, err := models.SecurityCodes(models.SecurityCodeWhere.Date.LTE(minDate.Unix())).DeleteAll(ctx, pg.Db); err != nil {
+		return false, err
+	}
+
+	lastCode, err := models.SecurityCodes(
+		models.SecurityCodeWhere.AccountID.EQ(accountID),
+		models.SecurityCodeWhere.Date.GT(minDate.Unix()),
+		qm.OrderBy(models.SecurityCodeColumns.Date + " desc"),
+	).One(ctx, pg.Db)
+	if err != nil {
+		return false, err
+	}
+
+	return code == lastCode.Code, nil
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("0123456789")
+
+func randomCode(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
 
 func (pg PgDb) GetAllAccountsCount(ctx context.Context) (int64, error) {
@@ -252,27 +323,24 @@ func (pg PgDb) CreditAccount(ctx context.Context, accountID string, amount, date
 		_ = tx.Rollback()
 		return err
 	}
-	
+
 	return tx.Commit()
 }
 
 func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
-	// transaction := models.AccountTransaction{
-	// 	AccountID:   accountID,
-	// 	Amount:      amount,
-	// 	TXType:      app.TxTypeCredit,
-	// 	Date:        date,
-	// 	Description: ref,
-	// }
+	transaction := models.AccountTransaction{
+		AccountID:   accountID,
+		Amount:      amount,
+		TXType:      app.TxTypeCredit,
+		Date:        date,
+		Description: ref,
+	}
 
-	// if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
-	// 	return err
-	// }
+	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
+		return err
+	}
 
-	statement := `update account set balance = balance + $1 where id = $2`
-	_, err := models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
-
-	return err
+	return nil
 }
 
 func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
@@ -283,22 +351,39 @@ func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string,
 	if acc.Balance < amount {
 		return errors.New("insufficient balance")
 	}
-	// transaction := models.AccountTransaction{
-	// 	AccountID:   accountID,
-	// 	Amount:      amount,
-	// 	TXType:      app.TxTypeDebit,
-	// 	Date:        date,
-	// 	Description: ref,
-	// }
+	transaction := models.AccountTransaction{
+		AccountID:   accountID,
+		Amount:      amount,
+		TXType:      app.TxTypeDebit,
+		Date:        date,
+		Description: ref,
+	}
 
-	// if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
-	// 	return err
-	// }
+	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
+		return err
+	}
+	
+	return nil
+}
 
-	statement := `update account set balance = balance - $1 where id = $2`
-	_, err = models.Accounts(qm.SQL(statement, amount, accountID)).ExecContext(ctx, tx)
+func (pg PgDb) AccountBalance(ctx context.Context, accountId string) (int64, error) {
+	var statement = `SELECT 
+	SUM(amount) AS balance FROM (
+		SELECT
+			CASE WHEN tx.tx_type = 'credit' THEN tx.amount ELSE -1 * tx.amount END AS amount 
+		FROM account_transaction tx
+		WHERE tx.account_id = $1
+	) res`
 
-	return err
+	var result null.Int64
+	err := pg.Db.QueryRow(statement, accountId).Scan(&result)
+	if err != nil && err.Error() == sql.ErrNoRows.Error() {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, fmt.Errorf("pg.Db.QueryRow %v", err)
+	}
+	return result.Int64, err
 }
 
 func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int64, offset, limit int) ([]app.DownlineInfo, int64, error) {
