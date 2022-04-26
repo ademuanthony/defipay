@@ -11,6 +11,7 @@ import (
 	"merryworld/metatradas/app"
 	"merryworld/metatradas/postgres/models"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jinzhu/now"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -32,6 +33,7 @@ func (pg PgDb) Invest(ctx context.Context, accountID string, amount int64) error
 		return err
 	}
 	if acc.Balance < amount {
+		spew.Dump(acc)
 		tx.Rollback()
 		return errors.New("insufficient fund")
 	}
