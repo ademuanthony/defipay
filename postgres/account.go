@@ -104,6 +104,23 @@ func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, erro
 
 }
 
+func (pg PgDb) GetAccountByUsername(ctx context.Context, username string) (*models.Account, error) {
+	acc, err :=  models.Accounts(
+		models.AccountWhere.Username.EQ(username),
+	).One(ctx, pg.Db)
+
+	if err != nil {
+		return nil, err
+	}
+	bal, err := pg.AccountBalance(ctx, acc.ID)
+	if err != nil {
+		return nil, err
+	}
+	acc.Balance = bal
+
+	return acc, nil
+}
+
 func (pg PgDb) GetPasswordResetCode(ctx context.Context, accountID string) (string, error) {
 	// delete expired code
 	minDate := time.Now().Add(-15 * time.Minute)
@@ -187,12 +204,6 @@ func (pg PgDb) GetAccountIDs(ctx context.Context) ([]string, error) {
 	}
 
 	return ids, nil
-}
-
-func (pg PgDb) GetAccountByUsername(ctx context.Context, username string) (*models.Account, error) {
-	return models.Accounts(
-		models.AccountWhere.Username.EQ(username),
-	).One(ctx, pg.Db)
 }
 
 func (pg PgDb) UpdateAccountDetail(ctx context.Context, accountID string, input app.UpdateDetailInput) error {
