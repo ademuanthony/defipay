@@ -355,7 +355,7 @@ func (pg PgDb) CreditAccountTx(ctx context.Context, tx *sql.Tx, accountID string
 }
 
 func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string, amount, date int64, ref string) error {
-	acc, err := models.Accounts(qm.Select(models.AccountColumns.Balance), models.AccountWhere.ID.EQ(accountID)).One(ctx, tx)
+	acc, err := pg.GetAccount(ctx, accountID)
 	if err != nil {
 		return err
 	}
