@@ -2,3 +2,4 @@
 postgres/sqlboiler.toml
 metatradas
 metatradas.exe
+dump.rdb

@@ -110,7 +110,7 @@ func (pg PgDb) ReleaseInvestment(ctx context.Context, id string) error {
 		return errors.New("no investment was released")
 	}
 
-	if err = pg.CreditAccountTx(ctx, tx, id, investment.Amount, time.Now().Unix(), "release trading capital "+investment.ID); err != nil {
+	if err = pg.CreditAccountTx(ctx, tx, investment.AccountID, investment.Amount, time.Now().Unix(), "release trading capital "+investment.ID); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -430,7 +430,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 
 	statement = `
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
-	select sub.account_id, sub.total, 'credit', $3, $2, 0, 0 FROM (
+	select sub.account_id, (sub.total * 700)/1000, 'credit', $3, $2, 0, 0 FROM (
 		select distinct
 		 daily_earning.account_id,
 		 COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as total from 
@@ -445,6 +445,14 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 		tx.Rollback()
 		return err
 	}
+	// amount = 700x/1000; 1000*amount/700 = x;  300%x = (((amount)/700) * 300)
+
+	// statementR1 = `
+	// insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	// select acc.referral_id, (150 * amount)/700, 'credit', $1, $2, 0, 0 from
+	// account_transaction inner join account acc on account_transaction.account_id = account.id
+	// where account_transaction.description = $3
+	// `
 
 	return tx.Commit()
 }

@@ -492,7 +492,7 @@ func (m module) ReleaseInvestment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Critical("UpdatePackage", "json::Decode", err)
+		log.Critical("ReleaseInvestment", "Investment", err)
 		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
 		return
 	}
@@ -509,7 +509,7 @@ func (m module) ReleaseInvestment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := m.db.ReleaseInvestment(r.Context(), input.ID); err != nil {
-		log.Critical("UpdatePackage", "json::Decode", err)
+		log.Critical("ReleaseInvestment", "json::Decode", err)
 		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
 		return
 	}
