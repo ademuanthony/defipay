@@ -152,7 +152,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		input.ReferralID2 = ref1.ReferralID.String
 
 		ref2, err := m.db.GetAccount(r.Context(), ref1.ReferralID.String)
-		if err != sql.ErrNoRows && err != nil {
+		if err == nil {
 			input.ReferralID3 = ref2.ReferralID.String
 		}
 	}
