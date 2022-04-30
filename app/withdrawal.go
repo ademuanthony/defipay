@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -59,7 +60,7 @@ func (m module) makeWithdrawal(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) cancelWithdrawal(w http.ResponseWriter, r http.Request) {
-	
+
 }
 
 func (m module) withdrawalHistory(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +163,12 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 
 	if payout.PaymentMethod == PAYMENTMETHOD_C250D {
 		if err := m.transferC250Dollar(ctx, account.Username, payout.Amount); err != nil {
+			if strings.Contains(err.Error(), " transfer failed") {
+				payout.PaymentStatus = PAYMENTSTATUS_FAILED
+				if err := m.db.UpdateReferralPayout(ctx, payout); err != nil {
+					return err
+				}
+			}
 			return fmt.Errorf("transferC250Dollar %v", err)
 		}
 
