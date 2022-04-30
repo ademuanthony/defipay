@@ -273,7 +273,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 					tradeNo,
 					p.TradesPerDay,
 					date,
-					p.MaxReturnPerMonth*1000/pDivisor, p.MinReturnPerMonth*1000/pDivisor, p.MinReturnPerMonth*1000/pDivisor,
+					p.MaxReturnPerMonth*1000/pDivisor, p.MinReturnPerMonth*1000/(2*pDivisor), p.MinReturnPerMonth*1000/(2*pDivisor),
 					maxStartDate,
 					minStartDate,
 					minStartDate,
@@ -399,7 +399,8 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	}
 
 	lastPayDate := time.Unix(lastPayout.Date, 0)
-	if time.Since(now.New(lastPayDate).BeginningOfDay()).Hours() < 24*7 {
+	// if it already ran in the last 24 hours, then don't
+	if time.Since(now.New(lastPayDate).BeginningOfDay()).Hours() <= 24 {
 		return nil
 	}
 
@@ -446,13 +447,47 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 		return err
 	}
 	// amount = 700x/1000; 1000*amount/700 = x;  300%x = (((amount)/700) * 300)
+	// if 70% of x is y
+	// what is 15% of x in terms of y
 
-	// statementR1 = `
-	// insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
-	// select acc.referral_id, (150 * amount)/700, 'credit', $1, $2, 0, 0 from
-	// account_transaction inner join account acc on account_transaction.account_id = account.id
-	// where account_transaction.description = $3
-	// `
+	statementR1 := `
+	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	select acc.referral_id, (150 * amount)/700, 'credit', $1, date, 0, 0 from
+	account_transaction inner join account acc on account_transaction.account_id = account.id
+	where account_transaction.description = $3
+	`
+
+	description1 := "L1 " + description + " commission"
+	if _, err := models.DailyEarnings(qm.SQL(statementR1, description1, description)).ExecContext(ctx, pg.Db); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	statementR2 := `
+	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	select acc.referral_id_2, (100 * amount)/700, 'credit', $1, date, 0, 0 from
+	account_transaction inner join account acc on account_transaction.account_id = account.id
+	where account_transaction.description = $3
+	`
+
+	description2 := "L2 " + description + " commission"
+	if _, err := models.DailyEarnings(qm.SQL(statementR2, description2, description)).ExecContext(ctx, pg.Db); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	statementR3 := `
+	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	select acc.referral_id_3, (50 * amount)/700, 'credit', $1, date, 0, 0 from
+	account_transaction inner join account acc on account_transaction.account_id = account.id
+	where account_transaction.description = $3
+	`
+
+	description3 := "L3 " + description + " commission"
+	if _, err := models.DailyEarnings(qm.SQL(statementR3, description3, description)).ExecContext(ctx, pg.Db); err != nil {
+		tx.Rollback()
+		return err
+	}
 
 	return tx.Commit()
 }
