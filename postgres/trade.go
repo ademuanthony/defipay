@@ -431,14 +431,31 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 
 	statement = `
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
-	select sub.account_id, (sub.total * 700)/1000, 'credit', $3, $2, 0, 0 FROM (
-		select distinct
-		 daily_earning.account_id,
-		 COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as total from 
-		 daily_earning
-		where daily_earning.date >= $1 and daily_earning.date < $2
-		group by daily_earning.account_id
-		) sub`
+	select acc.id as account_id,
+	(((COALESCE(
+		(select 
+			(sum(daily_earning.principal * daily_earning.percentage)/100000) 
+		from daily_earning where acc.id = account_id and date >= $1 and date <= $2),
+		0
+		)) * 700)/1000) as amount, 
+	'credit', 
+	$3,
+	$2, 0, 0 FROM  account acc where acc.principal > 0;`
+
+	// statement = `
+	// insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
+	// select sub.account_id, (sub.total * 700)/1000, 'credit', $3, $2, 0, 0 FROM (
+	// 	select distinct
+	// 	 daily_earning.account_id,
+	// 	 COALESCE(sum((daily_earning.principal * daily_earning.percentage)/100000), 0) as total from 
+	// 	 daily_earning
+	// 	where daily_earning.date >= $1 and daily_earning.date < $2
+	// 	group by daily_earning.account_id
+	// 	) sub`
+
+
+			// 475294/13720000
+			// 13720000
 
 	description := fmt.Sprintf("trading profit for %s to %s", time.Unix(lastPayout.Date, 0).Local().String(),
 		time.Unix(today, 0).Local().String())
@@ -453,8 +470,8 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	statementR1 := `
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
 	select acc.referral_id, (150 * amount)/700, 'credit', $1, date, 0, 0 from
-	account_transaction inner join account acc on account_transaction.account_id = account.id
-	where account_transaction.description = $3
+	account_transaction inner join account acc on account_transaction.account_id = acc.id
+	where acc.referral_id <> '' and account_transaction.description = $3
 	`
 
 	description1 := "L1 " + description + " commission"
@@ -466,8 +483,8 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	statementR2 := `
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
 	select acc.referral_id_2, (100 * amount)/700, 'credit', $1, date, 0, 0 from
-	account_transaction inner join account acc on account_transaction.account_id = account.id
-	where account_transaction.description = $3
+	account_transaction inner join account acc on account_transaction.account_id = acc.id
+	where acc.referral_id_2 <> '' and acc.referral_id_2 is not null and account_transaction.description = $3
 	`
 
 	description2 := "L2 " + description + " commission"
@@ -479,8 +496,8 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	statementR3 := `
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
 	select acc.referral_id_3, (50 * amount)/700, 'credit', $1, date, 0, 0 from
-	account_transaction inner join account acc on account_transaction.account_id = account.id
-	where account_transaction.description = $3
+	account_transaction inner join account acc on account_transaction.account_id = acc.id
+	where acc.referral_id_3 <> '' and acc.referral_id_3 is not null and account_transaction.description = $3
 	`
 
 	description3 := "L3 " + description + " commission"
