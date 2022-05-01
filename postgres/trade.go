@@ -471,7 +471,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	insert into account_transaction (account_id, amount, tx_type, description, date, opening_balance, closing_balance)
 	select acc.referral_id, (150 * amount)/700, 'credit', $1, date, 0, 0 from
 	account_transaction inner join account acc on account_transaction.account_id = acc.id
-	where acc.referral_id <> '' and account_transaction.description = $3
+	where acc.referral_id <> '' and account_transaction.description = $3 and acc.principal > 0
 	`
 
 	description1 := "L1 " + description + " commission"
@@ -485,6 +485,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	select acc.referral_id_2, (100 * amount)/700, 'credit', $1, date, 0, 0 from
 	account_transaction inner join account acc on account_transaction.account_id = acc.id
 	where acc.referral_id_2 <> '' and acc.referral_id_2 is not null and account_transaction.description = $3
+	and acc.principal > 0
 	`
 
 	description2 := "L2 " + description + " commission"
@@ -498,6 +499,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	select acc.referral_id_3, (50 * amount)/700, 'credit', $1, date, 0, 0 from
 	account_transaction inner join account acc on account_transaction.account_id = acc.id
 	where acc.referral_id_3 <> '' and acc.referral_id_3 is not null and account_transaction.description = $3
+	and acc.principal > 0
 	`
 
 	description3 := "L3 " + description + " commission"
