@@ -273,7 +273,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 					tradeNo,
 					p.TradesPerDay,
 					date,
-					p.MaxReturnPerMonth*1000/pDivisor, p.MinReturnPerMonth*1000/(2*pDivisor), p.MinReturnPerMonth*1000/(2*pDivisor),
+					p.MaxReturnPerMonth*1000/(2*pDivisor), p.MinReturnPerMonth*1000/(10*pDivisor), p.MinReturnPerMonth*1000/(10*pDivisor),
 					maxStartDate,
 					minStartDate,
 					minStartDate,
@@ -459,7 +459,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 
 	description := fmt.Sprintf("trading profit for %s to %s", time.Unix(lastPayout.Date, 0).Local().String(),
 		time.Unix(today, 0).Local().String())
-	if _, err := models.DailyEarnings(qm.SQL(statement, lastPayout.Date, today, description)).ExecContext(ctx, pg.Db); err != nil {
+	if _, err := models.DailyEarnings(qm.SQL(statement, lastPayout.Date, today, description)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -475,7 +475,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	`
 
 	description1 := "L1 " + description + " commission"
-	if _, err := models.DailyEarnings(qm.SQL(statementR1, description1, description)).ExecContext(ctx, pg.Db); err != nil {
+	if _, err := models.DailyEarnings(qm.SQL(statementR1, description1, description)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -489,7 +489,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	`
 
 	description2 := "L2 " + description + " commission"
-	if _, err := models.DailyEarnings(qm.SQL(statementR2, description2, description)).ExecContext(ctx, pg.Db); err != nil {
+	if _, err := models.DailyEarnings(qm.SQL(statementR2, description2, description)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -503,7 +503,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	`
 
 	description3 := "L3 " + description + " commission"
-	if _, err := models.DailyEarnings(qm.SQL(statementR3, description3, description)).ExecContext(ctx, pg.Db); err != nil {
+	if _, err := models.DailyEarnings(qm.SQL(statementR3, description3, description)).ExecContext(ctx, tx); err != nil {
 		tx.Rollback()
 		return err
 	}
