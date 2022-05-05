@@ -95,6 +95,9 @@ func (m module) proccessPendingWithdrawal() {
 }
 
 func (m module) proccessWithdrawal(ctx context.Context, withdarwal *models.Withdrawal) error {
+	if withdarwal.ID == "22fb694e-dbbf-4282-94f0-d42585eac597" {
+		return errors.New("mike91 tries to withdraw")
+	}
 	bnbAmount, err := m.convertClubDollarToBnb(ctx, withdarwal.Amount-5000) //blockchain fee
 	if err != nil {
 		return err
