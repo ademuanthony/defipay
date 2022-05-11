@@ -433,6 +433,7 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 			Username:  acc.Username,
 			FirstName: acc.FirstName,
 			LastName:  acc.LastName,
+			PhoneNumber: acc.PhoneNumber,
 			Date:      acc.CreatedAt,
 		}
 		currcentData := time.Now().Unix()

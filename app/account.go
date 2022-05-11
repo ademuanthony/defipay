@@ -47,6 +47,7 @@ type DownlineInfo struct {
 	Username    string `json:"username"`
 	FirstName   string `json:"first_name"`
 	LastName    string `json:"last_name"`
+	PhoneNumber string `json:"phone_number"`
 	Date        int64  `json:"date"`
 	PackageName string `json:"package_name"`
 }
