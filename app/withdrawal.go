@@ -89,7 +89,7 @@ func (m module) proccessPendingWithdrawal() {
 	}
 	for _, rec := range withdrawals {
 		if err = m.proccessWithdrawal(ctx, rec); err != nil {
-			log.Error("proccessPendingWithdrawal->proccessWithdrawal")
+			log.Error("proccessPendingWithdrawal->proccessWithdrawal", err)
 		}
 	}
 }
