@@ -83,7 +83,7 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	// 	return "", err
 	// }
 
-	feeStr := "0.000000015"
+	feeStr := "0.00000001"
 	feeFloat, err := ParseBigFloat(feeStr)
 	if err != nil {
 		return "", err
