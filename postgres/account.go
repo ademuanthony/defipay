@@ -403,9 +403,9 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 	case 1:
 		query = append(query, models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)))
 	case 2:
-		models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID))
+		query = append(query,models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID)))
 	case 3:
-		models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID))
+		query = append(query,models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID)))
 	}
 
 	totalCount, err := models.Accounts(query...).Count(ctx, pg.Db)
