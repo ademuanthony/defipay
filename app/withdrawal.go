@@ -105,7 +105,7 @@ func (m module) proccessWithdrawal(ctx context.Context, withdarwal *models.Withd
 
 	txHash, err := m.transfer(ctx, m.config.MasterAddressKey, withdarwal.Destination, bnbAmount)
 	if err != nil {
-		return fmt.Errorf("m.transfer %v", err)
+		return fmt.Errorf("m.transfer %s %v", m.config.MasterAddress, err)
 	}
 	if err := m.db.SetWithdrawalTxHash(ctx, withdarwal.ID, txHash); err != nil {
 		return fmt.Errorf("SetWithdrawalTxHash %v", err)

@@ -108,7 +108,7 @@ func (m module) watchBNBDeposit() {
 				}
 				txHash, err := m.transfer(ctx, wallet.PrivateKey, m.config.MasterAddress, amountToSend)
 				if err != nil {
-					log.Errorf("m.transfer %v", err)
+					log.Errorf("m.transfer %s %v", add, err)
 					continue
 				}
 
