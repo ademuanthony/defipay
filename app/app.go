@@ -46,6 +46,13 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		// go app.watchDeposit()
 		go app.watchBNBDeposit()
 		go app.processReferralPayouts()
+
+		go func() {
+			for {
+				app.proccessPendingWithdrawal()
+				time.Sleep(1 * time.Hour)
+			}
+		}()
 	}
 
 	return nil
@@ -114,7 +121,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/security/last-login", web.GET, m.lastLogin, m.server.RequireLogin)
 	m.server.AddRoute("/api/security/change-password", web.POST, m.changePassword, m.server.RequireLogin, m.server.NoReentry)
-	
+
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {
@@ -140,8 +147,6 @@ func (m module) runProcessor(ctx context.Context) {
 		if err := m.db.ProcessWeeklyPayout(ctx); err != nil {
 			log.Critical("runProcessor", "ProcessWeeklyPayout", err)
 		}
-
-		m.proccessPendingWithdrawal()
 
 		i += 1
 	}
