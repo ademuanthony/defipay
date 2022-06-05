@@ -387,6 +387,7 @@ func (pg PgDb) ProcessWeeklyPayout(ctx context.Context) error {
 	if date.Weekday() != time.Sunday {
 		return nil
 	}
+	today := now.BeginningOfDay().Unix()
 
 	lastPayout, err := models.WeeklyPayouts(
 		qm.OrderBy(models.WeeklyPayoutColumns.Date+" desc"),

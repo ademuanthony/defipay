@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jinzhu/now"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
@@ -24,8 +23,6 @@ var (
 	PGCancelError       = "pq: canceling statement due to user request"
 	CtxDeadlineExceeded = context.DeadlineExceeded.Error()
 	TimeoutPrefix       = "TIMEOUT of PostgreSQL query"
-
-	today = now.BeginningOfDay().Unix()
 )
 
 const DateTemplate = "2006-01-02 15:04"
