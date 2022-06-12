@@ -644,7 +644,7 @@ func testSubscriptionsSelect(t *testing.T) {
 }
 
 var (
-	subscriptionDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `PackageID`: `character varying`, `StartDate`: `bigint`, `EndDate`: `bigint`}
+	subscriptionDBTypes = map[string]string{`ID`: `character varying`, `AccountID`: `character varying`, `PackageID`: `character varying`, `StartDate`: `bigint`, `EndDate`: `bigint`, `C250`: `integer`}
 	_                   = bytes.MinRead
 )
 

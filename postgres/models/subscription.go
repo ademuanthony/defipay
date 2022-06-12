@@ -28,6 +28,7 @@ type Subscription struct {
 	PackageID string `boil:"package_id" json:"package_id" toml:"package_id" yaml:"package_id"`
 	StartDate int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate   int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	C250      int    `boil:"c250" json:"c250" toml:"c250" yaml:"c250"`
 
 	R *subscriptionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L subscriptionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +40,14 @@ var SubscriptionColumns = struct {
 	PackageID string
 	StartDate string
 	EndDate   string
+	C250      string
 }{
 	ID:        "id",
 	AccountID: "account_id",
 	PackageID: "package_id",
 	StartDate: "start_date",
 	EndDate:   "end_date",
+	C250:      "c250",
 }
 
 var SubscriptionTableColumns = struct {
@@ -53,12 +56,14 @@ var SubscriptionTableColumns = struct {
 	PackageID string
 	StartDate string
 	EndDate   string
+	C250      string
 }{
 	ID:        "subscription.id",
 	AccountID: "subscription.account_id",
 	PackageID: "subscription.package_id",
 	StartDate: "subscription.start_date",
 	EndDate:   "subscription.end_date",
+	C250:      "subscription.c250",
 }
 
 // Generated where
@@ -69,12 +74,14 @@ var SubscriptionWhere = struct {
 	PackageID whereHelperstring
 	StartDate whereHelperint64
 	EndDate   whereHelperint64
+	C250      whereHelperint
 }{
 	ID:        whereHelperstring{field: "\"subscription\".\"id\""},
 	AccountID: whereHelperstring{field: "\"subscription\".\"account_id\""},
 	PackageID: whereHelperstring{field: "\"subscription\".\"package_id\""},
 	StartDate: whereHelperint64{field: "\"subscription\".\"start_date\""},
 	EndDate:   whereHelperint64{field: "\"subscription\".\"end_date\""},
+	C250:      whereHelperint{field: "\"subscription\".\"c250\""},
 }
 
 // SubscriptionRels is where relationship names are stored.
@@ -101,9 +108,9 @@ func (*subscriptionR) NewStruct() *subscriptionR {
 type subscriptionL struct{}
 
 var (
-	subscriptionAllColumns            = []string{"id", "account_id", "package_id", "start_date", "end_date"}
+	subscriptionAllColumns            = []string{"id", "account_id", "package_id", "start_date", "end_date", "c250"}
 	subscriptionColumnsWithoutDefault = []string{"id", "account_id", "package_id", "start_date", "end_date"}
-	subscriptionColumnsWithDefault    = []string{}
+	subscriptionColumnsWithDefault    = []string{"c250"}
 	subscriptionPrimaryKeyColumns     = []string{"id"}
 )
 

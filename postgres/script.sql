@@ -201,3 +201,6 @@ alter table notification add action_text character varying(32) not null default 
 
 alter table trade add last_view_profit bigint not null default 0;
 alter table trade add last_view_time bigint not null default 0;
+
+alter table account add c250 int default 0;
+alter table subscription add c250 int not null default 0;

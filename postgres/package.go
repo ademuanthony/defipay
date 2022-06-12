@@ -85,12 +85,18 @@ func (pg PgDb) CreateSubscription(ctx context.Context, accountID, packageID stri
 		}
 	}
 
+	c250Int := 0
+	if c250 {
+		c250Int = 1
+	}
+
 	sub := models.Subscription{
 		ID:        uuid.NewString(),
 		PackageID: packageID,
 		AccountID: accountID,
 		StartDate: date.Unix(),
 		EndDate:   date.Add(365 * 24 * time.Hour).Unix(),
+		C250:      c250Int,
 	}
 
 	if err := sub.Insert(ctx, tx, boil.Infer()); err != nil {
@@ -126,8 +132,14 @@ func (pg PgDb) UpgradePackage(ctx context.Context, oldSubscriptionID, accountID,
 		}
 	}
 
+	c250Int := 0
+	if c250 {
+		c250Int = 1
+	}
+
 	col := models.M{
 		models.SubscriptionColumns.PackageID: packageID,
+		models.SubscriptionColumns.C250:      c250Int,
 	}
 	if _, err := models.Subscriptions(
 		models.SubscriptionWhere.ID.EQ(oldSubscriptionID),
@@ -235,8 +247,8 @@ func (pg PgDb) PackageSubscriptions(ctx context.Context) ([]app.PackageSubscribe
 			p.price,
 			(select count (*) from subscription s where s.package_id = p.id) as subscribers 
 		from package p order by p.price desc;`
-		var psubs []app.PackageSubscribers
-		err := models.NewQuery(qm.SQL(statement)).Bind(ctx, pg.Db, &psubs)
+	var psubs []app.PackageSubscribers
+	err := models.NewQuery(qm.SQL(statement)).Bind(ctx, pg.Db, &psubs)
 
-		return psubs, err
+	return psubs, err
 }
