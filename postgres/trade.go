@@ -250,6 +250,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 		}
 
 		for tradeNo := 1; tradeNo <= p.TradesPerDay; tradeNo += 1 {
+			log.Info("building trade ", tradeNo)
 			seed := (20 / p.TradesPerDay) * tradeNo
 			maxStartDate := now.BeginningOfDay().Add(time.Hour * time.Duration(seed)).Unix()
 			statement := `
