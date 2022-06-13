@@ -180,6 +180,12 @@ func (m module) createSubscriptionC250(w http.ResponseWriter, r *http.Request) {
 		web.SendErrorfJSON(w, "Account not found. Please activate your METATRADAS account")
 	}
 
+	_, err = m.db.ActiveSubscription(r.Context(), m.server.GetUserIDTokenCtx(r))
+	if err != nil {
+		web.SendErrorfJSON(w, "You have an active subscription. Please use the upgrade function")
+		return
+	}
+
 	if err := m.db.CreateSubscription(r.Context(), acc.ID, input.PackageID, true); err != nil {
 		log.Error("createSubscriptionC250", "CreateSubscription", err)
 		web.SendErrorfJSON(w, "Error in creating subscription")
