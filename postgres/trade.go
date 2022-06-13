@@ -273,7 +273,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 					tradeNo,
 					p.TradesPerDay,
 					date,
-					3*p.MaxReturnPerMonth*1000/(4*pDivisor), 3*p.MinReturnPerMonth*1000/(4*pDivisor), 3*p.MinReturnPerMonth*1000/(4*pDivisor),
+					p.MaxReturnPerMonth*1000/(2*pDivisor), p.MinReturnPerMonth*1000/(2*pDivisor), p.MinReturnPerMonth*1000/(2*pDivisor),
 					maxStartDate,
 					minStartDate,
 					minStartDate,

@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -171,11 +170,15 @@ func (m module) proccessPayout(ctx context.Context, payout *models.ReferralPayou
 
 	if payout.PaymentMethod == PAYMENTMETHOD_C250D {
 		if err := m.transferC250Dollar(ctx, account.Username, payout.Amount); err != nil {
-			if strings.Contains(err.Error(), " transfer failed") {
-				payout.PaymentStatus = PAYMENTSTATUS_FAILED
-				if err := m.db.UpdateReferralPayout(ctx, payout); err != nil {
-					return err
-				}
+			// if strings.Contains(err.Error(), " transfer failed") {
+			// 	payout.PaymentStatus = PAYMENTSTATUS_FAILED
+			// 	if err := m.db.UpdateReferralPayout(ctx, payout); err != nil {
+			// 		return err
+			// 	}
+			// }
+			payout.PaymentStatus = PAYMENTSTATUS_FAILED
+			if err := m.db.UpdateReferralPayout(ctx, payout); err != nil {
+				return err
 			}
 			return fmt.Errorf("transferC250Dollar %v", err)
 		}
