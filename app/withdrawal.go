@@ -123,7 +123,7 @@ func (m module) proccessWithdrawal(ctx context.Context, withdarwal *models.Withd
 func (m module) processReferralPayouts() {
 	for {
 		func() {
-			defer time.Sleep(5 * time.Minute)
+			defer time.Sleep(1 * time.Hour)
 			ctx := context.Background()
 			pendingPayouts, err := m.db.PendingReferralPayouts(ctx)
 			if err != nil {

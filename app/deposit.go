@@ -121,7 +121,7 @@ func (m module) watchBNBDeposit() {
 				log.Info(amount, "bnb processed from", add)
 			}
 
-			time.Sleep(10 * time.Minute)
+			time.Sleep(1 * time.Hour)
 		}()
 	}
 }
