@@ -57,6 +57,7 @@ func (m module) watchBNBDeposit() {
 	for {
 		var addressCount int
 		func() {
+			time.Sleep(1 * time.Hour)
 			ctx := context.Background()
 			addresses, err := m.db.GetWalletByAddresses(ctx)
 			if err != nil {
