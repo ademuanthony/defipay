@@ -204,3 +204,5 @@ alter table trade add last_view_time bigint not null default 0;
 
 alter table account add c250 int default 0;
 alter table subscription add c250 int not null default 0;
+
+alter table wallet add check_deposit int not null default 0;

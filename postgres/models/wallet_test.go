@@ -536,7 +536,7 @@ func testWalletsSelect(t *testing.T) {
 }
 
 var (
-	walletDBTypes = map[string]string{`ID`: `character varying`, `Address`: `character varying`, `PrivateKey`: `character varying`, `CoinSymbol`: `character varying`, `AccountID`: `character varying`}
+	walletDBTypes = map[string]string{`ID`: `character varying`, `Address`: `character varying`, `PrivateKey`: `character varying`, `CoinSymbol`: `character varying`, `AccountID`: `character varying`, `CheckDeposit`: `integer`}
 	_             = bytes.MinRead
 )
 

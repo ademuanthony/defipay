@@ -35,6 +35,7 @@ type store interface {
 	CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error
 	CreateDepositWallet(ctx context.Context, accountID, address, privateKey string) (*models.Wallet, error)
 	GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error)
+	SetDepositCheck(ctx context.Context, accountID string, value int) error
 	GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error)
 
 	CreatePackage(ctx context.Context, pkg models.Package) error

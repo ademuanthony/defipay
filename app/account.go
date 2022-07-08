@@ -229,6 +229,12 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := m.db.SetDepositCheck(r.Context(), account.ID, 1); err != nil {
+		log.Error("Login", "SetDepositCheck", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
 	if r.FormValue("v") == "2" {
 		web.SendJSON(w, loginResponse{
 			Token:      token,

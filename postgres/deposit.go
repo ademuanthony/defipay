@@ -45,9 +45,18 @@ func (pg PgDb) CreateDeposit(ctx context.Context, accountID, txHash string, amou
 	return tx.Commit()
 }
 
+func (pg PgDb) SetDepositCheck(ctx context.Context, accountID string, value int) error {
+	col := models.M{
+		models.WalletColumns.CheckDeposit: value,
+	}
+	_, err := models.Wallets(models.WalletWhere.AccountID.EQ(accountID)).UpdateAll(ctx, pg.Db, col)
+	return err
+}
+
 func (pg PgDb) GetWalletByAddresses(ctx context.Context) ([]string, error) {
 	wallets, err := models.Wallets(
 		qm.Select(models.WalletColumns.Address),
+		models.WalletWhere.CheckDeposit.EQ(1),
 	).All(ctx, pg.Db)
 	if err != nil {
 		return nil, err
@@ -56,6 +65,14 @@ func (pg PgDb) GetWalletByAddresses(ctx context.Context) ([]string, error) {
 	var addresses []string
 	for _, wallet := range wallets {
 		addresses = append(addresses, wallet.Address)
+	}
+
+	_, err = models.Wallets().UpdateAll(ctx, pg.Db, models.M{
+		models.WalletColumns.CheckDeposit: 0,
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
 	return addresses, nil

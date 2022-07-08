@@ -23,58 +23,65 @@ import (
 
 // Wallet is an object representing the database table.
 type Wallet struct {
-	ID         string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Address    string `boil:"address" json:"address" toml:"address" yaml:"address"`
-	PrivateKey string `boil:"private_key" json:"private_key" toml:"private_key" yaml:"private_key"`
-	CoinSymbol string `boil:"coin_symbol" json:"coin_symbol" toml:"coin_symbol" yaml:"coin_symbol"`
-	AccountID  string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	ID           string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Address      string `boil:"address" json:"address" toml:"address" yaml:"address"`
+	PrivateKey   string `boil:"private_key" json:"private_key" toml:"private_key" yaml:"private_key"`
+	CoinSymbol   string `boil:"coin_symbol" json:"coin_symbol" toml:"coin_symbol" yaml:"coin_symbol"`
+	AccountID    string `boil:"account_id" json:"account_id" toml:"account_id" yaml:"account_id"`
+	CheckDeposit int    `boil:"check_deposit" json:"check_deposit" toml:"check_deposit" yaml:"check_deposit"`
 
 	R *walletR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L walletL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var WalletColumns = struct {
-	ID         string
-	Address    string
-	PrivateKey string
-	CoinSymbol string
-	AccountID  string
+	ID           string
+	Address      string
+	PrivateKey   string
+	CoinSymbol   string
+	AccountID    string
+	CheckDeposit string
 }{
-	ID:         "id",
-	Address:    "address",
-	PrivateKey: "private_key",
-	CoinSymbol: "coin_symbol",
-	AccountID:  "account_id",
+	ID:           "id",
+	Address:      "address",
+	PrivateKey:   "private_key",
+	CoinSymbol:   "coin_symbol",
+	AccountID:    "account_id",
+	CheckDeposit: "check_deposit",
 }
 
 var WalletTableColumns = struct {
-	ID         string
-	Address    string
-	PrivateKey string
-	CoinSymbol string
-	AccountID  string
+	ID           string
+	Address      string
+	PrivateKey   string
+	CoinSymbol   string
+	AccountID    string
+	CheckDeposit string
 }{
-	ID:         "wallet.id",
-	Address:    "wallet.address",
-	PrivateKey: "wallet.private_key",
-	CoinSymbol: "wallet.coin_symbol",
-	AccountID:  "wallet.account_id",
+	ID:           "wallet.id",
+	Address:      "wallet.address",
+	PrivateKey:   "wallet.private_key",
+	CoinSymbol:   "wallet.coin_symbol",
+	AccountID:    "wallet.account_id",
+	CheckDeposit: "wallet.check_deposit",
 }
 
 // Generated where
 
 var WalletWhere = struct {
-	ID         whereHelperstring
-	Address    whereHelperstring
-	PrivateKey whereHelperstring
-	CoinSymbol whereHelperstring
-	AccountID  whereHelperstring
+	ID           whereHelperstring
+	Address      whereHelperstring
+	PrivateKey   whereHelperstring
+	CoinSymbol   whereHelperstring
+	AccountID    whereHelperstring
+	CheckDeposit whereHelperint
 }{
-	ID:         whereHelperstring{field: "\"wallet\".\"id\""},
-	Address:    whereHelperstring{field: "\"wallet\".\"address\""},
-	PrivateKey: whereHelperstring{field: "\"wallet\".\"private_key\""},
-	CoinSymbol: whereHelperstring{field: "\"wallet\".\"coin_symbol\""},
-	AccountID:  whereHelperstring{field: "\"wallet\".\"account_id\""},
+	ID:           whereHelperstring{field: "\"wallet\".\"id\""},
+	Address:      whereHelperstring{field: "\"wallet\".\"address\""},
+	PrivateKey:   whereHelperstring{field: "\"wallet\".\"private_key\""},
+	CoinSymbol:   whereHelperstring{field: "\"wallet\".\"coin_symbol\""},
+	AccountID:    whereHelperstring{field: "\"wallet\".\"account_id\""},
+	CheckDeposit: whereHelperint{field: "\"wallet\".\"check_deposit\""},
 }
 
 // WalletRels is where relationship names are stored.
@@ -98,9 +105,9 @@ func (*walletR) NewStruct() *walletR {
 type walletL struct{}
 
 var (
-	walletAllColumns            = []string{"id", "address", "private_key", "coin_symbol", "account_id"}
+	walletAllColumns            = []string{"id", "address", "private_key", "coin_symbol", "account_id", "check_deposit"}
 	walletColumnsWithoutDefault = []string{"id", "address", "private_key", "coin_symbol", "account_id"}
-	walletColumnsWithDefault    = []string{}
+	walletColumnsWithDefault    = []string{"check_deposit"}
 	walletPrimaryKeyColumns     = []string{"id"}
 )
 
