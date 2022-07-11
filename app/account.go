@@ -216,6 +216,12 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := m.db.SetDepositCheck(r.Context(), account.ID, 1); err != nil {
+		log.Error("Login", "SetDepositCheck", err)
+		web.SendErrorfJSON(w, "Something went wrong, please try again later")
+		return
+	}
+
 	is2faEnabled, err := m.is2faEnabled(r.Context(), account.ID)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "login,is2faEnabled", err)
@@ -225,12 +231,6 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := web.CreateToken(account.ID, !is2faEnabled)
 	if err != nil {
 		log.Error("Login", "CreateToken", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	if err := m.db.SetDepositCheck(r.Context(), account.ID, 1); err != nil {
-		log.Error("Login", "SetDepositCheck", err)
 		web.SendErrorfJSON(w, "Something went wrong, please try again later")
 		return
 	}
