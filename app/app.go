@@ -42,7 +42,7 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 	app.buildRoute()
 
 	if os.Getenv("RUN_BG_PROCESSES") == "1" {
-		go app.runProcessor(context.Background())
+		// go app.runProcessor(context.Background())
 		// go app.watchDeposit()
 		go app.watchBNBDeposit()
 		// go app.processReferralPayouts()

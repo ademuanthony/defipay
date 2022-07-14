@@ -54,18 +54,22 @@ func (m module) DepositHistories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) watchBNBDeposit() {
+	log.Info("doing it")
 	for {
-		// var addressCount int
+		var addressCount int
 		func() {
+			defer time.Sleep(10 * time.Minute)
 			ctx := context.Background()
 			addresses, err := m.db.GetWalletByAddresses(ctx)
 			if err != nil {
 				log.Error("GetWalletByAddresses", err)
 			}
-			// if len(addresses) == addressCount {
-			// 	return
-			// }
-			// addressCount = len(addresses)
+			if len(addresses) == addressCount {
+				return
+			}
+			addressCount = len(addresses)
+
+			log.Info(addressCount, "Found")
 
 			for _, add := range addresses {
 				// check balance of each address
@@ -87,6 +91,8 @@ func (m module) watchBNBDeposit() {
 				if clubDollar.Int64() < 10000 {
 					continue
 				}
+
+				log.Info(clubDollar, "seen in", add, "processing")
 
 				gasLimit := uint64(21000)
 
@@ -121,7 +127,6 @@ func (m module) watchBNBDeposit() {
 				log.Info(amount, "bnb processed from", add)
 			}
 
-			time.Sleep(10 * time.Minute)
 		}()
 	}
 }
