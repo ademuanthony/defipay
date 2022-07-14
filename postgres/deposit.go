@@ -56,7 +56,7 @@ func (pg PgDb) SetDepositCheck(ctx context.Context, accountID string, value int)
 func (pg PgDb) GetWalletByAddresses(ctx context.Context) ([]string, error) {
 	wallets, err := models.Wallets(
 		qm.Select(models.WalletColumns.Address),
-		// models.WalletWhere.CheckDeposit.EQ(1),
+		models.WalletWhere.CheckDeposit.EQ(1),
 	).All(ctx, pg.Db)
 	if err != nil {
 		return nil, err
