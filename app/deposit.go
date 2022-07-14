@@ -55,17 +55,17 @@ func (m module) DepositHistories(w http.ResponseWriter, r *http.Request) {
 
 func (m module) watchBNBDeposit() {
 	for {
-		var addressCount int
+		// var addressCount int
 		func() {
 			ctx := context.Background()
 			addresses, err := m.db.GetWalletByAddresses(ctx)
 			if err != nil {
 				log.Error("GetWalletByAddresses", err)
 			}
-			if len(addresses) == addressCount {
-				return
-			}
-			addressCount = len(addresses)
+			// if len(addresses) == addressCount {
+			// 	return
+			// }
+			// addressCount = len(addresses)
 
 			for _, add := range addresses {
 				// check balance of each address
