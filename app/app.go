@@ -45,14 +45,14 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		go app.runProcessor(context.Background())
 		// go app.watchDeposit()
 		go app.watchBNBDeposit()
-		go app.processReferralPayouts()
+		// go app.processReferralPayouts()
 
-		go func() {
-			for {
-				app.proccessPendingWithdrawal()
-				time.Sleep(1 * time.Hour)
-			}
-		}()
+		// go func() {
+		// 	for {
+		// 		app.proccessPendingWithdrawal()
+		// 		time.Sleep(1 * time.Hour)
+		// 	}
+		// }()
 	}
 
 	return nil
