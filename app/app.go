@@ -50,7 +50,7 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		go func() {
 			for {
 				app.proccessPendingWithdrawal()
-				time.Sleep(1 * time.Hour)
+				time.Sleep(15 * time.Minute)
 			}
 		}()
 	}
