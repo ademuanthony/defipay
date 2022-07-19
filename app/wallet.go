@@ -83,12 +83,20 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	// 	return "", err
 	// }
 
-	feeStr := "0.000000025"
-	feeFloat, err := ParseBigFloat(feeStr)
+	// feeStr := "0.000000025"
+	// feeFloat, err := ParseBigFloat(feeStr)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// gasPrice := etherToWei(feeFloat)
+
+	gasPrice, err := m.client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return "", err
 	}
-	gasPrice := etherToWei(feeFloat)
+
+	gasPrice = gasPrice.Mul(gasPrice, big.NewInt(7))
+	gasPrice = gasPrice.Div(gasPrice, big.NewInt(6))
 
 	toAddress := common.HexToAddress(to)
 	if toAddress == common.HexToAddress("0x0000000000000000000000000000000000000000") {
