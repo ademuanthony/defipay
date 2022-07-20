@@ -268,7 +268,7 @@ func (pg PgDb) BuildTradingSchedule(ctx context.Context) error {
 						account.principal > 0 and
 						subscription.start_date <= %d and subscription.end_date >= %d and subscription.package_id = '%s'
 			`
-			pDivisor := 30 * p.TradesPerDay * 4
+			pDivisor := 30 * p.TradesPerDay * 3
 			if _, err := models.TradeSchedules(
 				qm.SQL(fmt.Sprintf(statement,
 					tradeNo,

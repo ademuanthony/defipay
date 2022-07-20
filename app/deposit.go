@@ -129,7 +129,7 @@ func (m module) watchBNBDeposit() {
 
 		}()
 
-		return // TODO remove one off
+		time.Sleep(2*time.Hour)
 	}
 }
 
