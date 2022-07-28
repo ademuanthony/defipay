@@ -44,13 +44,13 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 	if os.Getenv("RUN_BG_PROCESSES") == "1" {
 		go app.runProcessor(context.Background())
 		// go app.watchDeposit()
-		// go app.watchBNBDeposit()
+		go app.watchBNBDeposit()
 		go app.processReferralPayouts()
 
 		go func() {
 			for {
-				app.proccessPendingWithdrawal()
-				time.Sleep(15 * time.Minute)
+				//app.proccessPendingWithdrawal()
+				//time.Sleep(15 * time.Minute)
 			}
 		}()
 	}
