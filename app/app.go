@@ -47,12 +47,12 @@ func Start(server *web.Server, db store, client *ethclient.Client, config Blockc
 		go app.watchBNBDeposit()
 		go app.processReferralPayouts()
 
-		go func() {
-			for {
-				//app.proccessPendingWithdrawal()
-				//time.Sleep(15 * time.Minute)
-			}
-		}()
+		// go func() {
+		// 	for {
+		// 		app.proccessPendingWithdrawal()
+		// 		time.Sleep(15 * time.Minute)
+		// 	}
+		// }()
 	}
 
 	return nil
