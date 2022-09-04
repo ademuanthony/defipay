@@ -78,10 +78,11 @@ func _main(ctx context.Context) error {
 
 	client, err := ethclient.Dial(cfg.BSCNode)
 	if err != nil {
-		return err
+		log.Error( err)
+	} else {
+		defer client.Close()
 	}
 
-	defer client.Close()
 
 	if err := app.Start(webServer, db, client, cfg.BlockchainConfig, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
 		log.Error(err)
