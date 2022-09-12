@@ -47,8 +47,8 @@ type DownlineInfo struct {
 	PackageName string `json:"package_name"`
 }
 
-type LoginRequst struct {
-	Username string `json:"username"`
+type LoginRequest struct {
+	Email string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -106,12 +106,6 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.PhoneNumber == "" {
-		web.SendErrorfJSON(w, "Phone number is required")
-		return
-	}
-
-
 	if _, err := m.db.GetAccountByEmail(r.Context(), input.Email); err == nil {
 		web.SendErrorfJSON(w, "Username is not available")
 		return
@@ -161,19 +155,19 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) Login(w http.ResponseWriter, r *http.Request) {
-	var input LoginRequst
+	var input LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("Login", "json::Decode", err)
 		web.SendErrorfJSON(w, "cannot decode request")
 		return
 	}
 
-	if input.Password == "" || input.Username == "" {
+	if input.Password == "" || input.Email == "" {
 		web.SendErrorfJSON(w, "Username and password is required")
 		return
 	}
 
-	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(r.Context(), input.Email)
 	if err != nil {
 		log.Error("Login", "GetAccountByEmail", err)
 		web.SendErrorfJSON(w, "Invalid credential")

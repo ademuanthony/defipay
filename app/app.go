@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/twharmon/govalid"
 )
 
 type module struct {
@@ -21,6 +22,8 @@ const (
 	TxTypeCredit = "credit"
 	TxTypeDebit  = "debit"
 )
+
+var v = govalid.New()
 
 func Start(server *web.Server, db store, client *ethclient.Client, config BlockchainConfig,
 	mgDomain, mgKey string) error {
@@ -72,6 +75,10 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/security/enable2fa", web.POST, m.enable2fa, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/security/last-login", web.GET, m.lastLogin, m.server.RequireLogin)
 	m.server.AddRoute("/api/security/change-password", web.POST, m.changePassword, m.server.RequireLogin, m.server.NoReentry)
+
+	// TRANSACTION
+	m.server.AddRoute("/api/transaction/fund-transfer", web.POST, m.createFundTransferTransaction, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/top-up", web.POST, m.createTupUpTransaction, m.server.RequireLogin, m.server.NoReentry)
 
 }
 

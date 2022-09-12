@@ -43,4 +43,7 @@ type store interface {
 	GetConfigs(ctx context.Context, accountID string) (models.UserSettingSlice, error)
 	AddLogin(ctx context.Context, accountID, ip, platform string, date int64) error
 	LastLogin(ctx context.Context) (*models.LoginInfo, error)
+
+	// Transaction
+	CreateTransaction(ctx context.Context, input CreateTransactionInput) (*TransactionOutput, error)
 }
