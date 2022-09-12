@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -120,7 +119,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := m.db.GetAccountByUsername(r.Context(), input.Username); err == nil {
+	if _, err := m.db.GetAccountByEmail(r.Context(), input.Username); err == nil {
 		web.SendErrorfJSON(w, "Username is not available")
 		return
 	}
@@ -139,9 +138,9 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	input.Password = passwordHash
 
 	if input.ReferralID != "" {
-		ref1, err := m.db.GetAccountByUsername(r.Context(), input.ReferralID)
+		ref1, err := m.db.GetAccountByEmail(r.Context(), input.ReferralID)
 		if err != nil && input.From250 {
-			ref1, err = m.db.GetAccountByUsername(r.Context(), "main")
+			ref1, err = m.db.GetAccountByEmail(r.Context(), "main")
 		}
 
 		if err != nil {
@@ -187,9 +186,9 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
 	if err != nil {
-		log.Error("Login", "GetAccountByUsername", err)
+		log.Error("Login", "GetAccountByEmail", err)
 		web.SendErrorfJSON(w, "Invalid credential")
 		return
 	}
@@ -260,7 +259,7 @@ func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
 	if err != nil {
 		log.Error(err)
 		web.SendErrorfJSON(w, "Invalid username")
@@ -273,7 +272,7 @@ func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := fmt.Sprintf("Hello %s, Your password reset code is %s. Do not disclose", account.Username, code)
+	msg := fmt.Sprintf("Hello %s, Your password reset code is %s. Do not disclose", account.FirstName, code)
 	m.SendEmail(r.Context(), "noreply@metatradas.com", account.Email, "Reset Password", msg)
 
 	web.SendJSON(w, true)
@@ -287,7 +286,7 @@ func (m module) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := m.db.GetAccountByUsername(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
 	if err != nil {
 		web.SendErrorfJSON(w, "Invalid username")
 		return
@@ -330,7 +329,7 @@ func (m module) referralLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	web.SendJSON(w, fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.Username))
+	web.SendJSON(w, fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.ReferralCode))
 }
 
 func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
@@ -369,21 +368,21 @@ func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, account)
 }
 
-func (m module) MyDownlines(w http.ResponseWriter, r *http.Request) {
-	pageReq := web.GetPanitionInfo(r)
-	generation, _ := strconv.ParseInt(r.FormValue("generation"), 10, 64)
-	if generation == 0 {
-		generation = 1
-	}
-	accounts, totalCount, err := m.db.MyDownlines(r.Context(), m.server.GetUserIDTokenCtx(r), generation, pageReq.Offset, pageReq.Limit)
-	if err != nil {
-		log.Error("MyDownlines", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
-	}
+// func (m module) MyDownlines(w http.ResponseWriter, r *http.Request) {
+// 	pageReq := web.GetPanitionInfo(r)
+// 	generation, _ := strconv.ParseInt(r.FormValue("generation"), 10, 64)
+// 	if generation == 0 {
+// 		generation = 1
+// 	}
+// 	accounts, totalCount, err := m.db.MyDownlines(r.Context(), m.server.GetUserIDTokenCtx(r), generation, pageReq.Offset, pageReq.Limit)
+// 	if err != nil {
+// 		log.Error("MyDownlines", err)
+// 		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
+// 		return
+// 	}
 
-	web.SendPagedJSON(w, accounts, totalCount)
-}
+// 	web.SendPagedJSON(w, accounts, totalCount)
+// }
 
 func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
 	count, err := m.db.GetRefferalCount(r.Context(), m.server.GetUserIDTokenCtx(r))
@@ -393,16 +392,6 @@ func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.SendJSON(w, count)
-}
-
-func (m module) TeamInformation(w http.ResponseWriter, r *http.Request) {
-	info, err := m.db.GetTeamInformation(r.Context(), m.server.GetUserIDTokenCtx(r))
-	if err != nil {
-		log.Critical("GetTeamInformation", "m.db.GetTeamInformation", err)
-		web.SendErrorfJSON(w, "Error in getting team information. Please try again later")
-		return
-	}
-	web.SendJSON(w, info)
 }
 
 func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {

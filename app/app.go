@@ -55,14 +55,12 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/account/me", web.GET, m.GetAccountDetail, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/referral-link", web.GET, m.referralLink, m.server.RequireLogin)
 	m.server.AddRoute("/api/account/referral-count", web.GET, m.GetReferralCount, m.server.RequireLogin)
-	m.server.AddRoute("/api/account/downlines", web.GET, m.MyDownlines, m.server.RequireLogin)
-	m.server.AddRoute("/api/account/team-info", web.GET, m.TeamInformation, m.server.RequireLogin)
+	//m.server.AddRoute("/api/account/downlines", web.GET, m.MyDownlines, m.server.RequireLogin)
 
 	// ACCOUNTS
 	m.server.AddRoute("/api/accounts/count", web.GET, m.GetAllAccountsCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/accounts/list", web.GET, m.GetAllAccounts, m.server.RequireLogin)
 
-	m.server.AddRoute("/api/notifications/send", web.POST, m.sendNotification, m.server.ValidAPIKey)
 	m.server.AddRoute("/api/notifications/total-pending", web.GET, m.getUnReadNotificationCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/pending", web.GET, m.getNewNotifications, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/getall", web.GET, m.getNotifications, m.server.RequireLogin)

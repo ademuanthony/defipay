@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"deficonnect/defipayapi/app"
 	"deficonnect/defipayapi/postgres/models"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,34 +23,6 @@ func (pg PgDb) CreateNotification(ctx context.Context, accountID, title, message
 	}
 
 	return tx.Commit()
-}
-
-func (pg PgDb) NotifyAll(ctx context.Context, titile, content, actionText, actionLink string, notificationType int) error {
-	date := time.Now().Unix()
-
-	statement := `
-			insert into notification (id, account_id, date, title, content, status, type, action_text, action_link)
-				select 
-					gen_random_uuid(),
-					account.id,
-					%d, 
-					'%s', 
-					'%s',
-					%d,
-					%d,
-					%s,
-					%s
-				from account
-		`
-	if _, err := models.DailyEarnings(
-		qm.SQL(fmt.Sprintf(statement, date,
-			titile, content, app.NOTIFICATION_STATUS_NEW, notificationType, actionText, actionLink),
-		),
-	).ExecContext(ctx, pg.Db); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (pg PgDb) createNotificationTx(ctx context.Context, tx *sql.Tx, accountID, title, message, actionText, actionLink string, notificationType int) error {

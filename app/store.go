@@ -26,16 +26,13 @@ type store interface {
 	ChangePassword(ctx context.Context, accountID, password string) error
 	GetAccountIDs(ctx context.Context) ([]string, error)
 	GetAllAccountsCount(ctx context.Context) (int64, error)
-	GetAccountByUsername(ctx context.Context, username string) (*models.Account, error)
+	GetAccountByEmail(ctx context.Context, email string) (*models.Account, error)
 	UpdateAccountDetail(ctx context.Context, accountID string, input UpdateDetailInput) error
-	MyDownlines(ctx context.Context, accountID string, generation int64, offset, limit int) ([]DownlineInfo, int64, error)
 	GetRefferalCount(ctx context.Context, accountID string) (int64, error)
-	GetTeamInformation(ctx context.Context, accountID string) (*TeamInfo, error)
 
 	CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error
 
 	CreateNotification(ctx context.Context, accountID, title, message, actionText, actionLink string, notificationType int) error
-	NotifyAll(ctx context.Context, titile string, content, actionText, actionLink string, notificationType int) error
 	UnReadNotificationCount(ctx context.Context, accountID string, notificationType int) (int64, error)
 	GetNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)
 	GetNewNotifications(ctx context.Context, accountID string, notificationType int, offset, limit int) (models.NotificationSlice, int64, error)

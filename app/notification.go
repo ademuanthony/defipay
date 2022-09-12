@@ -2,7 +2,6 @@ package app
 
 import (
 	"deficonnect/defipayapi/web"
-	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -21,20 +20,6 @@ type sendNotificationInput struct {
 	ActionLink string `json:"action_link"`
 	ActionText string `json:"action_text"`
 	Type       int    `josn:"type"`
-}
-
-func (m module) sendNotification(w http.ResponseWriter, r *http.Request) {
-	var input sendNotificationInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		log.Error("sendNotification", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
-	}
-	if err := m.db.NotifyAll(r.Context(), input.Titile, input.Content, input.ActionText, input.ActionLink, input.Type); err != nil {
-		m.sendSomethingWentWrong(w, "sendNotification", err)
-		return
-	}
-	web.SendJSON(w, "Sent to all users")
 }
 
 func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
