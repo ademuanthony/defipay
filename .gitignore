@@ -3,3 +3,4 @@ postgres/sqlboiler.toml
 defipayapi
 defipayapi.exe
 dump.rdb
+tmp
