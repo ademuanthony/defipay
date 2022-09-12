@@ -64,9 +64,9 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/accounts/count", web.GET, m.GetAllAccountsCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/accounts/list", web.GET, m.GetAllAccounts, m.server.RequireLogin)
 
-	m.server.AddRoute("/api/notifications/total-pending", web.GET, m.getUnReadNotificationCount, m.server.RequireLogin)
+	m.server.AddRoute("/api/notifications/totalPending", web.GET, m.getUnReadNotificationCount, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/pending", web.GET, m.getNewNotifications, m.server.RequireLogin)
-	m.server.AddRoute("/api/notifications/getall", web.GET, m.getNotifications, m.server.RequireLogin)
+	m.server.AddRoute("/api/notifications/getAll", web.GET, m.getNotifications, m.server.RequireLogin)
 	m.server.AddRoute("/api/notifications/get", web.GET, m.getNotification, m.server.RequireLogin)
 
 	m.server.AddRoute("/api/config/common-settings", web.GET, m.getCommonConfig, m.server.RequireLogin)
@@ -77,11 +77,11 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/security/change-password", web.POST, m.changePassword, m.server.RequireLogin, m.server.NoReentry)
 
 	// TRANSACTION
-	m.server.AddRoute("/api/transaction/get", web.GET, m.getTransaction)
-	m.server.AddRoute("/api/transaction/getall", web.GET, m.getTransaction)
-	m.server.AddRoute("/api/transaction/fund-transfer", web.POST, m.createFundTransferTransaction, m.server.RequireLogin, m.server.NoReentry)
-	m.server.AddRoute("/api/transaction/top-up", web.POST, m.createTupUpTransaction, m.server.RequireLogin, m.server.NoReentry)
-	m.server.AddRoute("/api/transaction/update-currency", web.POST, m.updateTransactionCurrency, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/getByID", web.GET, m.getTransaction)
+	m.server.AddRoute("/api/transaction/getAll", web.GET, m.getTransactions)
+	m.server.AddRoute("/api/transaction/initFundTransfer", web.POST, m.createFundTransferTransaction, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/initTopUp", web.POST, m.createTupUpTransaction, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/updateCurrency", web.POST, m.updateTransactionCurrency, m.server.RequireLogin, m.server.NoReentry)
 
 }
 

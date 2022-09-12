@@ -92,7 +92,7 @@ func (m module) getTransaction(w http.ResponseWriter, r *http.Request) {
 func (m module) getTransactions(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	accountID := m.server.GetUserIDTokenCtx(r)
-	pagedReq := web.GetPanitionInfo(r)
+	pagedReq := web.GetPaginationInfo(r)
 
 	transactions, count, err := m.db.Transactions(r.Context(), GetTransactionsInput{
 		Email: email, AccountID: accountID, Offset: pagedReq.Offset, Limit: pagedReq.Limit,

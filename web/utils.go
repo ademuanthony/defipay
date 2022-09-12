@@ -227,7 +227,7 @@ func (s *Server) StatusPage(w http.ResponseWriter, r *http.Request, code, messag
 	io.WriteString(w, str)
 }
 
-func GetPanitionInfo(r *http.Request) PagedResultRequest {
+func GetPaginationInfo(r *http.Request) PagedResultRequest {
 	return GetPanitionInfoWithLimit(r, DefaultPageSize)
 }
 

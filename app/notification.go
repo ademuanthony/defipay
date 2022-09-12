@@ -33,7 +33,7 @@ func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Reques
 }
 
 func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPanitionInfo(r)
+	pagedReq := web.GetPaginationInfo(r)
 	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
 	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
@@ -44,7 +44,7 @@ func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPanitionInfo(r)
+	pagedReq := web.GetPaginationInfo(r)
 	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
 	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {

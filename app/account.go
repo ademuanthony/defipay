@@ -26,12 +26,12 @@ const (
 )
 
 type CreateAccountInput struct {
-	ReferralCode  string `json:"referral_code"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-	From250     bool   `json:"from250"`
+	ReferralCode string `json:"referral_code"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	PhoneNumber  string `json:"phone_number"`
+	Password     string `json:"password"`
+	From250      bool   `json:"from250"`
 
 	DepositWalletAddress string `json:"-"`
 	PrivateKey           string `json:"-"`
@@ -48,7 +48,7 @@ type DownlineInfo struct {
 }
 
 type LoginRequest struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -387,7 +387,7 @@ func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
-	pageReq := web.GetPanitionInfo(r)
+	pageReq := web.GetPaginationInfo(r)
 	accounts, err := m.db.GetAccounts(r.Context(), pageReq.Offset, pageReq.Limit)
 	if err != nil {
 		log.Error("GetAllAccountsCount", err)
