@@ -41,19 +41,6 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 		return err
 	}
 
-	wallet := models.Wallet{
-		ID:         uuid.NewString(),
-		AccountID:  account.ID,
-		Address:    input.DepositWalletAddress,
-		PrivateKey: input.PrivateKey,
-		CoinSymbol: "BEP20-USDT",
-	}
-
-	if err = wallet.Insert(ctx, tx, boil.Infer()); err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	return tx.Commit()
 }
 
@@ -74,19 +61,6 @@ func (pg PgDb) LastLogin(ctx context.Context) (*models.LoginInfo, error) {
 		models.LoginInfoWhere.Date.LTE(maxDate),
 		qm.OrderBy(models.LoginInfoColumns.Date+" desc"),
 	).One(ctx, pg.Db)
-}
-
-func (pg PgDb) CreateDepositWallet(ctx context.Context, accountID, address, privateKey string) (*models.Wallet, error) {
-	wallet := models.Wallet{
-		ID:         uuid.NewString(),
-		AccountID:  accountID,
-		Address:    address,
-		PrivateKey: privateKey,
-		CoinSymbol: "BEP20-USDT",
-	}
-
-	err := wallet.Insert(ctx, pg.Db, boil.Infer())
-	return &wallet, err
 }
 
 func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, error) {
@@ -301,30 +275,6 @@ func (pg PgDb) GetTeamInformation(ctx context.Context, accountID string) (*app.T
 	}, nil
 }
 
-func (pg PgDb) GetDepositAddress(ctx context.Context, accountID string) (*models.Wallet, error) {
-	return models.Wallets(models.WalletWhere.AccountID.EQ(accountID)).One(ctx, pg.Db)
-}
-
-func (pg PgDb) GetDeposits(ctx context.Context, accountID string, offset, limit int) ([]*models.Deposit, int64, error) {
-	deposits, err := models.Deposits(
-		models.DepositWhere.AccountID.EQ(accountID),
-		qm.OrderBy(models.DepositColumns.Date+" desc"),
-		qm.Limit(limit), qm.Offset(offset),
-	).All(ctx, pg.Db)
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	totalCount, err := models.Deposits(models.DepositWhere.AccountID.EQ(accountID)).Count(ctx, pg.Db)
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return deposits, totalCount, nil
-}
-
 func (pg PgDb) CreditAccount(ctx context.Context, accountID string, amount, date int64, ref string) error {
 	tx, err := pg.Db.Begin()
 	if err != nil {
@@ -395,59 +345,4 @@ func (pg PgDb) AccountBalance(ctx context.Context, accountId string) (int64, err
 		return 0, fmt.Errorf("pg.Db.QueryRow %v", err)
 	}
 	return result.Int64, err
-}
-
-func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int64, offset, limit int) ([]app.DownlineInfo, int64, error) {
-	query := []qm.QueryMod{}
-	switch generation {
-	case 1:
-		query = append(query, models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)))
-	case 2:
-		query = append(query, models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID)))
-	case 3:
-		query = append(query, models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID)))
-	}
-
-	totalCount, err := models.Accounts(query...).Count(ctx, pg.Db)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	query = append(query, qm.Load(models.AccountRels.Subscriptions),
-		qm.OrderBy(models.AccountColumns.CreatedAt+" desc"),
-		qm.Offset(offset),
-		qm.Limit(limit))
-
-	accounts, err := models.Accounts(
-		query...,
-	).All(ctx, pg.Db)
-
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var downlines []app.DownlineInfo
-	for _, acc := range accounts {
-		downline := app.DownlineInfo{
-			ID:          acc.ID,
-			Username:    acc.Username,
-			FirstName:   acc.FirstName,
-			LastName:    acc.LastName,
-			PhoneNumber: acc.PhoneNumber,
-			Date:        acc.CreatedAt,
-		}
-		currcentData := time.Now().Unix()
-		for _, s := range acc.R.Subscriptions {
-			if s.StartDate <= currcentData && s.EndDate >= currcentData {
-				pkg, err := models.FindPackage(ctx, pg.Db, s.PackageID)
-				if err != nil {
-					return nil, 0, err
-				}
-				downline.PackageName = pkg.Name
-			}
-		}
-		downlines = append(downlines, downline)
-	}
-
-	return downlines, totalCount, nil
 }

@@ -10,35 +10,11 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("AccountTransactions", testAccountTransactionsUpsert)
 
-	t.Run("DailyEarnings", testDailyEarningsUpsert)
-
-	t.Run("Deposits", testDepositsUpsert)
-
-	t.Run("Investments", testInvestmentsUpsert)
-
 	t.Run("LoginInfos", testLoginInfosUpsert)
 
 	t.Run("Notifications", testNotificationsUpsert)
 
-	t.Run("Packages", testPackagesUpsert)
-
-	t.Run("ReferralPayouts", testReferralPayoutsUpsert)
-
 	t.Run("SecurityCodes", testSecurityCodesUpsert)
 
-	t.Run("Subscriptions", testSubscriptionsUpsert)
-
-	t.Run("Trades", testTradesUpsert)
-
-	t.Run("TradeSchedules", testTradeSchedulesUpsert)
-
-	t.Run("Transfers", testTransfersUpsert)
-
 	t.Run("UserSettings", testUserSettingsUpsert)
-
-	t.Run("Wallets", testWalletsUpsert)
-
-	t.Run("WeeklyPayouts", testWeeklyPayoutsUpsert)
-
-	t.Run("Withdrawals", testWithdrawalsUpsert)
 }

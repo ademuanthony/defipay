@@ -1,20 +1,17 @@
 [psql]
-    dbname = "c250cv2"
+    dbname = "mtradas"
     host = "localhost"
     user = "postgres"
     pass = ""
     sslmode = "disable"
     whitelist=[
         "account",
-        "wallet",
-        "package",
-        "subscription",
-        "daily_earning",
-        "deposit",
-        "transfer",
-        "withdrawal",
-        "withdrawal",
         "account_transaction",
-        "investment",
-        "weekly_payout"
+        "notification",
+        "user_setting",
+        "login_info",
+        "security_code",
+        "transaction",
+        "payment_link",
+        "beneficiary"
     ]

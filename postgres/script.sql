@@ -1,21 +1,21 @@
 drop table if exists account_transaction;
-drop table if exists daily_earning;
-drop table if exists investment;
-drop table if exists subscription;
-drop table if exists transfer;
 drop table if exists wallet;
-drop table if exists weekly_payout;
-drop table if exists withdrawal;
 drop table if exists deposit;
 drop table if exists account;
-
+drop table if exists user_setting;
+drop table if exists login_info;
+drop table if exists security_code;
+drop table if exists notification;
+drop table if exists transaction;
+drop table if exists payment_link;
+drop table if exists beneficiary;
 
 CREATE TABLE IF NOT EXISTS account 
 (
     id character varying(64) NOT NULL PRIMARY KEY,
-    username character varying(256) NOT NULL UNIQUE,
+    email character varying(256) not null UNIQUE,
+    referral_code character varying(256) not null UNIQUE,
     password character varying(256) NOT NULL,
-    email character varying(256) not null,
     phone_number character varying(32) not null,
     created_at bigint NOT NULL,
     first_name character varying(256) NOT NULL default '',
@@ -24,15 +24,6 @@ CREATE TABLE IF NOT EXISTS account
     withdrawal_addresss character varying(256) NOT NULL default '',
     balance bigint NOT NULL default 0,
     role int default 0
-);
-
-CREATE TABLE IF NOT EXISTS wallet 
-(
-    id character varying(64) NOT NULL PRIMARY KEY,
-    address character varying(64) NOT NULL UNIQUE,
-    private_key character varying(124) NOT NULL UNIQUE,
-    coin_symbol character varying(32) NOT NULL,
-    account_id character varying(64) NOT NULL REFERENCES account(id)
 );
 
 CREATE TABLE IF NOT EXISTS account_transaction (
@@ -84,5 +75,39 @@ create table if not exists notification (
 
 create table if not exists transaction (
     id uuid not null default gen_random_uuid() primary key,
-    account_id character varying(64) not null references account(id),
-)
+    bank_name character varying(64) not null,
+    account_number character varying(64) not null,
+    account_name character varying(64) not null,
+    amount int8 not null,
+    email character varying(64) not null,
+    network character varying(64) not null,
+    currency character varying(64) not null,
+    wallet_address character varying(64) not null,
+    private_key character varying(64) not null,
+    payment_link character varying(64) not null,
+    type character varying(28) not null
+);
+
+create table if not exists payment_link ( 
+    permalink character not null primary key,
+    account_id character varying(64) references account(id),
+    email  character varying(64) not null,
+    accountName character varying(64) not null,
+    accountNumber character varying(64) not null,
+    bankName character varying(64) not null,
+    fixAmount int8 not null,
+    title character varying(100) not null,
+    description character varying(500) not null
+);
+
+create table if not exists beneficiary (
+    id uuid not null default gen_random_uuid() primary key,
+    account_id character varying(64) references account(id),
+    bank character varying(64) not null,
+    account_number character varying(64) not null,
+    account_name character varying(64) not null,
+    country character varying(64) not null,
+    beneficial_email character varying(64) not null
+);
+
+alter table account add referral_code character varying(256) not null UNIQUE;

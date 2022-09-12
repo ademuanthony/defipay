@@ -6,39 +6,15 @@ package models
 var TableNames = struct {
 	Account            string
 	AccountTransaction string
-	DailyEarning       string
-	Deposit            string
-	Investment         string
 	LoginInfo          string
 	Notification       string
-	Package            string
-	ReferralPayout     string
 	SecurityCode       string
-	Subscription       string
-	Trade              string
-	TradeSchedule      string
-	Transfer           string
 	UserSetting        string
-	Wallet             string
-	WeeklyPayout       string
-	Withdrawal         string
 }{
 	Account:            "account",
 	AccountTransaction: "account_transaction",
-	DailyEarning:       "daily_earning",
-	Deposit:            "deposit",
-	Investment:         "investment",
 	LoginInfo:          "login_info",
 	Notification:       "notification",
-	Package:            "package",
-	ReferralPayout:     "referral_payout",
 	SecurityCode:       "security_code",
-	Subscription:       "subscription",
-	Trade:              "trade",
-	TradeSchedule:      "trade_schedule",
-	Transfer:           "transfer",
 	UserSetting:        "user_setting",
-	Wallet:             "wallet",
-	WeeklyPayout:       "weekly_payout",
-	Withdrawal:         "withdrawal",
 }
