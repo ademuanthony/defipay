@@ -26,13 +26,10 @@ const (
 )
 
 type CreateAccountInput struct {
-	ReferralID  string `json:"referral_id"`
-	ReferralID2 string `json:"-"`
-	ReferralID3 string `json:"-"`
+	ReferralCode  string `json:"referral_code"`
 	Name        string `json:"name"`
 	Email       string `json:"email"`
 	PhoneNumber string `json:"phone_number"`
-	Username    string `json:"username"`
 	Password    string `json:"password"`
 	From250     bool   `json:"from250"`
 
@@ -99,8 +96,8 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Password == "" || input.Username == "" {
-		web.SendErrorfJSON(w, "Username and password is required")
+	if input.Password == "" || input.Email == "" {
+		web.SendErrorfJSON(w, "Email and password is required")
 		return
 	}
 
@@ -114,12 +111,8 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Username == "" {
-		web.SendErrorfJSON(w, "Username is required")
-		return
-	}
 
-	if _, err := m.db.GetAccountByEmail(r.Context(), input.Username); err == nil {
+	if _, err := m.db.GetAccountByEmail(r.Context(), input.Email); err == nil {
 		web.SendErrorfJSON(w, "Username is not available")
 		return
 	}
@@ -137,24 +130,18 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	input.Password = passwordHash
 
-	if input.ReferralID != "" {
-		ref1, err := m.db.GetAccountByEmail(r.Context(), input.ReferralID)
+	if input.ReferralCode != "" {
+		ref1, err := m.db.GetAccountByEmail(r.Context(), input.ReferralCode)
 		if err != nil && input.From250 {
 			ref1, err = m.db.GetAccountByEmail(r.Context(), "main")
 		}
 
 		if err != nil {
-			web.SendErrorfJSON(w, "Invalid referral ID, please try again")
+			web.SendErrorfJSON(w, "Invalid referral code, please try again")
 			return
 		}
 
-		input.ReferralID = ref1.ID
-		input.ReferralID2 = ref1.ReferralID.String
-
-		ref2, err := m.db.GetAccount(r.Context(), ref1.ReferralID.String)
-		if err == nil {
-			input.ReferralID3 = ref2.ReferralID.String
-		}
+		input.ReferralCode = ref1.ID
 	}
 
 	privateKey, wallet, err := GenerateWallet()
