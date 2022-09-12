@@ -14,90 +14,120 @@ import "testing"
 func TestParent(t *testing.T) {
 	t.Run("Accounts", testAccounts)
 	t.Run("AccountTransactions", testAccountTransactions)
+	t.Run("Beneficiaries", testBeneficiaries)
 	t.Run("LoginInfos", testLoginInfos)
 	t.Run("Notifications", testNotifications)
+	t.Run("PaymentLinks", testPaymentLinks)
 	t.Run("SecurityCodes", testSecurityCodes)
+	t.Run("Transactions", testTransactions)
 	t.Run("UserSettings", testUserSettings)
 }
 
 func TestDelete(t *testing.T) {
 	t.Run("Accounts", testAccountsDelete)
 	t.Run("AccountTransactions", testAccountTransactionsDelete)
+	t.Run("Beneficiaries", testBeneficiariesDelete)
 	t.Run("LoginInfos", testLoginInfosDelete)
 	t.Run("Notifications", testNotificationsDelete)
+	t.Run("PaymentLinks", testPaymentLinksDelete)
 	t.Run("SecurityCodes", testSecurityCodesDelete)
+	t.Run("Transactions", testTransactionsDelete)
 	t.Run("UserSettings", testUserSettingsDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsQueryDeleteAll)
 	t.Run("AccountTransactions", testAccountTransactionsQueryDeleteAll)
+	t.Run("Beneficiaries", testBeneficiariesQueryDeleteAll)
 	t.Run("LoginInfos", testLoginInfosQueryDeleteAll)
 	t.Run("Notifications", testNotificationsQueryDeleteAll)
+	t.Run("PaymentLinks", testPaymentLinksQueryDeleteAll)
 	t.Run("SecurityCodes", testSecurityCodesQueryDeleteAll)
+	t.Run("Transactions", testTransactionsQueryDeleteAll)
 	t.Run("UserSettings", testUserSettingsQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceDeleteAll)
 	t.Run("AccountTransactions", testAccountTransactionsSliceDeleteAll)
+	t.Run("Beneficiaries", testBeneficiariesSliceDeleteAll)
 	t.Run("LoginInfos", testLoginInfosSliceDeleteAll)
 	t.Run("Notifications", testNotificationsSliceDeleteAll)
+	t.Run("PaymentLinks", testPaymentLinksSliceDeleteAll)
 	t.Run("SecurityCodes", testSecurityCodesSliceDeleteAll)
+	t.Run("Transactions", testTransactionsSliceDeleteAll)
 	t.Run("UserSettings", testUserSettingsSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
 	t.Run("Accounts", testAccountsExists)
 	t.Run("AccountTransactions", testAccountTransactionsExists)
+	t.Run("Beneficiaries", testBeneficiariesExists)
 	t.Run("LoginInfos", testLoginInfosExists)
 	t.Run("Notifications", testNotificationsExists)
+	t.Run("PaymentLinks", testPaymentLinksExists)
 	t.Run("SecurityCodes", testSecurityCodesExists)
+	t.Run("Transactions", testTransactionsExists)
 	t.Run("UserSettings", testUserSettingsExists)
 }
 
 func TestFind(t *testing.T) {
 	t.Run("Accounts", testAccountsFind)
 	t.Run("AccountTransactions", testAccountTransactionsFind)
+	t.Run("Beneficiaries", testBeneficiariesFind)
 	t.Run("LoginInfos", testLoginInfosFind)
 	t.Run("Notifications", testNotificationsFind)
+	t.Run("PaymentLinks", testPaymentLinksFind)
 	t.Run("SecurityCodes", testSecurityCodesFind)
+	t.Run("Transactions", testTransactionsFind)
 	t.Run("UserSettings", testUserSettingsFind)
 }
 
 func TestBind(t *testing.T) {
 	t.Run("Accounts", testAccountsBind)
 	t.Run("AccountTransactions", testAccountTransactionsBind)
+	t.Run("Beneficiaries", testBeneficiariesBind)
 	t.Run("LoginInfos", testLoginInfosBind)
 	t.Run("Notifications", testNotificationsBind)
+	t.Run("PaymentLinks", testPaymentLinksBind)
 	t.Run("SecurityCodes", testSecurityCodesBind)
+	t.Run("Transactions", testTransactionsBind)
 	t.Run("UserSettings", testUserSettingsBind)
 }
 
 func TestOne(t *testing.T) {
 	t.Run("Accounts", testAccountsOne)
 	t.Run("AccountTransactions", testAccountTransactionsOne)
+	t.Run("Beneficiaries", testBeneficiariesOne)
 	t.Run("LoginInfos", testLoginInfosOne)
 	t.Run("Notifications", testNotificationsOne)
+	t.Run("PaymentLinks", testPaymentLinksOne)
 	t.Run("SecurityCodes", testSecurityCodesOne)
+	t.Run("Transactions", testTransactionsOne)
 	t.Run("UserSettings", testUserSettingsOne)
 }
 
 func TestAll(t *testing.T) {
 	t.Run("Accounts", testAccountsAll)
 	t.Run("AccountTransactions", testAccountTransactionsAll)
+	t.Run("Beneficiaries", testBeneficiariesAll)
 	t.Run("LoginInfos", testLoginInfosAll)
 	t.Run("Notifications", testNotificationsAll)
+	t.Run("PaymentLinks", testPaymentLinksAll)
 	t.Run("SecurityCodes", testSecurityCodesAll)
+	t.Run("Transactions", testTransactionsAll)
 	t.Run("UserSettings", testUserSettingsAll)
 }
 
 func TestCount(t *testing.T) {
 	t.Run("Accounts", testAccountsCount)
 	t.Run("AccountTransactions", testAccountTransactionsCount)
+	t.Run("Beneficiaries", testBeneficiariesCount)
 	t.Run("LoginInfos", testLoginInfosCount)
 	t.Run("Notifications", testNotificationsCount)
+	t.Run("PaymentLinks", testPaymentLinksCount)
 	t.Run("SecurityCodes", testSecurityCodesCount)
+	t.Run("Transactions", testTransactionsCount)
 	t.Run("UserSettings", testUserSettingsCount)
 }
 
@@ -106,12 +136,18 @@ func TestInsert(t *testing.T) {
 	t.Run("Accounts", testAccountsInsertWhitelist)
 	t.Run("AccountTransactions", testAccountTransactionsInsert)
 	t.Run("AccountTransactions", testAccountTransactionsInsertWhitelist)
+	t.Run("Beneficiaries", testBeneficiariesInsert)
+	t.Run("Beneficiaries", testBeneficiariesInsertWhitelist)
 	t.Run("LoginInfos", testLoginInfosInsert)
 	t.Run("LoginInfos", testLoginInfosInsertWhitelist)
 	t.Run("Notifications", testNotificationsInsert)
 	t.Run("Notifications", testNotificationsInsertWhitelist)
+	t.Run("PaymentLinks", testPaymentLinksInsert)
+	t.Run("PaymentLinks", testPaymentLinksInsertWhitelist)
 	t.Run("SecurityCodes", testSecurityCodesInsert)
 	t.Run("SecurityCodes", testSecurityCodesInsertWhitelist)
+	t.Run("Transactions", testTransactionsInsert)
+	t.Run("Transactions", testTransactionsInsertWhitelist)
 	t.Run("UserSettings", testUserSettingsInsert)
 	t.Run("UserSettings", testUserSettingsInsertWhitelist)
 }
@@ -120,8 +156,10 @@ func TestInsert(t *testing.T) {
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("AccountTransactionToAccountUsingAccount", testAccountTransactionToOneAccountUsingAccount)
+	t.Run("BeneficiaryToAccountUsingAccount", testBeneficiaryToOneAccountUsingAccount)
 	t.Run("LoginInfoToAccountUsingAccount", testLoginInfoToOneAccountUsingAccount)
 	t.Run("NotificationToAccountUsingAccount", testNotificationToOneAccountUsingAccount)
+	t.Run("PaymentLinkToAccountUsingAccount", testPaymentLinkToOneAccountUsingAccount)
 	t.Run("SecurityCodeToAccountUsingAccount", testSecurityCodeToOneAccountUsingAccount)
 	t.Run("UserSettingToAccountUsingAccount", testUserSettingToOneAccountUsingAccount)
 }
@@ -134,8 +172,10 @@ func TestOneToOne(t *testing.T) {}
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
 	t.Run("AccountToAccountTransactions", testAccountToManyAccountTransactions)
+	t.Run("AccountToBeneficiaries", testAccountToManyBeneficiaries)
 	t.Run("AccountToLoginInfos", testAccountToManyLoginInfos)
 	t.Run("AccountToNotifications", testAccountToManyNotifications)
+	t.Run("AccountToPaymentLinks", testAccountToManyPaymentLinks)
 	t.Run("AccountToSecurityCodes", testAccountToManySecurityCodes)
 	t.Run("AccountToUserSettings", testAccountToManyUserSettings)
 }
@@ -144,15 +184,20 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("AccountTransactionToAccountUsingAccountTransactions", testAccountTransactionToOneSetOpAccountUsingAccount)
+	t.Run("BeneficiaryToAccountUsingBeneficiaries", testBeneficiaryToOneSetOpAccountUsingAccount)
 	t.Run("LoginInfoToAccountUsingLoginInfos", testLoginInfoToOneSetOpAccountUsingAccount)
 	t.Run("NotificationToAccountUsingNotifications", testNotificationToOneSetOpAccountUsingAccount)
+	t.Run("PaymentLinkToAccountUsingPaymentLinks", testPaymentLinkToOneSetOpAccountUsingAccount)
 	t.Run("SecurityCodeToAccountUsingSecurityCodes", testSecurityCodeToOneSetOpAccountUsingAccount)
 	t.Run("UserSettingToAccountUsingUserSettings", testUserSettingToOneSetOpAccountUsingAccount)
 }
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneRemove(t *testing.T) {}
+func TestToOneRemove(t *testing.T) {
+	t.Run("BeneficiaryToAccountUsingBeneficiaries", testBeneficiaryToOneRemoveOpAccountUsingAccount)
+	t.Run("PaymentLinkToAccountUsingPaymentLinks", testPaymentLinkToOneRemoveOpAccountUsingAccount)
+}
 
 // TestOneToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
@@ -166,61 +211,84 @@ func TestOneToOneRemove(t *testing.T) {}
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
 	t.Run("AccountToAccountTransactions", testAccountToManyAddOpAccountTransactions)
+	t.Run("AccountToBeneficiaries", testAccountToManyAddOpBeneficiaries)
 	t.Run("AccountToLoginInfos", testAccountToManyAddOpLoginInfos)
 	t.Run("AccountToNotifications", testAccountToManyAddOpNotifications)
+	t.Run("AccountToPaymentLinks", testAccountToManyAddOpPaymentLinks)
 	t.Run("AccountToSecurityCodes", testAccountToManyAddOpSecurityCodes)
 	t.Run("AccountToUserSettings", testAccountToManyAddOpUserSettings)
 }
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManySet(t *testing.T) {}
+func TestToManySet(t *testing.T) {
+	t.Run("AccountToBeneficiaries", testAccountToManySetOpBeneficiaries)
+	t.Run("AccountToPaymentLinks", testAccountToManySetOpPaymentLinks)
+}
 
 // TestToManyRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyRemove(t *testing.T) {}
+func TestToManyRemove(t *testing.T) {
+	t.Run("AccountToBeneficiaries", testAccountToManyRemoveOpBeneficiaries)
+	t.Run("AccountToPaymentLinks", testAccountToManyRemoveOpPaymentLinks)
+}
 
 func TestReload(t *testing.T) {
 	t.Run("Accounts", testAccountsReload)
 	t.Run("AccountTransactions", testAccountTransactionsReload)
+	t.Run("Beneficiaries", testBeneficiariesReload)
 	t.Run("LoginInfos", testLoginInfosReload)
 	t.Run("Notifications", testNotificationsReload)
+	t.Run("PaymentLinks", testPaymentLinksReload)
 	t.Run("SecurityCodes", testSecurityCodesReload)
+	t.Run("Transactions", testTransactionsReload)
 	t.Run("UserSettings", testUserSettingsReload)
 }
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Accounts", testAccountsReloadAll)
 	t.Run("AccountTransactions", testAccountTransactionsReloadAll)
+	t.Run("Beneficiaries", testBeneficiariesReloadAll)
 	t.Run("LoginInfos", testLoginInfosReloadAll)
 	t.Run("Notifications", testNotificationsReloadAll)
+	t.Run("PaymentLinks", testPaymentLinksReloadAll)
 	t.Run("SecurityCodes", testSecurityCodesReloadAll)
+	t.Run("Transactions", testTransactionsReloadAll)
 	t.Run("UserSettings", testUserSettingsReloadAll)
 }
 
 func TestSelect(t *testing.T) {
 	t.Run("Accounts", testAccountsSelect)
 	t.Run("AccountTransactions", testAccountTransactionsSelect)
+	t.Run("Beneficiaries", testBeneficiariesSelect)
 	t.Run("LoginInfos", testLoginInfosSelect)
 	t.Run("Notifications", testNotificationsSelect)
+	t.Run("PaymentLinks", testPaymentLinksSelect)
 	t.Run("SecurityCodes", testSecurityCodesSelect)
+	t.Run("Transactions", testTransactionsSelect)
 	t.Run("UserSettings", testUserSettingsSelect)
 }
 
 func TestUpdate(t *testing.T) {
 	t.Run("Accounts", testAccountsUpdate)
 	t.Run("AccountTransactions", testAccountTransactionsUpdate)
+	t.Run("Beneficiaries", testBeneficiariesUpdate)
 	t.Run("LoginInfos", testLoginInfosUpdate)
 	t.Run("Notifications", testNotificationsUpdate)
+	t.Run("PaymentLinks", testPaymentLinksUpdate)
 	t.Run("SecurityCodes", testSecurityCodesUpdate)
+	t.Run("Transactions", testTransactionsUpdate)
 	t.Run("UserSettings", testUserSettingsUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceUpdateAll)
 	t.Run("AccountTransactions", testAccountTransactionsSliceUpdateAll)
+	t.Run("Beneficiaries", testBeneficiariesSliceUpdateAll)
 	t.Run("LoginInfos", testLoginInfosSliceUpdateAll)
 	t.Run("Notifications", testNotificationsSliceUpdateAll)
+	t.Run("PaymentLinks", testPaymentLinksSliceUpdateAll)
 	t.Run("SecurityCodes", testSecurityCodesSliceUpdateAll)
+	t.Run("Transactions", testTransactionsSliceUpdateAll)
 	t.Run("UserSettings", testUserSettingsSliceUpdateAll)
 }

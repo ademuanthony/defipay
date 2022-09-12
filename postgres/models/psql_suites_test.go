@@ -10,11 +10,17 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("AccountTransactions", testAccountTransactionsUpsert)
 
+	t.Run("Beneficiaries", testBeneficiariesUpsert)
+
 	t.Run("LoginInfos", testLoginInfosUpsert)
 
 	t.Run("Notifications", testNotificationsUpsert)
 
+	t.Run("PaymentLinks", testPaymentLinksUpsert)
+
 	t.Run("SecurityCodes", testSecurityCodesUpsert)
+
+	t.Run("Transactions", testTransactionsUpsert)
 
 	t.Run("UserSettings", testUserSettingsUpsert)
 }
