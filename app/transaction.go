@@ -36,6 +36,12 @@ type TransactionOutput struct {
 	Type          string `boil:"type" json:"type" toml:"type" yaml:"type"`
 }
 
+type UpdateCurrencyInput struct {
+	TransactionID string `json:"transaction_id"`
+	Network       string `json:"network"`
+	Currency      string `json:"currency"`
+}
+
 type transactionType string
 
 var transactionTypes = struct {
@@ -44,6 +50,60 @@ var transactionTypes = struct {
 }{
 	TopUp:        "top up",
 	FundTransfer: "fund transfer",
+}
+
+type TransactionStatus string
+
+var TransactionStatuses = struct {
+	Pending       TransactionStatus
+	PartiallyPaid TransactionStatus
+	Completed     TransactionStatus
+	Cancelled     TransactionStatus
+}{
+	Pending:       "pending",
+	PartiallyPaid: "partial payment",
+	Completed:     "completed",
+	Cancelled:     "cancelled",
+}
+
+type GetTransactionsInput struct {
+	Email     string
+	AccountID string
+	Offset    int
+	Limit     int
+}
+
+func (m module) getTransaction(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	if id == "" {
+		web.SendErrorfJSON(w, "ID is required")
+		return
+	}
+
+	transaction, err := m.db.Transaction(r.Context(), id)
+	if err != nil {
+		m.handleError(w, err, "Get Transaction")
+		return
+	}
+
+	web.SendJSON(w, transaction)
+}
+
+func (m module) getTransactions(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	accountID := m.server.GetUserIDTokenCtx(r)
+	pagedReq := web.GetPanitionInfo(r)
+
+	transactions, count, err := m.db.Transactions(r.Context(), GetTransactionsInput{
+		Email: email, AccountID: accountID, Offset: pagedReq.Offset, Limit: pagedReq.Limit,
+	})
+
+	if err != nil {
+		m.handleError(w, err, "Get Transactions")
+		return
+	}
+
+	web.SendPagedJSON(w, transactions, count)
 }
 
 func (m module) createFundTransferTransaction(w http.ResponseWriter, r *http.Request) {
@@ -112,4 +172,32 @@ func (m module) createTransaction(ctx context.Context, input CreateTransactionIn
 	input.WalletAddress = wallet
 
 	return m.db.CreateTransaction(ctx, input)
+}
+
+func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request) {
+	var input UpdateCurrencyInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		log.Error("Login", "json::Decode", err)
+		web.SendErrorfJSON(w, "cannot decode request")
+		return
+	}
+
+	transaction, err := m.db.Transaction(r.Context(), input.TransactionID)
+	if err != nil {
+		m.handleError(w, err, "Get Transaction")
+		return
+	}
+
+	if transaction.Email != m.server.GetUserIDTokenCtx(r) {
+		web.SendErrorfJSON(w, "Invalid operation")
+		return
+	}
+
+	txOutput, err := m.db.UpdateCurrency(r.Context(), input)
+	if err != nil {
+		m.handleError(w, err, "Update Currency")
+		return
+	}
+
+	web.SendJSON(w, txOutput)
 }

@@ -77,8 +77,11 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/security/change-password", web.POST, m.changePassword, m.server.RequireLogin, m.server.NoReentry)
 
 	// TRANSACTION
+	m.server.AddRoute("/api/transaction/get", web.GET, m.getTransaction)
+	m.server.AddRoute("/api/transaction/getall", web.GET, m.getTransaction)
 	m.server.AddRoute("/api/transaction/fund-transfer", web.POST, m.createFundTransferTransaction, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/transaction/top-up", web.POST, m.createTupUpTransaction, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/update-currency", web.POST, m.updateTransactionCurrency, m.server.RequireLogin, m.server.NoReentry)
 
 }
 

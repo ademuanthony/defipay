@@ -85,7 +85,8 @@ create table if not exists transaction (
     wallet_address character varying(64) not null,
     private_key character varying(64) not null,
     payment_link character varying(64) not null,
-    type character varying(28) not null
+    type character varying(28) not null,
+    status character varying(28) not null
 );
 
 create table if not exists payment_link ( 
@@ -111,3 +112,4 @@ create table if not exists beneficiary (
 );
 
 alter table account add referral_code character varying(256) not null UNIQUE;
+alter table transaction add status character varying(28) not null;

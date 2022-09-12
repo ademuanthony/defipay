@@ -1,6 +1,10 @@
 package app
 
-import "strings"
+import (
+	"deficonnect/defipayapi/web"
+	"net/http"
+	"strings"
+)
 
 type ErrorMessenger interface {
 	ErrorMessage() string
@@ -20,4 +24,13 @@ func (v validationError) ErrorMessage() string {
 
 func newValidationError(errors []string) validationError {
 	return validationError{Errors: errors}
+}
+
+func (m module) handleError(w http.ResponseWriter, err error, tag ...string) {
+	msg := "Cannot update currency. Something went wrong"
+	if messenger, ok := err.(ErrorMessenger); ok {
+		msg = messenger.ErrorMessage()
+	}
+	web.SendErrorfJSON(w, msg)
+	log.Error(tag, err)
 }
