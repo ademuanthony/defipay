@@ -1,9 +1,9 @@
 package main
 
 import (
+	"deficonnect/defipayapi/app"
 	"fmt"
 	"io"
-	"merryworld/metatradas/app"
 	"net"
 	"os"
 	"os/user"
@@ -333,7 +333,6 @@ func loadConfig() (*config, error) {
 	configFile := "NONE (defaults)"
 	parser := flags.NewParser(&cfg, flags.Default)
 
-
 	// Parse command line options again to ensure they take precedence.
 	_, err = parser.Parse()
 	if err != nil {
@@ -342,7 +341,6 @@ func loadConfig() (*config, error) {
 		}
 		return loadConfigError(err)
 	}
-
 
 	// logRotator = nil
 

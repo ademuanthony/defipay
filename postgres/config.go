@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"merryworld/metatradas/app"
-	"merryworld/metatradas/postgres/models"
+	"deficonnect/defipayapi/app"
+	"deficonnect/defipayapi/postgres/models"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"

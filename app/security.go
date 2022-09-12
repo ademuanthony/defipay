@@ -3,11 +3,11 @@ package app
 import (
 	"context"
 	"database/sql"
+	"deficonnect/defipayapi/postgres/models"
+	"deficonnect/defipayapi/web"
 	"encoding/base32"
 	"encoding/json"
 	"math/rand"
-	"merryworld/metatradas/postgres/models"
-	"merryworld/metatradas/web"
 	"net/http"
 	"os"
 

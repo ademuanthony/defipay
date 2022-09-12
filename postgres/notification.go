@@ -3,9 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"deficonnect/defipayapi/app"
+	"deficonnect/defipayapi/postgres/models"
 	"fmt"
-	"merryworld/metatradas/app"
-	"merryworld/metatradas/postgres/models"
 	"time"
 
 	"github.com/google/uuid"

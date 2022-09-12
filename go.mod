@@ -1,4 +1,4 @@
-module merryworld/metatradas
+module deficonnect/defipayapi
 
 go 1.17
 

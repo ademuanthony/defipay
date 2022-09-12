@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/crypto/sha3"
 
-	"merryworld/metatradas/app/busd"
-	"merryworld/metatradas/app/util"
-	"merryworld/metatradas/pancake/pair"
+	"deficonnect/defipayapi/app/busd"
+	"deficonnect/defipayapi/app/util"
+	"deficonnect/defipayapi/pancake/pair"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"

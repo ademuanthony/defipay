@@ -1,12 +1,11 @@
 package app
 
 import (
-	"database/sql"
+	"deficonnect/defipayapi/app/util"
+	"deficonnect/defipayapi/postgres/models"
+	"deficonnect/defipayapi/web"
 	"encoding/json"
 	"fmt"
-	"merryworld/metatradas/app/util"
-	"merryworld/metatradas/postgres/models"
-	"merryworld/metatradas/web"
 	"net/http"
 	"os"
 	"strconv"
@@ -213,12 +212,6 @@ func (m module) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := m.db.AddLogin(r.Context(), account.ID, ip, platform, time.Now().Unix()); err != nil {
 		m.sendSomethingWentWrong(w, "login,AddLogin", err)
-		return
-	}
-
-	if err := m.db.SetDepositCheck(r.Context(), account.ID, 1); err != nil {
-		log.Error("Login", "SetDepositCheck", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
 		return
 	}
 
@@ -444,125 +437,4 @@ func (m module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendPagedJSON(w, accounts, totalCount)
-}
-
-func (m module) Invest(w http.ResponseWriter, r *http.Request) {
-	var input InvestInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		log.Critical("UpdatePackage", "json::Decode", err)
-		web.SendErrorfJSON(w, "Error is decoding request. Please try again later")
-		return
-	}
-
-	if input.Amount < 200000 {
-		web.SendErrorfJSON(w, "Invalid amount. Amount must be $20 or more")
-		return
-	}
-
-	acc, err := m.currentAccount(r)
-	if err != nil {
-		log.Critical("Invest", "currentAccount", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	if _, err := m.db.ActiveSubscription(r.Context(), acc.ID); err != nil {
-		web.SendErrorfJSON(w, "You do not have an active subscription")
-		return
-	}
-
-	if acc.Balance < input.Amount {
-		web.SendErrorfJSON(w, "Insufficient fund. Please deposit fund to continue")
-		return
-	}
-
-	if err := m.db.Invest(r.Context(), acc.ID, input.Amount); err != nil {
-		log.Critical("Invest", "Invest", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	web.SendJSON(w, true)
-}
-
-func (m module) ReleaseInvestment(w http.ResponseWriter, r *http.Request) {
-	var input ReleaseInvestmentInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		log.Critical("UpdatePackage", "json::Decode", err)
-		web.SendErrorfJSON(w, "Error in decoding request. Please try again later")
-		return
-	}
-
-	investment, err := m.db.Investment(r.Context(), input.ID)
-	if err == sql.ErrNoRows {
-		web.SendErrorfJSON(w, "Invalid request")
-		return
-	}
-
-	if err != nil {
-		log.Critical("ReleaseInvestment", "Investment", err)
-		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
-		return
-	}
-
-	if investment.AccountID != m.server.GetUserIDTokenCtx(r) {
-		web.SendErrorfJSON(w, "Invalid request")
-		return
-	}
-
-	mDate := time.Unix(investment.Date, 0).Add(30 * 24 * time.Hour)
-	if time.Now().Unix() < mDate.Unix() {
-		web.SendErrorfJSON(w, "Please wait for the maturity date")
-		return
-	}
-
-	if err := m.db.ReleaseInvestment(r.Context(), input.ID); err != nil {
-		log.Critical("ReleaseInvestment", "json::Decode", err)
-		web.SendErrorfJSON(w, "Error in processing request. Please try again later")
-		return
-	}
-
-	web.SendJSON(w, true)
-}
-
-func (m module) MyInvestments(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPanitionInfo(r)
-	rec, total, err := m.db.Investments(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
-	if err != nil {
-		log.Error("MyInvestments", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	for _, inv := range rec {
-		mDate := time.Unix(inv.Date, 0).Add(30 * 24 * time.Hour)
-		if time.Now().Unix() >= mDate.Unix() && inv.Status == 0 {
-			inv.Status = 1
-		}
-	}
-
-	web.SendPagedJSON(w, rec, total)
-}
-
-func (m module) MyActiveTrades(w http.ResponseWriter, r *http.Request) {
-	trades, err := m.db.ActiveTrades(r.Context(), m.server.GetUserIDTokenCtx(r))
-	if err != nil {
-		log.Error("ActiveTrades", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	web.SendJSON(w, trades)
-}
-
-func (m module) MyDailyEarnings(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPanitionInfo(r)
-	rec, total, err := m.db.DailyEarnings(r.Context(), m.server.GetUserIDTokenCtx(r), pagedReq.Offset, pagedReq.Limit)
-	if err != nil {
-		log.Error("MyDailyEarnings", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
-	}
-
-	web.SendPagedJSON(w, rec, total)
 }

@@ -3,11 +3,11 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"deficonnect/defipayapi/app"
+	"deficonnect/defipayapi/postgres/models"
 	"errors"
 	"fmt"
 	"math/rand"
-	"merryworld/metatradas/app"
-	"merryworld/metatradas/postgres/models"
 	"time"
 
 	"github.com/google/uuid"
@@ -105,7 +105,7 @@ func (pg PgDb) GetAccount(ctx context.Context, id string) (*models.Account, erro
 }
 
 func (pg PgDb) GetAccountByUsername(ctx context.Context, username string) (*models.Account, error) {
-	acc, err :=  models.Accounts(
+	acc, err := models.Accounts(
 		models.AccountWhere.Username.EQ(username),
 	).One(ctx, pg.Db)
 
@@ -131,9 +131,9 @@ func (pg PgDb) GetPasswordResetCode(ctx context.Context, accountID string) (stri
 	code, err := models.SecurityCodes(models.SecurityCodeWhere.Date.GT(minDate.Unix())).One(ctx, pg.Db)
 	if err == sql.ErrNoRows {
 		code = &models.SecurityCode{
-			Code: randomCode(6),
+			Code:      randomCode(6),
 			AccountID: accountID,
-			Date: time.Now().Unix(),
+			Date:      time.Now().Unix(),
 		}
 		if err = code.Insert(ctx, pg.Db, boil.Infer()); err != nil {
 			return "", err
@@ -156,7 +156,7 @@ func (pg PgDb) ValidatePasswordResetCode(ctx context.Context, accountID, code st
 	lastCode, err := models.SecurityCodes(
 		models.SecurityCodeWhere.AccountID.EQ(accountID),
 		models.SecurityCodeWhere.Date.GT(minDate.Unix()),
-		qm.OrderBy(models.SecurityCodeColumns.Date + " desc"),
+		qm.OrderBy(models.SecurityCodeColumns.Date+" desc"),
 	).One(ctx, pg.Db)
 	if err != nil {
 		return false, err
@@ -373,7 +373,7 @@ func (pg PgDb) DebitAccountTx(ctx context.Context, tx *sql.Tx, accountID string,
 	if err := transaction.Insert(ctx, tx, boil.Infer()); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -403,9 +403,9 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 	case 1:
 		query = append(query, models.AccountWhere.ReferralID.EQ(null.StringFrom(accountID)))
 	case 2:
-		query = append(query,models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID)))
+		query = append(query, models.AccountWhere.ReferralID2.EQ(null.StringFrom(accountID)))
 	case 3:
-		query = append(query,models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID)))
+		query = append(query, models.AccountWhere.ReferralID3.EQ(null.StringFrom(accountID)))
 	}
 
 	totalCount, err := models.Accounts(query...).Count(ctx, pg.Db)
@@ -429,12 +429,12 @@ func (pg PgDb) MyDownlines(ctx context.Context, accountID string, generation int
 	var downlines []app.DownlineInfo
 	for _, acc := range accounts {
 		downline := app.DownlineInfo{
-			ID:        acc.ID,
-			Username:  acc.Username,
-			FirstName: acc.FirstName,
-			LastName:  acc.LastName,
+			ID:          acc.ID,
+			Username:    acc.Username,
+			FirstName:   acc.FirstName,
+			LastName:    acc.LastName,
 			PhoneNumber: acc.PhoneNumber,
-			Date:      acc.CreatedAt,
+			Date:        acc.CreatedAt,
 		}
 		currcentData := time.Now().Unix()
 		for _, s := range acc.R.Subscriptions {

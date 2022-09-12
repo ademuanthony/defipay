@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"merryworld/metatradas/app"
-	"merryworld/metatradas/postgres"
-	"merryworld/metatradas/web"
+	"deficonnect/defipayapi/app"
+	"deficonnect/defipayapi/postgres"
+	"deficonnect/defipayapi/web"
 
 	"github.com/decred/slog"
 )
@@ -41,7 +41,7 @@ var (
 	log       = backendLog.Logger("MTRS")
 	homeLog   = backendLog.Logger("HOME")
 	webLogger = backendLog.Logger("WEBL")
-	pgLog = backendLog.Logger("PGLO")
+	pgLog     = backendLog.Logger("PGLO")
 )
 
 // Initialize package-global logger variables.
