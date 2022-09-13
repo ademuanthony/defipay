@@ -51,4 +51,5 @@ type store interface {
 	UpdateCurrency(txt context.Context, input UpdateCurrencyInput) (*TransactionOutput, error)
 	TransactionPK(ctx context.Context, transactionID string) (string, error)
 	UpdateTransactionStatus(ctx context.Context, transactionID string, status TransactionStatus) error
+	UpdateTransactionPayment(ctx context.Context, transactionID string, amountPaid int64) error
 }

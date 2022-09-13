@@ -28,12 +28,14 @@ type TransactionOutput struct {
 	AccountNumber string `boil:"account_number" json:"account_number" toml:"account_number" yaml:"account_number"`
 	AccountName   string `boil:"account_name" json:"account_name" toml:"account_name" yaml:"account_name"`
 	Amount        int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	AmountPaid    int64  `json:"amount_paid"`
 	Email         string `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Network       string `boil:"network" json:"network" toml:"network" yaml:"network"`
 	Currency      string `boil:"currency" json:"currency" toml:"currency" yaml:"currency"`
 	WalletAddress string `boil:"wallet_address" json:"wallet_address" toml:"wallet_address" yaml:"wallet_address"`
 	PaymentLink   string `boil:"payment_link" json:"payment_link" toml:"payment_link" yaml:"payment_link"`
 	Type          string `boil:"type" json:"type" toml:"type" yaml:"type"`
+	Status        string `json:"status"`
 }
 
 type UpdateCurrencyInput struct {
@@ -57,11 +59,13 @@ type TransactionStatus string
 var TransactionStatuses = struct {
 	Pending       TransactionStatus
 	PartiallyPaid TransactionStatus
+	Paid          TransactionStatus
 	Completed     TransactionStatus
 	Cancelled     TransactionStatus
 }{
 	Pending:       "pending",
 	PartiallyPaid: "partial payment",
+	Paid:          "paid",
 	Completed:     "completed",
 	Cancelled:     "cancelled",
 }
@@ -200,4 +204,51 @@ func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request
 	}
 
 	web.SendJSON(w, txOutput)
+}
+
+func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	transaction, err := m.db.Transaction(r.Context(), id)
+	if err != nil {
+		m.handleError(w, err, "Get Transaction")
+		return
+	}
+
+	if transaction.Status == string(TransactionStatuses.Completed) || transaction.Status == string(TransactionStatuses.Cancelled) ||
+		transaction.Status == string(TransactionStatuses.Paid) {
+		web.SendJSON(w, transaction)
+		return
+	}
+
+	amountPaid, err := m.checkTransactionWalletBalance(r.Context(), transaction)
+	if err != nil {
+		m.handleError(w, err)
+		return
+	}
+
+	if err := m.db.UpdateTransactionPayment(r.Context(), id, amountPaid); err != nil {
+		m.handleError(w, err)
+		return
+	}
+
+	transaction.AmountPaid = amountPaid
+
+	if amountPaid >= transaction.Amount {
+		status, err := m.processTransaction(r.Context(), transaction)
+		if err != nil {
+			m.handleError(w, err, "process transaction")
+			return
+		}
+		transaction.Status = status
+	}
+
+	web.SendJSON(w, transaction)
+}
+
+func (m module) checkTransactionWalletBalance(ctx context.Context, transaction *TransactionOutput) (int64, error) {
+	return 0, nil
+}
+
+func (m module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {
+	return "", nil
 }

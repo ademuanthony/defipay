@@ -79,6 +79,7 @@ create table if not exists transaction (
     account_number character varying(64) not null,
     account_name character varying(64) not null,
     amount int8 not null,
+    amount_paid int8 not null,
     email character varying(64) not null,
     network character varying(64) not null,
     currency character varying(64) not null,
@@ -113,3 +114,4 @@ create table if not exists beneficiary (
 
 alter table account add referral_code character varying(256) not null UNIQUE;
 alter table transaction add status character varying(28) not null;
+alter table transaction add amount_paid int8 not null;

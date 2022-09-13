@@ -36,6 +36,7 @@ type Transaction struct {
 	PaymentLink   string `boil:"payment_link" json:"payment_link" toml:"payment_link" yaml:"payment_link"`
 	Type          string `boil:"type" json:"type" toml:"type" yaml:"type"`
 	Status        string `boil:"status" json:"status" toml:"status" yaml:"status"`
+	AmountPaid    int64  `boil:"amount_paid" json:"amount_paid" toml:"amount_paid" yaml:"amount_paid"`
 
 	R *transactionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L transactionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -55,6 +56,7 @@ var TransactionColumns = struct {
 	PaymentLink   string
 	Type          string
 	Status        string
+	AmountPaid    string
 }{
 	ID:            "id",
 	BankName:      "bank_name",
@@ -69,6 +71,7 @@ var TransactionColumns = struct {
 	PaymentLink:   "payment_link",
 	Type:          "type",
 	Status:        "status",
+	AmountPaid:    "amount_paid",
 }
 
 var TransactionTableColumns = struct {
@@ -85,6 +88,7 @@ var TransactionTableColumns = struct {
 	PaymentLink   string
 	Type          string
 	Status        string
+	AmountPaid    string
 }{
 	ID:            "transaction.id",
 	BankName:      "transaction.bank_name",
@@ -99,6 +103,7 @@ var TransactionTableColumns = struct {
 	PaymentLink:   "transaction.payment_link",
 	Type:          "transaction.type",
 	Status:        "transaction.status",
+	AmountPaid:    "transaction.amount_paid",
 }
 
 // Generated where
@@ -117,6 +122,7 @@ var TransactionWhere = struct {
 	PaymentLink   whereHelperstring
 	Type          whereHelperstring
 	Status        whereHelperstring
+	AmountPaid    whereHelperint64
 }{
 	ID:            whereHelperstring{field: "\"transaction\".\"id\""},
 	BankName:      whereHelperstring{field: "\"transaction\".\"bank_name\""},
@@ -131,6 +137,7 @@ var TransactionWhere = struct {
 	PaymentLink:   whereHelperstring{field: "\"transaction\".\"payment_link\""},
 	Type:          whereHelperstring{field: "\"transaction\".\"type\""},
 	Status:        whereHelperstring{field: "\"transaction\".\"status\""},
+	AmountPaid:    whereHelperint64{field: "\"transaction\".\"amount_paid\""},
 }
 
 // TransactionRels is where relationship names are stored.
@@ -150,8 +157,8 @@ func (*transactionR) NewStruct() *transactionR {
 type transactionL struct{}
 
 var (
-	transactionAllColumns            = []string{"id", "bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status"}
-	transactionColumnsWithoutDefault = []string{"bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status"}
+	transactionAllColumns            = []string{"id", "bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "amount_paid"}
+	transactionColumnsWithoutDefault = []string{"bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "amount_paid"}
 	transactionColumnsWithDefault    = []string{"id"}
 	transactionPrimaryKeyColumns     = []string{"id"}
 )

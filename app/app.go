@@ -82,6 +82,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/transaction/initFundTransfer", web.POST, m.createFundTransferTransaction, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/transaction/initTopUp", web.POST, m.createTupUpTransaction, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/transaction/updateCurrency", web.POST, m.updateTransactionCurrency, m.server.RequireLogin, m.server.NoReentry)
+	m.server.AddRoute("/api/transaction/checkStatus", web.POST, m.checkTransactionStatus, m.server.RequireLogin, m.server.NoReentry)
 
 }
 
