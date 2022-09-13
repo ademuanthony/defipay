@@ -4,7 +4,10 @@ import (
 	"context"
 	"deficonnect/defipayapi/web"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"time"
 )
 
 type CreateTransactionInput struct {
@@ -60,12 +63,14 @@ var TransactionStatuses = struct {
 	Pending       TransactionStatus
 	PartiallyPaid TransactionStatus
 	Paid          TransactionStatus
+	Processing    TransactionStatus
 	Completed     TransactionStatus
 	Cancelled     TransactionStatus
 }{
 	Pending:       "pending",
 	PartiallyPaid: "partial payment",
 	Paid:          "paid",
+	Processing:    "processing",
 	Completed:     "completed",
 	Cancelled:     "cancelled",
 }
@@ -186,6 +191,11 @@ func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if m.currencyProcessors[Network(input.Currency)] == nil {
+		web.SendErrorfJSON(w, "Unsupported currency")
+		return
+	}
+
 	transaction, err := m.db.Transaction(r.Context(), input.TransactionID)
 	if err != nil {
 		m.handleError(w, err, "Get Transaction")
@@ -215,12 +225,14 @@ func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if transaction.Status == string(TransactionStatuses.Completed) || transaction.Status == string(TransactionStatuses.Cancelled) ||
-		transaction.Status == string(TransactionStatuses.Paid) {
+		transaction.Status == string(TransactionStatuses.Paid) || transaction.Status == string(TransactionStatuses.Processing) {
 		web.SendJSON(w, transaction)
 		return
 	}
 
-	amountPaid, err := m.checkTransactionWalletBalance(r.Context(), transaction)
+	currencyProcessor := m.currencyProcessors[(transaction.Currency)]
+
+	amountPaid, err := currencyProcessor.CheckBalance(r.Context(), transaction.WalletAddress, Network(transaction.Network))
 	if err != nil {
 		m.handleError(w, err)
 		return
@@ -245,10 +257,56 @@ func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, transaction)
 }
 
-func (m module) checkTransactionWalletBalance(ctx context.Context, transaction *TransactionOutput) (int64, error) {
-	return 0, nil
+func (m module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {
+	currencyProcessor := m.currencyProcessors[(transaction.Currency)]
+	if transaction.Status == string(TransactionStatuses.Completed) {
+		return "", errors.New("already completed")
+	}
+	amountPaid, err := currencyProcessor.CheckBalance(ctx, transaction.WalletAddress, Network(transaction.Network))
+	if err != nil {
+		return "", err
+	}
+
+	if amountPaid < transaction.Amount {
+		return "", errors.New("incomplete payment")
+	}
+
+	if transaction.Status == string(TransactionStatuses.Processing) {
+		return "", errors.New("processing")
+	}
+
+	if err := m.db.UpdateTransactionStatus(ctx, transaction.ID, TransactionStatuses.Processing); err != nil {
+		return "", err
+	}
+
+	pk, err := m.db.TransactionPK(ctx, transaction.ID)
+	if err != nil {
+		return "", err
+	}
+
+	if err := currencyProcessor.Transfer(ctx, pk, m.config.MasterAddress, Network(transaction.Network)); err != nil {
+		return "", err
+	}
+
+	if transaction.Type == string(transactionTypes.FundTransfer) {
+		if err := m.assignTransactionToAgent(ctx, transaction); err != nil {
+			return "", err
+		}
+	} else {
+		if err := m.db.UpdateTransactionStatus(ctx, transaction.ID, TransactionStatuses.Completed); err != nil {
+		 return "", err
+		}
+
+		if err := m.db.CreditAccount(ctx, transaction.Email, transaction.Amount, time.Now().Unix(),
+		 fmt.Sprintf("direct %s deposit", transaction.Currency)); err != nil {
+			return "", err
+		 }
+		 return string(TransactionStatuses.Completed), nil
+	}
+
+	return string(TransactionStatuses.Processing), nil
 }
 
-func (m module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {
-	return "", nil
+func (m module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {
+	panic("not implemented")
 }

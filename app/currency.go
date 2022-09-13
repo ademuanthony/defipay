@@ -1,8 +1,9 @@
 package app
 
 import (
+	"context"
 	"net/http"
-	
+
 	"deficonnect/defipayapi/web"
 )
 
@@ -12,6 +13,11 @@ type Currency struct {
 	Name     string
 	Symbol   string
 	Networks []Network
+}
+
+type CurrencyProcessor interface {
+	CheckBalance(ctx context.Context, walletAddress string, network Network) (int64, error);
+	Transfer(ctx context.Context, fromAddressPK, toAddress string, network Network) error
 }
 
 var (
@@ -49,7 +55,14 @@ var (
 )
 
 func (m module) supportedCurrencies(w http.ResponseWriter, r *http.Request) {
-	web.SendJSON(w, []Currency{
+	currencies := []Currency{}
+	for _, c := range []Currency{
 		USDT, DFC, CGold,
-	})
+	} {
+		if m.currencyProcessors[c.Name] != nil {
+			currencies = append(currencies, c)
+		}
+	}
+	
+	web.SendJSON(w, currencies)
 }

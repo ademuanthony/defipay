@@ -9,11 +9,13 @@ import (
 )
 
 type module struct {
-	server    *web.Server
-	db        store
-	bscClient *ethclient.Client
+	server        *web.Server
+	db            store
+	bscClient     *ethclient.Client
 	polygonClient *ethclient.Client
-	config    BlockchainConfig
+	config        BlockchainConfig
+
+	currencyProcessors map[string]CurrencyProcessor
 
 	MgDomain string
 	MgKey    string
@@ -26,17 +28,20 @@ const (
 
 var v = govalid.New()
 
-func Start(server *web.Server, db store, bscClient *ethclient.Client, polygonClient *ethclient.Client, config BlockchainConfig,
+func Start(server *web.Server, db store, bscClient *ethclient.Client,
+	polygonClient *ethclient.Client, currencyProcessors map[string]CurrencyProcessor, config BlockchainConfig,
 	mgDomain, mgKey string) error {
 	log.Info("starting...")
 
 	app := module{
-		server:    server,
-		db:        db,
-		bscClient: bscClient,
-		config:    config,
-		MgDomain:  mgDomain,
-		MgKey:     mgKey,
+		server:             server,
+		db:                 db,
+		bscClient:          bscClient,
+		polygonClient:      polygonClient,
+		currencyProcessors: currencyProcessors,
+		config:             config,
+		MgDomain:           mgDomain,
+		MgKey:              mgKey,
 	}
 
 	app.buildRoute()
