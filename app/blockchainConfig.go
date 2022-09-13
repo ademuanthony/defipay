@@ -2,11 +2,15 @@ package app
 
 type BlockchainConfig struct {
 	// Blockchain
-	BSCNode            string `long:"mainnet" env:"MAINNET_NODE_ADDRESS"`
-	MasterAddressKey   string `long:"MASTER_ADDRESS_KEY" env:"MASTER_ADDRESS_KEY"`
-	MasterAddress      string `long:"MASTER_ADDRESS" env:"MASTER_ADDRESS"`
-	// PremiumPrivateKey  string `long:"PREMIUM_PRIVATE_KEY" env:"PREMIUM_PRIVATE_KEY"`
-	PrivateWallet      string `long:"RESERVE_WALLET" env:"RESERVE_WALLET"`
+	BSCNode     string `long:"bsc-node" env:"BSC_NODE"`
+	PolygonNode string `long:"polygon-node" env:"POLYGON_NODE"`
+
+	MasterAddressKey string `long:"MASTER_ADDRESS_KEY" env:"MASTER_ADDRESS_KEY"`
+	MasterAddress    string `long:"MASTER_ADDRESS" env:"MASTER_ADDRESS"`
+
 	// PremiumWallet      string `long:"PREMIUM_ADDRESS" env:"PREMIUM_ADDRESS"`
-	USDTContractAddress string `long:"USDT_CONTRACT_ADDRESS" env:"USDT_CONTRACT_ADDRESS"`
+	USDTBscContractAddress      string `env:"USDT_BSC"`
+	USDTPolygonContractAddress  string `env:"USDT_POLYGON"`
+	DFCBscContractAddress          string `env:"DFC_BSC"`
+	CGoldPolygonContractAddress string `env:"CGOLD_POLYGON"`
 }

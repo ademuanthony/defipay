@@ -48,7 +48,7 @@ func GenerateWallet() (privateKeyHex string, address string, err error) {
 }
 
 func (m module) CheckBusdBalance(address string) (*big.Int, error) {
-	instance, err := busd.NewPancake(busdContractAddress, m.client)
+	instance, err := busd.NewPancake(busdContractAddress, m.bscClient)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-	nonce, err := m.client.PendingNonceAt(ctx, fromAddress)
+	nonce, err := m.bscClient.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +90,7 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	// }
 	// gasPrice := etherToWei(feeFloat)
 
-	gasPrice, err := m.client.SuggestGasPrice(context.Background())
+	gasPrice, err := m.bscClient.SuggestGasPrice(context.Background())
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +105,7 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	var data []byte
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 
-	chainID, err := m.client.NetworkID(ctx)
+	chainID, err := m.bscClient.NetworkID(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +115,7 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 		return "", err
 	}
 
-	err = m.client.SendTransaction(ctx, signedTx)
+	err = m.bscClient.SendTransaction(ctx, signedTx)
 	if err != nil {
 		return "", err
 	}
@@ -124,13 +124,13 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 }
 
 func (m module) checkBalance(ctx context.Context, address string) (*big.Int, error) {
-	return m.client.BalanceAt(ctx, common.HexToAddress(address), nil)
+	return m.bscClient.BalanceAt(ctx, common.HexToAddress(address), nil)
 }
 
 func (m module) bnbPrice(ctx context.Context) (*big.Int, error) {
 	address := common.HexToAddress("0x1B96B92314C44b159149f7E0303511fB2Fc4774f")
 
-	instance, err := pair.NewPancake(address, m.client)
+	instance, err := pair.NewPancake(address, m.bscClient)
 	if err != nil {
 		return nil, err
 	}
@@ -220,12 +220,12 @@ func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, valu
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-	nonce, err := m.client.PendingNonceAt(ctx, fromAddress)
+	nonce, err := m.bscClient.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		return "", err
 	}
 
-	gasPrice, err := m.client.SuggestGasPrice(ctx)
+	gasPrice, err := m.bscClient.SuggestGasPrice(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -247,7 +247,7 @@ func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, valu
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 
-	gasLimit, err := m.client.EstimateGas(ctx, ethereum.CallMsg{
+	gasLimit, err := m.bscClient.EstimateGas(ctx, ethereum.CallMsg{
 		To:   &toAddress,
 		Data: data,
 	})
@@ -257,7 +257,7 @@ func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, valu
 	gasLimit *= 3 // protect against out of gas issue
 
 	// if account balance of from address is less that gas fee, credit account
-	balance, err := m.client.BalanceAt(ctx, fromAddress, nil)
+	balance, err := m.bscClient.BalanceAt(ctx, fromAddress, nil)
 	if err != nil {
 		return "", err
 	}
@@ -270,7 +270,7 @@ func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, valu
 		}
 	}
 
-	chainID, err := m.client.NetworkID(ctx)
+	chainID, err := m.bscClient.NetworkID(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -306,7 +306,7 @@ func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, valu
 		return "", err
 	}
 
-	err = m.client.SendTransaction(ctx, signedTx)
+	err = m.bscClient.SendTransaction(ctx, signedTx)
 	if err != nil {
 		log.Error("SendTransaction", err)
 		return "", err

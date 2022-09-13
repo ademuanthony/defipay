@@ -23,7 +23,7 @@ var (
 )
 
 func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, error) {
-	dfcToken, err := dfc.NewDfc(dfcContractAddress, m.client)
+	dfcToken, err := dfc.NewDfc(dfcContractAddress, m.bscClient)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, 
 func (m module) dfcPrice(ctx context.Context) (*big.Int, error) {
 	address := common.HexToAddress("0xBbba7668E7E36752F3eDfc0fF794FdDA090B7560")
 
-	instance, err := pair.NewPancake(address, m.client)
+	instance, err := pair.NewPancake(address, m.bscClient)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (m module) transferDfc(ctx context.Context, privateKeyStr, to string, value
 		return "", err
 	}
 
-	dfcToken, err := dfc.NewDfc(dfcContractAddress, m.client)
+	dfcToken, err := dfc.NewDfc(dfcContractAddress, m.bscClient)
 	if err != nil {
 		return "", err
 	}

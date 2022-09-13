@@ -9,10 +9,11 @@ import (
 )
 
 type module struct {
-	server *web.Server
-	db     store
-	client *ethclient.Client
-	config BlockchainConfig
+	server    *web.Server
+	db        store
+	bscClient *ethclient.Client
+	polygonClient *ethclient.Client
+	config    BlockchainConfig
 
 	MgDomain string
 	MgKey    string
@@ -25,17 +26,17 @@ const (
 
 var v = govalid.New()
 
-func Start(server *web.Server, db store, client *ethclient.Client, config BlockchainConfig,
+func Start(server *web.Server, db store, bscClient *ethclient.Client, polygonClient *ethclient.Client, config BlockchainConfig,
 	mgDomain, mgKey string) error {
 	log.Info("starting...")
 
 	app := module{
-		server:   server,
-		db:       db,
-		client:   client,
-		config:   config,
-		MgDomain: mgDomain,
-		MgKey:    mgKey,
+		server:    server,
+		db:        db,
+		bscClient: bscClient,
+		config:    config,
+		MgDomain:  mgDomain,
+		MgKey:     mgKey,
 	}
 
 	app.buildRoute()
