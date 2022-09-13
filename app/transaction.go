@@ -2,12 +2,20 @@ package app
 
 import (
 	"context"
-	"deficonnect/defipayapi/web"
+	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"net/http"
 	"time"
+
+	"deficonnect/defipayapi/web"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type CreateTransactionInput struct {
@@ -31,7 +39,8 @@ type TransactionOutput struct {
 	AccountNumber string `boil:"account_number" json:"account_number" toml:"account_number" yaml:"account_number"`
 	AccountName   string `boil:"account_name" json:"account_name" toml:"account_name" yaml:"account_name"`
 	Amount        int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	AmountPaid    int64  `json:"amount_paid"`
+	AmountPaid    string `json:"amount_paid"`
+	TokenAmount   string `json:"token_amount"`
 	Email         string `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Network       string `boil:"network" json:"network" toml:"network" yaml:"network"`
 	Currency      string `boil:"currency" json:"currency" toml:"currency" yaml:"currency"`
@@ -232,20 +241,22 @@ func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 
 	currencyProcessor := m.currencyProcessors[(transaction.Currency)]
 
-	amountPaid, err := currencyProcessor.CheckBalance(r.Context(), transaction.WalletAddress, Network(transaction.Network))
+	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
 		m.handleError(w, err)
 		return
 	}
 
-	if err := m.db.UpdateTransactionPayment(r.Context(), id, amountPaid); err != nil {
+	if err := m.db.UpdateTransactionPayment(r.Context(), id, amountPaid.String()); err != nil {
 		m.handleError(w, err)
 		return
 	}
 
-	transaction.AmountPaid = amountPaid
+	transaction.AmountPaid = amountPaid.String()
+	var tokenAmount *big.Int
+	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 64)
 
-	if amountPaid >= transaction.Amount {
+	if c := tokenAmount.Cmp(amountPaid); c == 0 || c == -1 {
 		status, err := m.processTransaction(r.Context(), transaction)
 		if err != nil {
 			m.handleError(w, err, "process transaction")
@@ -262,16 +273,19 @@ func (m module) processTransaction(ctx context.Context, transaction *Transaction
 	if transaction.Status == string(TransactionStatuses.Completed) {
 		return "", errors.New("already completed")
 	}
-	amountPaid, err := currencyProcessor.CheckBalance(ctx, transaction.WalletAddress, Network(transaction.Network))
+	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
 		return "", err
 	}
 
-	if amountPaid < transaction.Amount {
+	var tokenAmount *big.Int
+	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 64)
+
+	if c := amountPaid.Cmp(tokenAmount); c == -1 {
 		return "", errors.New("incomplete payment")
 	}
 
-	if transaction.Status == string(TransactionStatuses.Processing) {
+	if transaction.Status == string(TransactionStatuses.Processing) { // 111000+102500+10000
 		return "", errors.New("processing")
 	}
 
@@ -284,7 +298,17 @@ func (m module) processTransaction(ctx context.Context, transaction *Transaction
 		return "", err
 	}
 
-	if err := currencyProcessor.Transfer(ctx, pk, m.config.MasterAddress, Network(transaction.Network)); err != nil {
+	client := m.bscClient 
+	if transaction.Network == string(Networks.Polygon) {
+		client = m.polygonClient
+	}
+
+	opt, err := getAccountAuth(client, pk, 1)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := currencyProcessor.Transfer(opt, common.HexToAddress(m.config.MasterAddress), amountPaid); err != nil {
 		return "", err
 	}
 
@@ -294,17 +318,65 @@ func (m module) processTransaction(ctx context.Context, transaction *Transaction
 		}
 	} else {
 		if err := m.db.UpdateTransactionStatus(ctx, transaction.ID, TransactionStatuses.Completed); err != nil {
-		 return "", err
+			return "", err
 		}
 
 		if err := m.db.CreditAccount(ctx, transaction.Email, transaction.Amount, time.Now().Unix(),
-		 fmt.Sprintf("direct %s deposit", transaction.Currency)); err != nil {
+			fmt.Sprintf("direct %s deposit", transaction.Currency)); err != nil {
 			return "", err
-		 }
-		 return string(TransactionStatuses.Completed), nil
+		}
+		return string(TransactionStatuses.Completed), nil
 	}
 
 	return string(TransactionStatuses.Processing), nil
+}
+
+func getAccountAuth(client *ethclient.Client, privateKeyString string, gasMultiplyer int64) (*bind.TransactOpts, error) {
+
+	privateKey, err := crypto.HexToECDSA(privateKeyString)
+	if err != nil {
+		panic(err)
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, errors.New("invalid key")
+	}
+
+	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	//fetch the last use nonce of account
+	nounce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	// chainID, err := client.ChainID(context.Background())
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	chainID := big.NewInt(137)
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		panic(err)
+	}
+	if gasPrice.Cmp(big.NewInt(30001000047)) == -1 {
+		gasPrice = big.NewInt(30001000047)
+	}
+	auth.Nonce = big.NewInt(int64(nounce))
+	auth.Value = big.NewInt(0)                     // in wei 10:56
+	auth.GasLimit = uint64(384696 * gasMultiplyer) // in units
+	auth.GasPrice = gasPrice                       //big.NewInt(30001000047)
+
+	return auth, nil
 }
 
 func (m module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {

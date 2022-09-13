@@ -36,7 +36,8 @@ type Transaction struct {
 	PaymentLink   string `boil:"payment_link" json:"payment_link" toml:"payment_link" yaml:"payment_link"`
 	Type          string `boil:"type" json:"type" toml:"type" yaml:"type"`
 	Status        string `boil:"status" json:"status" toml:"status" yaml:"status"`
-	AmountPaid    int64  `boil:"amount_paid" json:"amount_paid" toml:"amount_paid" yaml:"amount_paid"`
+	TokenAmount   string `boil:"token_amount" json:"token_amount" toml:"token_amount" yaml:"token_amount"`
+	AmountPaid    string `boil:"amount_paid" json:"amount_paid" toml:"amount_paid" yaml:"amount_paid"`
 
 	R *transactionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L transactionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -56,6 +57,7 @@ var TransactionColumns = struct {
 	PaymentLink   string
 	Type          string
 	Status        string
+	TokenAmount   string
 	AmountPaid    string
 }{
 	ID:            "id",
@@ -71,6 +73,7 @@ var TransactionColumns = struct {
 	PaymentLink:   "payment_link",
 	Type:          "type",
 	Status:        "status",
+	TokenAmount:   "token_amount",
 	AmountPaid:    "amount_paid",
 }
 
@@ -88,6 +91,7 @@ var TransactionTableColumns = struct {
 	PaymentLink   string
 	Type          string
 	Status        string
+	TokenAmount   string
 	AmountPaid    string
 }{
 	ID:            "transaction.id",
@@ -103,6 +107,7 @@ var TransactionTableColumns = struct {
 	PaymentLink:   "transaction.payment_link",
 	Type:          "transaction.type",
 	Status:        "transaction.status",
+	TokenAmount:   "transaction.token_amount",
 	AmountPaid:    "transaction.amount_paid",
 }
 
@@ -122,7 +127,8 @@ var TransactionWhere = struct {
 	PaymentLink   whereHelperstring
 	Type          whereHelperstring
 	Status        whereHelperstring
-	AmountPaid    whereHelperint64
+	TokenAmount   whereHelperstring
+	AmountPaid    whereHelperstring
 }{
 	ID:            whereHelperstring{field: "\"transaction\".\"id\""},
 	BankName:      whereHelperstring{field: "\"transaction\".\"bank_name\""},
@@ -137,7 +143,8 @@ var TransactionWhere = struct {
 	PaymentLink:   whereHelperstring{field: "\"transaction\".\"payment_link\""},
 	Type:          whereHelperstring{field: "\"transaction\".\"type\""},
 	Status:        whereHelperstring{field: "\"transaction\".\"status\""},
-	AmountPaid:    whereHelperint64{field: "\"transaction\".\"amount_paid\""},
+	TokenAmount:   whereHelperstring{field: "\"transaction\".\"token_amount\""},
+	AmountPaid:    whereHelperstring{field: "\"transaction\".\"amount_paid\""},
 }
 
 // TransactionRels is where relationship names are stored.
@@ -157,8 +164,8 @@ func (*transactionR) NewStruct() *transactionR {
 type transactionL struct{}
 
 var (
-	transactionAllColumns            = []string{"id", "bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "amount_paid"}
-	transactionColumnsWithoutDefault = []string{"bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "amount_paid"}
+	transactionAllColumns            = []string{"id", "bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "token_amount", "amount_paid"}
+	transactionColumnsWithoutDefault = []string{"bank_name", "account_number", "account_name", "amount", "email", "network", "currency", "wallet_address", "private_key", "payment_link", "type", "status", "token_amount", "amount_paid"}
 	transactionColumnsWithDefault    = []string{"id"}
 	transactionPrimaryKeyColumns     = []string{"id"}
 )

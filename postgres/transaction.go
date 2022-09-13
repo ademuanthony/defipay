@@ -62,6 +62,7 @@ func convertTransaction(transaction *models.Transaction) app.TransactionOutput {
 		ID:            transaction.ID,
 		Amount:        transaction.Amount,
 		AmountPaid:    transaction.AmountPaid,
+		TokenAmount:   transaction.TokenAmount,
 		BankName:      transaction.BankName,
 		AccountNumber: transaction.AccountNumber,
 		AccountName:   transaction.AccountName,
@@ -132,17 +133,17 @@ func (pg PgDb) UpdateTransactionStatus(ctx context.Context, transactionID string
 	return err
 }
 
-func (pg PgDb) UpdateTransactionPayment(ctx context.Context, transactionID string, amountPaid int64) error {
+func (pg PgDb) UpdateTransactionPayment(ctx context.Context, transactionID string, amountPaid string) error {
 	status := app.TransactionStatuses.PartiallyPaid
 	tx, err := pg.Transaction(ctx, transactionID)
 	if err != nil {
 		return err
 	}
-	if tx.Amount <= amountPaid {
+	if tx.TokenAmount <= amountPaid {
 		status = app.TransactionStatuses.Paid
 	}
 	updateCol := models.M{
-		models.TransactionColumns.Status: string(status),
+		models.TransactionColumns.Status:     string(status),
 		models.TransactionColumns.AmountPaid: amountPaid,
 	}
 	_, err = models.Transactions(models.TransactionWhere.ID.EQ(transactionID)).UpdateAll(ctx, pg.Db, updateCol)

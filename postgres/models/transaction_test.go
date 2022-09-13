@@ -427,7 +427,7 @@ func testTransactionsSelect(t *testing.T) {
 }
 
 var (
-	transactionDBTypes = map[string]string{`ID`: `uuid`, `BankName`: `character varying`, `AccountNumber`: `character varying`, `AccountName`: `character varying`, `Amount`: `bigint`, `Email`: `character varying`, `Network`: `character varying`, `Currency`: `character varying`, `WalletAddress`: `character varying`, `PrivateKey`: `character varying`, `PaymentLink`: `character varying`, `Type`: `character varying`, `Status`: `character varying`, `AmountPaid`: `bigint`}
+	transactionDBTypes = map[string]string{`ID`: `uuid`, `BankName`: `character varying`, `AccountNumber`: `character varying`, `AccountName`: `character varying`, `Amount`: `bigint`, `Email`: `character varying`, `Network`: `character varying`, `Currency`: `character varying`, `WalletAddress`: `character varying`, `PrivateKey`: `character varying`, `PaymentLink`: `character varying`, `Type`: `character varying`, `Status`: `character varying`, `TokenAmount`: `character varying`, `AmountPaid`: `character varying`}
 	_                  = bytes.MinRead
 )
 
