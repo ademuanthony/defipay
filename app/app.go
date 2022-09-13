@@ -84,6 +84,7 @@ func (m module) buildRoute() {
 	m.server.AddRoute("/api/transaction/updateCurrency", web.POST, m.updateTransactionCurrency, m.server.RequireLogin, m.server.NoReentry)
 	m.server.AddRoute("/api/transaction/checkStatus", web.POST, m.checkTransactionStatus, m.server.RequireLogin, m.server.NoReentry)
 
+	m.server.AddRoute("/config/supported-currencies", web.GET, m.supportedCurrencies)
 }
 
 func welcome(w http.ResponseWriter, r *http.Request) {
