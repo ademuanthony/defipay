@@ -1,12 +1,12 @@
 package app
 
 import (
+	"context"
 	"math/big"
 	"net/http"
 
 	"deficonnect/defipayapi/web"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -20,9 +20,9 @@ type Currency struct {
 }
 
 type CurrencyProcessor interface {
-	BalanceOf(opts *bind.CallOpts, arg0 common.Address) (*big.Int, error)
-	Decimals(opts *bind.CallOpts) (uint8, error)
-	Transfer(opts *bind.TransactOpts, to common.Address, value *big.Int) (*types.Transaction, error)
+	BalanceOf(ctx context.Context, walletAddress common.Address) (*big.Int, error)
+	Decimals(ctx context.Context) (uint8, error)
+	Transfer(ctx context.Context, privateKey string, to common.Address, value *big.Int) (*types.Transaction, error)
 }
 
 var (
@@ -59,7 +59,7 @@ var (
 	}
 )
 
-func (m module) supportedCurrencies(w http.ResponseWriter, r *http.Request) {
+func (m Module) supportedCurrencies(w http.ResponseWriter, r *http.Request) {
 	currencies := []Currency{}
 	for _, c := range []Currency{
 		USDT, DFC, CGold,

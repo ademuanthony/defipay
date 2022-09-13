@@ -4,3 +4,5 @@ defipayapi
 defipayapi.exe
 dump.rdb
 tmp
+.serverless
+bin

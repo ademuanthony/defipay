@@ -48,7 +48,7 @@ type changePasswordInput struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-func (m module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
+func (m Module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
 	twoFaEnabled, err := m.is2faEnabled(r.Context(), m.server.GetUserIDTokenCtx(r))
 	if err != nil {
 		m.sendSomethingWentWrong(w, "getCommonConfig.is2faEnabled", err)
@@ -61,7 +61,7 @@ func (m module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, respo)
 }
 
-func (m module) is2faEnabled(ctx context.Context, accountID string) (bool, error) {
+func (m Module) is2faEnabled(ctx context.Context, accountID string) (bool, error) {
 	confiVal, err := m.db.GetConfigValue(ctx, accountID, ConfigKeys.TwoFactorEnabled)
 	if err != nil {
 		return false, err
@@ -69,7 +69,7 @@ func (m module) is2faEnabled(ctx context.Context, accountID string) (bool, error
 	return confiVal.IsTrue(), nil
 }
 
-func (m module) get2faSecret(ctx context.Context, accountID string) (string, error) {
+func (m Module) get2faSecret(ctx context.Context, accountID string) (string, error) {
 	confiVal, err := m.db.GetConfigValue(ctx, accountID, ConfigKeys.TwoFactorSecret)
 	if err == nil && confiVal != "" {
 		return string(confiVal), nil
@@ -89,7 +89,7 @@ func (m module) get2faSecret(ctx context.Context, accountID string) (string, err
 	return secret, nil
 }
 
-func (m module) validate2faOTP(ctx context.Context, accountID, otp string) (bool, error) {
+func (m Module) validate2faOTP(ctx context.Context, accountID, otp string) (bool, error) {
 	secret, err := m.get2faSecret(ctx, accountID)
 	if err != nil {
 		return false, err
@@ -104,7 +104,7 @@ func (m module) validate2faOTP(ctx context.Context, accountID, otp string) (bool
 	return otpc.Authenticate(otp)
 }
 
-func (m module) init2fa(w http.ResponseWriter, r *http.Request) {
+func (m Module) init2fa(w http.ResponseWriter, r *http.Request) {
 	twoFactorIsEnabled, err := m.is2faEnabled(r.Context(), m.server.GetUserIDTokenCtx(r))
 	if err != nil {
 		m.sendSomethingWentWrong(w, "is2faEnabled", err)
@@ -125,7 +125,7 @@ func (m module) init2fa(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, secret)
 }
 
-func (m module) enable2fa(w http.ResponseWriter, r *http.Request) {
+func (m Module) enable2fa(w http.ResponseWriter, r *http.Request) {
 	var input twoFaInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		m.sendSomethingWentWrong(w, "json.Decode", err)
@@ -153,7 +153,7 @@ func (m module) enable2fa(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
+func (m Module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
 	var input twoFaInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		m.sendSomethingWentWrong(w, "json.Decode", err)
@@ -188,7 +188,7 @@ func (m module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (m module) lastLogin(w http.ResponseWriter, r *http.Request) {
+func (m Module) lastLogin(w http.ResponseWriter, r *http.Request) {
 	login, err := m.db.LastLogin(r.Context())
 	if err == sql.ErrNoRows {
 		web.SendJSON(w, models.LoginInfo{})
@@ -202,7 +202,7 @@ func (m module) lastLogin(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, login)
 }
 
-func (m module) changePassword(w http.ResponseWriter, r *http.Request) {
+func (m Module) changePassword(w http.ResponseWriter, r *http.Request) {
 	var input changePasswordInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		m.sendSomethingWentWrong(w, "json.Decode", err)

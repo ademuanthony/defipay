@@ -22,7 +22,7 @@ func randomCode(n int) string {
 	return string(b)
 }
 
-func (m module) SendEmail(ctx context.Context, sender, recipient, subject, body string) error {
+func (m Module) SendEmail(ctx context.Context, sender, recipient, subject, body string) error {
 	mg := mailgun.NewMailgun(m.MgDomain, m.MgKey)
 	mg.SetAPIBase(mailgun.APIBaseEU)
 

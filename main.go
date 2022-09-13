@@ -10,11 +10,13 @@ import (
 	"time"
 
 	"deficonnect/defipayapi/app"
+	"deficonnect/defipayapi/app/processors"
 	"deficonnect/defipayapi/postgres"
 	"deficonnect/defipayapi/web"
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
@@ -76,14 +78,26 @@ func _main(ctx context.Context) error {
 		return fmt.Errorf("pqsl: %v", err)
 	}
 
-	client, err := ethclient.Dial(cfg.BSCNode)
+	bscClient, err := ethclient.Dial(cfg.BSCNode)
 	if err != nil {
-		log.Error(err)
-	} else {
-		defer client.Close()
+		return err
 	}
 
-	if err := app.Start(webServer, db, client, cfg.BlockchainConfig, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
+	polygonClient, err := ethclient.Dial(cfg.PolygonNode)
+	if err != nil {
+		return err
+	} else {
+		defer bscClient.Close()
+	}
+
+	currencyProcessors := make(map[string]map[app.Network]app.CurrencyProcessor)
+	dfcProcessor, err := processors.NewDfcProcessor(bscClient, common.HexToAddress(cfg.DFCBscContractAddress))
+	if err != nil {
+		return err
+	}
+
+	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
+	if _,err := app.Start(db, bscClient, polygonClient, currencyProcessors, cfg.BlockchainConfig, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
 		log.Error(err)
 		os.Exit(1)
 		return err
@@ -98,6 +112,44 @@ func _main(ctx context.Context) error {
 	wg.Wait()
 
 	return nil
+}
+
+func InitSlsApp() (*app.Module, error) {
+	// Parse the configuration file, and setup logger.
+	cfg, err := loadConfig()
+	if err != nil {
+		fmt.Printf("Failed to load pdanalytics config: %s\n", err.Error())
+		return nil, err
+	}
+
+	db, err := postgres.NewPgDb(cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPass, cfg.DBName, os.Getenv("DEBUG_SQL") == "1")
+
+	if err != nil {
+		return nil, fmt.Errorf("pqsl: %v", err)
+	}
+
+	bscClient, err := ethclient.Dial(cfg.BSCNode)
+	if err != nil {
+		return nil, err
+	}
+
+	polygonClient, err := ethclient.Dial(cfg.PolygonNode)
+	if err != nil {
+		return nil, err
+	} else {
+		defer bscClient.Close()
+	}
+
+	currencyProcessors := make(map[string]map[app.Network]app.CurrencyProcessor)
+	dfcProcessor, err := processors.NewDfcProcessor(bscClient, common.HexToAddress(cfg.DFCBscContractAddress))
+	if err != nil {
+		return nil, err
+	}
+
+	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
+
+	return app.Start(db, bscClient, polygonClient, currencyProcessors, cfg.BlockchainConfig,
+		cfg.MailgunDomain, cfg.MailgunAPIKey)
 }
 
 func CORS(next http.HandlerFunc) http.HandlerFunc {

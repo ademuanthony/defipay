@@ -3,9 +3,11 @@ module deficonnect/defipayapi
 go 1.17
 
 require (
+	github.com/aws/aws-lambda-go v1.34.1
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/decred/slog v1.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/dustin/go-humanize v1.0.0
 	github.com/ethereum/go-ethereum v1.10.16
 	github.com/friendsofgo/errors v0.9.2
@@ -18,6 +20,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.6.0
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/viper v1.9.0
+	github.com/twharmon/govalid v1.3.0
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/randomize v0.0.1
 	github.com/volatiletech/sqlboiler/v4 v4.8.6
@@ -25,7 +28,6 @@ require (
 )
 
 require (
-	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -39,7 +41,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/twharmon/govalid v1.3.0 // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/ini.v1 v1.63.2 // indirect
@@ -49,7 +50,6 @@ require (
 require (
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/btcsuite/btcd v0.20.1-beta // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/didip/tollbooth v4.0.2+incompatible
 	github.com/go-ole/go-ole v1.2.1 // indirect
@@ -57,7 +57,6 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/jinzhu/now v1.1.4
 	github.com/joho/godotenv v1.4.0
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/lib/pq v1.10.4

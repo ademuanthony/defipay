@@ -22,7 +22,7 @@ var (
 	tokenTransferFee   = "0.007" // automate the extimate
 )
 
-func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, error) {
+func (m Module) checkDfcBalance(ctx context.Context, address string) (*big.Int, error) {
 	dfcToken, err := dfc.NewDfc(dfcContractAddress, m.bscClient)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (m module) checkDfcBalance(ctx context.Context, address string) (*big.Int, 
 	return dfcToken.BalanceOf(nil, dfcAddress)
 }
 
-func (m module) dfcPrice(ctx context.Context) (*big.Int, error) {
+func (m Module) dfcPrice(ctx context.Context) (*big.Int, error) {
 	address := common.HexToAddress("0xBbba7668E7E36752F3eDfc0fF794FdDA090B7560")
 
 	instance, err := pair.NewPancake(address, m.bscClient)
@@ -48,7 +48,7 @@ func (m module) dfcPrice(ctx context.Context) (*big.Int, error) {
 	return r.Reserve0.Div(r.Reserve1.Mul(r.Reserve1, big.NewInt(1e8)), r.Reserve0), nil
 }
 
-func (m module) convertDfcBnb(ctx context.Context, amount *big.Int) (*big.Int, error) {
+func (m Module) convertDfcBnb(ctx context.Context, amount *big.Int) (*big.Int, error) {
 	dfcPrice, err := m.dfcPrice(ctx)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (m module) convertDfcBnb(ctx context.Context, amount *big.Int) (*big.Int, e
 	return totalBnb, nil
 }
 
-func (m module) convertDfcBusd(ctx context.Context, amount *big.Int) (*big.Int, error) {
+func (m Module) convertDfcBusd(ctx context.Context, amount *big.Int) (*big.Int, error) {
 	// first converting dfc to bnb and then bnb to busd
 	totalBnb, err := m.convertDfcBnb(ctx, amount)
 	if err != nil {
@@ -70,7 +70,7 @@ func (m module) convertDfcBusd(ctx context.Context, amount *big.Int) (*big.Int, 
 	return m.convertBnbBusd(ctx, totalBnb)
 }
 
-func (m module) convertBusdDfc(ctx context.Context, amount *big.Int) (*big.Int, error) {
+func (m Module) convertBusdDfc(ctx context.Context, amount *big.Int) (*big.Int, error) {
 	price, err := m.dfcPrice(ctx)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func dfcToDecimal(eth *big.Float) *big.Int {
 	return wei
 }
 
-func (m module) sendTokenTransferFee(ctx context.Context, address string, attempt int) error {
+func (m Module) sendTokenTransferFee(ctx context.Context, address string, attempt int) error {
 	amount := m.feeAmount()
 
 	bal, err := m.checkBalance(ctx, address)
@@ -126,7 +126,7 @@ func (m module) sendTokenTransferFee(ctx context.Context, address string, attemp
 	return nil
 }
 
-func (m module) feeAmount() *big.Int {
+func (m Module) feeAmount() *big.Int {
 	feeFloat, err := ParseBigFloat(tokenTransferFee)
 	if err != nil {
 		panic(err)
@@ -135,7 +135,7 @@ func (m module) feeAmount() *big.Int {
 	return etherToWei(feeFloat)
 }
 
-func (m module) transferDfc(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
+func (m Module) transferDfc(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
 	if !util.IsValidAddress(to) {
 		return "", errors.New("invalid address")
 	}
@@ -159,7 +159,7 @@ func (m module) transferDfc(ctx context.Context, privateKeyStr, to string, value
 	return tx.Hash().Hex(), nil
 }
 
-func (m module) convertClubDollarToDfc(ctx context.Context, amount int64) (*big.Int, error) {
+func (m Module) convertClubDollarToDfc(ctx context.Context, amount int64) (*big.Int, error) {
 	_amountFloat := float64(amount) / float64(10000)
 	bigFloat, err := ParseBigFloat(fmt.Sprintf("%.18f", _amountFloat))
 	if err != nil {

@@ -47,7 +47,7 @@ func GenerateWallet() (privateKeyHex string, address string, err error) {
 	return
 }
 
-func (m module) CheckBusdBalance(address string) (*big.Int, error) {
+func (m Module) CheckBusdBalance(address string) (*big.Int, error) {
 	instance, err := busd.NewPancake(busdContractAddress, m.bscClient)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (m module) CheckBusdBalance(address string) (*big.Int, error) {
 	return instance.BalanceOf(nil, common.HexToAddress(address))
 }
 
-func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
+func (m Module) transfer(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
 	if !util.IsValidAddress(to) {
 		return "", errors.New("invalid address")
 	}
@@ -123,11 +123,11 @@ func (m module) transfer(ctx context.Context, privateKeyStr, to string, value *b
 	return signedTx.Hash().Hex(), nil
 }
 
-func (m module) checkBalance(ctx context.Context, address string) (*big.Int, error) {
+func (m Module) checkBalance(ctx context.Context, address string) (*big.Int, error) {
 	return m.bscClient.BalanceAt(ctx, common.HexToAddress(address), nil)
 }
 
-func (m module) bnbPrice(ctx context.Context) (*big.Int, error) {
+func (m Module) bnbPrice(ctx context.Context) (*big.Int, error) {
 	address := common.HexToAddress("0x1B96B92314C44b159149f7E0303511fB2Fc4774f")
 
 	instance, err := pair.NewPancake(address, m.bscClient)
@@ -143,7 +143,7 @@ func (m module) bnbPrice(ctx context.Context) (*big.Int, error) {
 	return r.Reserve0.Div(r.Reserve1.Mul(r.Reserve1, big.NewInt(1e18)), r.Reserve0), nil
 }
 
-func (m module) convertBnbBusd(ctx context.Context, amount *big.Int) (*big.Int, error) {
+func (m Module) convertBnbBusd(ctx context.Context, amount *big.Int) (*big.Int, error) {
 	price, err := m.bnbPrice(ctx)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (m module) convertBnbBusd(ctx context.Context, amount *big.Int) (*big.Int, 
 	return result, nil
 }
 
-func (m module) convertBusdBnb(ctx context.Context, amount *big.Int) (*big.Int, error) {
+func (m Module) convertBusdBnb(ctx context.Context, amount *big.Int) (*big.Int, error) {
 	price, err := m.bnbPrice(ctx)
 	if err != nil {
 		return nil, err
@@ -196,7 +196,7 @@ func etherToWei(eth *big.Float) *big.Int {
 	return wei
 }
 
-func (m module) convertClubDollarToBnb(ctx context.Context, amount int64) (*big.Int, error) {
+func (m Module) convertClubDollarToBnb(ctx context.Context, amount int64) (*big.Int, error) {
 	_amountFloat := float64(amount) / float64(10000)
 	bigFloat, err := ParseBigFloat(fmt.Sprintf("%.18f", _amountFloat))
 	if err != nil {
@@ -206,7 +206,7 @@ func (m module) convertClubDollarToBnb(ctx context.Context, amount int64) (*big.
 	return m.convertBusdBnb(ctx, busd)
 }
 
-func (m module) transferBusd(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
+func (m Module) transferBusd(ctx context.Context, privateKeyStr, to string, value *big.Int) (string, error) {
 
 	privateKey, err := crypto.HexToECDSA(privateKeyStr)
 	if err != nil {

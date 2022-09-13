@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,10 +11,7 @@ import (
 
 	"deficonnect/defipayapi/web"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type CreateTransactionInput struct {
@@ -91,7 +87,7 @@ type GetTransactionsInput struct {
 	Limit     int
 }
 
-func (m module) getTransaction(w http.ResponseWriter, r *http.Request) {
+func (m Module) getTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
 		web.SendErrorfJSON(w, "ID is required")
@@ -107,7 +103,7 @@ func (m module) getTransaction(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, transaction)
 }
 
-func (m module) getTransactions(w http.ResponseWriter, r *http.Request) {
+func (m Module) getTransactions(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	accountID := m.server.GetUserIDTokenCtx(r)
 	pagedReq := web.GetPaginationInfo(r)
@@ -124,7 +120,7 @@ func (m module) getTransactions(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, transactions, count)
 }
 
-func (m module) createFundTransferTransaction(w http.ResponseWriter, r *http.Request) {
+func (m Module) createFundTransferTransaction(w http.ResponseWriter, r *http.Request) {
 	var input CreateTransactionInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("Login", "json::Decode", err)
@@ -148,7 +144,7 @@ func (m module) createFundTransferTransaction(w http.ResponseWriter, r *http.Req
 	web.SendJSON(w, tran)
 }
 
-func (m module) createTupUpTransaction(w http.ResponseWriter, r *http.Request) {
+func (m Module) createTupUpTransaction(w http.ResponseWriter, r *http.Request) {
 	var input CreateTransactionInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("Login", "json::Decode", err)
@@ -172,7 +168,7 @@ func (m module) createTupUpTransaction(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, tran)
 }
 
-func (m module) createTransaction(ctx context.Context, input CreateTransactionInput) (*TransactionOutput, error) {
+func (m Module) createTransaction(ctx context.Context, input CreateTransactionInput) (*TransactionOutput, error) {
 	vio, err := v.Violations(&input)
 	if err != nil {
 		return nil, err
@@ -192,7 +188,7 @@ func (m module) createTransaction(ctx context.Context, input CreateTransactionIn
 	return m.db.CreateTransaction(ctx, input)
 }
 
-func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request) {
+func (m Module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request) {
 	var input UpdateCurrencyInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("Login", "json::Decode", err)
@@ -200,7 +196,7 @@ func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if m.currencyProcessors[Network(input.Currency)] == nil {
+	if m.currencyProcessors[input.Currency][Network(input.Network)] == nil {
 		web.SendErrorfJSON(w, "Unsupported currency")
 		return
 	}
@@ -225,7 +221,7 @@ func (m module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request
 	web.SendJSON(w, txOutput)
 }
 
-func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
+func (m Module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	transaction, err := m.db.Transaction(r.Context(), id)
 	if err != nil {
@@ -239,7 +235,7 @@ func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currencyProcessor := m.currencyProcessors[(transaction.Currency)]
+	currencyProcessor := m.currencyProcessors[(transaction.Currency)][Network(transaction.Network)]
 
 	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
@@ -268,8 +264,8 @@ func (m module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, transaction)
 }
 
-func (m module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {
-	currencyProcessor := m.currencyProcessors[(transaction.Currency)]
+func (m Module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {
+	currencyProcessor := m.currencyProcessors[(transaction.Currency)][Network(transaction.Network)]
 	if transaction.Status == string(TransactionStatuses.Completed) {
 		return "", errors.New("already completed")
 	}
@@ -298,17 +294,7 @@ func (m module) processTransaction(ctx context.Context, transaction *Transaction
 		return "", err
 	}
 
-	client := m.bscClient 
-	if transaction.Network == string(Networks.Polygon) {
-		client = m.polygonClient
-	}
-
-	opt, err := getAccountAuth(client, pk, 1)
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := currencyProcessor.Transfer(opt, common.HexToAddress(m.config.MasterAddress), amountPaid); err != nil {
+	if _, err := currencyProcessor.Transfer(ctx, pk, common.HexToAddress(m.config.MasterAddress), amountPaid); err != nil {
 		return "", err
 	}
 
@@ -331,50 +317,6 @@ func (m module) processTransaction(ctx context.Context, transaction *Transaction
 	return string(TransactionStatuses.Processing), nil
 }
 
-func getAccountAuth(client *ethclient.Client, privateKeyString string, gasMultiplyer int64) (*bind.TransactOpts, error) {
-
-	privateKey, err := crypto.HexToECDSA(privateKeyString)
-	if err != nil {
-		panic(err)
-	}
-
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return nil, errors.New("invalid key")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	//fetch the last use nonce of account
-	nounce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	chainID, err := client.ChainID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
-	if err != nil {
-		panic(err)
-	}
-	
-	auth.Nonce = big.NewInt(int64(nounce))
-	auth.Value = big.NewInt(0)                     // in wei 10:56
-	auth.GasLimit = uint64(384696 * gasMultiplyer) // in units
-	auth.GasPrice = gasPrice                       //big.NewInt(30001000047)
-
-	return auth, nil
-}
-
-func (m module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {
+func (m Module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {
 	panic("not implemented")
 }

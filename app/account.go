@@ -88,7 +88,7 @@ type resetPasswordInput struct {
 	Password string `json:"password"`
 }
 
-func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (m Module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var input CreateAccountInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("CreateAccount", "json::Decode", err)
@@ -154,7 +154,7 @@ func (m module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) Login(w http.ResponseWriter, r *http.Request) {
+func (m Module) Login(w http.ResponseWriter, r *http.Request) {
 	var input LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("Login", "json::Decode", err)
@@ -232,7 +232,7 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
+func (m Module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
 	var input initPasswordResetInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("getPasswordResetCode", "json::Decode", err)
@@ -259,7 +259,7 @@ func (m module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) resetPassword(w http.ResponseWriter, r *http.Request) {
+func (m Module) resetPassword(w http.ResponseWriter, r *http.Request) {
 	var input resetPasswordInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("resetPassword", "json::Decode", err)
@@ -297,13 +297,13 @@ func (m module) resetPassword(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) currentAccount(r *http.Request) (*models.Account, error) {
+func (m Module) currentAccount(r *http.Request) (*models.Account, error) {
 	acc, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
 	acc.Password = ""
 	return acc, err
 }
 
-func (m module) referralLink(w http.ResponseWriter, r *http.Request) {
+func (m Module) referralLink(w http.ResponseWriter, r *http.Request) {
 	acc, err := m.currentAccount(r)
 	if err != nil {
 		m.sendSomethingWentWrong(w, "currentAccount", err)
@@ -313,7 +313,7 @@ func (m module) referralLink(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.ReferralCode))
 }
 
-func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
+func (m Module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
 	var input UpdateDetailInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		log.Error("UpdateAccountDetail", "json::Decode", err)
@@ -337,7 +337,7 @@ func (m module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, true)
 }
 
-func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
+func (m Module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 	account, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
 	if err != nil {
 		log.Critical("GetAccountDetail", "m.db.GetAccount", err)
@@ -365,7 +365,7 @@ func (m module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
 // 	web.SendPagedJSON(w, accounts, totalCount)
 // }
 
-func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
+func (m Module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
 	count, err := m.db.GetRefferalCount(r.Context(), m.server.GetUserIDTokenCtx(r))
 	if err != nil {
 		log.Critical("GetRefferalCount", "m.db.GetRefferalCount", err)
@@ -375,7 +375,7 @@ func (m module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, count)
 }
 
-func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
+func (m Module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
 	count, err := m.db.GetAllAccountsCount(r.Context())
 	if err != nil {
 		log.Error("GetAllAccountsCount", err)
@@ -386,7 +386,7 @@ func (m module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, count)
 }
 
-func (m module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
+func (m Module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
 	pageReq := web.GetPaginationInfo(r)
 	accounts, err := m.db.GetAccounts(r.Context(), pageReq.Offset, pageReq.Limit)
 	if err != nil {

@@ -26,7 +26,7 @@ func newValidationError(errors []string) validationError {
 	return validationError{Errors: errors}
 }
 
-func (m module) handleError(w http.ResponseWriter, err error, tag ...string) {
+func (m Module) handleError(w http.ResponseWriter, err error, tag ...string) {
 	msg := "Cannot update currency. Something went wrong"
 	if messenger, ok := err.(ErrorMessenger); ok {
 		msg = messenger.ErrorMessage()

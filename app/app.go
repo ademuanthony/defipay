@@ -8,14 +8,14 @@ import (
 	"github.com/twharmon/govalid"
 )
 
-type module struct {
+type Module struct {
 	server        *web.Server
 	db            store
 	bscClient     *ethclient.Client
 	polygonClient *ethclient.Client
 	config        BlockchainConfig
 
-	currencyProcessors map[string]CurrencyProcessor
+	currencyProcessors map[string]map[Network]CurrencyProcessor
 
 	MgDomain string
 	MgKey    string
@@ -28,13 +28,13 @@ const (
 
 var v = govalid.New()
 
-func Start(server *web.Server, db store, bscClient *ethclient.Client,
-	polygonClient *ethclient.Client, currencyProcessors map[string]CurrencyProcessor, config BlockchainConfig,
-	mgDomain, mgKey string) error {
+func Start(db store, bscClient *ethclient.Client,
+	polygonClient *ethclient.Client, currencyProcessors map[string]map[Network]CurrencyProcessor,
+	config BlockchainConfig,
+	mgDomain, mgKey string) (*Module, error) {
 	log.Info("starting...")
 
-	app := module{
-		server:             server,
+	app := Module{
 		db:                 db,
 		bscClient:          bscClient,
 		polygonClient:      polygonClient,
@@ -46,10 +46,10 @@ func Start(server *web.Server, db store, bscClient *ethclient.Client,
 
 	app.buildRoute()
 
-	return nil
+	return &app, nil
 }
 
-func (m module) buildRoute() {
+func (m Module) buildRoute() {
 	m.server.AddRoute("/", web.GET, welcome)
 
 	// AUTH

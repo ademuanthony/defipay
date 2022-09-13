@@ -22,7 +22,7 @@ type sendNotificationInput struct {
 	Type       int    `josn:"type"`
 }
 
-func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
+func (m Module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
 	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
 	count, err := m.db.UnReadNotificationCount(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType))
 	if err != nil {
@@ -32,7 +32,7 @@ func (m module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Reques
 	web.SendJSON(w, count)
 }
 
-func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
+func (m Module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPaginationInfo(r)
 	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
 	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
@@ -43,7 +43,7 @@ func (m module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, notification, count)
 }
 
-func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
+func (m Module) getNotifications(w http.ResponseWriter, r *http.Request) {
 	pagedReq := web.GetPaginationInfo(r)
 	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
 	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
@@ -54,7 +54,7 @@ func (m module) getNotifications(w http.ResponseWriter, r *http.Request) {
 	web.SendPagedJSON(w, notification, count)
 }
 
-func (m module) getNotification(w http.ResponseWriter, r *http.Request) {
+func (m Module) getNotification(w http.ResponseWriter, r *http.Request) {
 	notification, err := m.db.GetNotification(r.Context(), r.FormValue("id"))
 	if err != nil {
 		m.sendSomethingWentWrong(w, "GetNotification", err)
@@ -67,7 +67,7 @@ func (m module) getNotification(w http.ResponseWriter, r *http.Request) {
 	web.SendJSON(w, notification)
 }
 
-func (m module) sendSomethingWentWrong(w http.ResponseWriter, fn string, err error) {
+func (m Module) sendSomethingWentWrong(w http.ResponseWriter, fn string, err error) {
 	log.Error(fn, err)
 	web.SendErrorfJSON(w, "Something went wrong. Please try again later")
 }
