@@ -352,12 +352,10 @@ func getAccountAuth(client *ethclient.Client, privateKeyString string, gasMultip
 		return nil, err
 	}
 
-	// chainID, err := client.ChainID(context.Background())
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	chainID := big.NewInt(137)
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
@@ -368,9 +366,7 @@ func getAccountAuth(client *ethclient.Client, privateKeyString string, gasMultip
 	if err != nil {
 		panic(err)
 	}
-	if gasPrice.Cmp(big.NewInt(30001000047)) == -1 {
-		gasPrice = big.NewInt(30001000047)
-	}
+	
 	auth.Nonce = big.NewInt(int64(nounce))
 	auth.Value = big.NewInt(0)                     // in wei 10:56
 	auth.GasLimit = uint64(384696 * gasMultiplyer) // in units
