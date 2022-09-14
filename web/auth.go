@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -31,6 +32,16 @@ func CreateToken(userid string, authorized bool) (string, error) {
 
 func ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
+	//normally Authorization the_token_xxx
+	strArr := strings.Split(bearToken, " ")
+	if len(strArr) == 2 {
+		return strArr[1]
+	}
+	return ""
+}
+
+func ExtractTokenSls(r events.APIGatewayProxyRequest) string {
+	bearToken := r.Headers["Authorization"]
 	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) == 2 {

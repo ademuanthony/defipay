@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 )
@@ -26,6 +27,35 @@ func getClaims(r *http.Request) (Claims, error) {
 	claims := Claims{}
 
 	tknStr := ExtractToken(r)
+	if tknStr == "" {
+		log.Error("no token")
+		return claims, errors.New("missing auth token")
+	}
+
+	// Parse the JWT string and store the result in `claims`.
+	// Note that we are passing the key in this method as well. This method will return an error
+	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+	// or if the signature does not match
+	tkn, err := jwt.ParseWithClaims(tknStr, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return claims, errors.New("invalid auth token")
+		}
+		return claims, errors.New("error in processing")
+	}
+	if !tkn.Valid {
+		return claims, errors.New("invalid auth token")
+	}
+
+	return claims, nil
+}
+
+func getClaimsSls(r events.APIGatewayProxyRequest) (Claims, error) {
+	claims := Claims{}
+
+	tknStr := ExtractTokenSls(r)
 	if tknStr == "" {
 		log.Error("no token")
 		return claims, errors.New("missing auth token")
@@ -72,7 +102,20 @@ func (s Server) GetUserIDTokenCtx(r *http.Request) string {
 	if !claims.Authorized {
 		return ""
 	}
-	
+
+	return claims.UserID
+}
+
+func (s Server) GetUserIDTokenCtxSls(r events.APIGatewayProxyRequest) string {
+	claims, err := getClaimsSls(r)
+	if err != nil {
+		return ""
+	}
+
+	if !claims.Authorized {
+		return ""
+	}
+
 	return claims.UserID
 }
 
@@ -82,7 +125,7 @@ func (s Server) GetUserIDTokenUnAuthCtx(r *http.Request) string {
 	if err != nil {
 		return ""
 	}
-	
+
 	return claims.UserID
 }
 

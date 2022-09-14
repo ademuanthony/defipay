@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 const (
@@ -228,16 +230,41 @@ func (s *Server) StatusPage(w http.ResponseWriter, r *http.Request, code, messag
 }
 
 func GetPaginationInfo(r *http.Request) PagedResultRequest {
-	return GetPanitionInfoWithLimit(r, DefaultPageSize)
+	return GetPaginationInfoWithLimit(r, DefaultPageSize)
 }
 
-func GetPanitionInfoWithLimit(r *http.Request, defaultLimit int) PagedResultRequest {
+func GetPaginationInfoWithLimit(r *http.Request, defaultLimit int) PagedResultRequest {
 	page, _ := strconv.Atoi(r.FormValue("page"))
 	if page < 1 {
 		page = 1
 	}
 
 	pageSize, _ := strconv.Atoi(r.FormValue("limit"))
+	if pageSize < 1 {
+		pageSize = defaultLimit
+	}
+
+	offset := (page - 1) * pageSize
+
+	return PagedResultRequest{
+		Limit:    pageSize,
+		Offset:   offset,
+		Page:     int64(page),
+		PageSize: int64(pageSize),
+	}
+}
+
+func GetPaginationInfoSls(r events.APIGatewayProxyRequest) PagedResultRequest {
+	return GetPaginationInfoWithLimitSls(r, DefaultPageSize)
+}
+
+func GetPaginationInfoWithLimitSls(r events.APIGatewayProxyRequest, defaultLimit int) PagedResultRequest {
+	page, _ := strconv.Atoi(r.QueryStringParameters["page"])
+	if page < 1 {
+		page = 1
+	}
+
+	pageSize, _ := strconv.Atoi(r.QueryStringParameters["limit"])
 	if pageSize < 1 {
 		pageSize = defaultLimit
 	}

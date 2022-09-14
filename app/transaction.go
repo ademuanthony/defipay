@@ -11,6 +11,7 @@ import (
 
 	"deficonnect/defipayapi/web"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -87,6 +88,8 @@ type GetTransactionsInput struct {
 	Limit     int
 }
 
+type Response events.APIGatewayProxyResponse
+
 func (m Module) getTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
@@ -101,6 +104,15 @@ func (m Module) getTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendJSON(w, transaction)
+}
+
+func (m Module) GetTransactionHandler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
+	id := request.PathParameters["id"]
+	transaction, err := m.db.Transaction(ctx, id)
+	if err != nil {
+		return Response{StatusCode: 400}, err
+	}
+	return SendJSON(transaction)
 }
 
 func (m Module) getTransactions(w http.ResponseWriter, r *http.Request) {
@@ -118,6 +130,22 @@ func (m Module) getTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	web.SendPagedJSON(w, transactions, count)
+}
+
+func (m Module) GetTransactionsHandler(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	email := r.QueryStringParameters["email"]
+	accountID := m.server.GetUserIDTokenCtxSls(r)
+	pagedReq := web.GetPaginationInfoSls(r)
+
+	transactions, count, err := m.db.Transactions(ctx, GetTransactionsInput{
+		Email: email, AccountID: accountID, Offset: pagedReq.Offset, Limit: pagedReq.Limit,
+	})
+
+	if err != nil {
+		return Response{StatusCode: 400}, err
+	}
+
+	return SendPagedJSON(transactions, count)
 }
 
 func (m Module) createFundTransferTransaction(w http.ResponseWriter, r *http.Request) {

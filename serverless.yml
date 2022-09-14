@@ -25,21 +25,7 @@ useDotenv: true
 provider:
   name: aws
   runtime: go1.x
-  environment:
-   DBHOST: ${env:DBHOST}
-   DBPORT: ${env:DBPORT}
-   DBUSER: ${env:DBUSER}
-   DBPASS: ${env:DBPASS}
-   DBNAME: ${env:DBNAME}
-   DEBUG_SQL: ${env:DEBUG_SQL}
-   MAINNET_NODE_ADDRESS: ${env:MAINNET_NODE_ADDRESS}
-   USDT_CONTRACT_ADDRESS: ${env:USDT_CONTRACT_ADDRESS}
-   MASTER_ADDRESS: ${env:MASTER_ADDRESS}
-   MASTER_ADDRESS_KEY: ${env:MASTER_ADDRESS_KEY}
-   MAILGUNDOMAIN: ${env:MAILGUNDOMAIN}
-   MAILGUNAPIKEY: ${env:MAILGUNAPIKEY}
-   ACCESS_SECRET: ${env:ACCESS_SECRET}
-   RUN_BG_PROCESSES: ${env:RUN_BG_PROCESSES}
+  environment: ${file(configs.js)}
 
 package:
   patterns:
@@ -58,6 +44,13 @@ functions:
     events:
       - httpApi:
           path: /world
+          method: get
+
+  gettransaction:
+    handler: bin/gettransaction
+    events:
+      - httpApi:
+          path: /transaction/{id}
           method: get
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

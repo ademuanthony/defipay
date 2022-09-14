@@ -44,8 +44,6 @@ func Start(db store, bscClient *ethclient.Client,
 		MgKey:              mgKey,
 	}
 
-	app.buildRoute()
-
 	return &app, nil
 }
 
