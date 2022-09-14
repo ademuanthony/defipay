@@ -1,6 +1,7 @@
 package app
 
 import (
+	"database/sql"
 	"strings"
 )
 
@@ -28,6 +29,8 @@ func (m Module) handleError(err error, tag ...string) (Response, error) {
 	msg := "Unable to complete your request. Something went wrong"
 	if messenger, ok := err.(ErrorMessenger); ok {
 		msg = messenger.ErrorMessage()
+	} else if err.Error() == sql.ErrNoRows.Error() {
+		msg =  "Not Found"
 	}
 	log.Error(tag, err)
 	return SendErrorfJSON(msg)

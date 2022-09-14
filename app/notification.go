@@ -67,5 +67,5 @@ func (m Module) getNotification(ctx context.Context, r events.APIGatewayProxyReq
 
 func (m Module) sendSomethingWentWrong(fn string, err error) (Response, error) {
 	log.Error(fn, err)
-	return SendErrorfJSON("Something went wrong. Please try again later")
+	return m.handleError(err)
 }
