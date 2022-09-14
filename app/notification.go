@@ -1,9 +1,11 @@
 package app
 
 import (
+	"context"
 	"deficonnect/defipayapi/web"
-	"net/http"
 	"strconv"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 const (
@@ -22,52 +24,48 @@ type sendNotificationInput struct {
 	Type       int    `josn:"type"`
 }
 
-func (m Module) getUnReadNotificationCount(w http.ResponseWriter, r *http.Request) {
-	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
-	count, err := m.db.UnReadNotificationCount(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType))
+func (m Module) getUnReadNotificationCount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
+	count, err := m.db.UnReadNotificationCount(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType))
 	if err != nil {
 		log.Error("getNotificationCount", "UnReadNotificationCount", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
+		return SendErrorfJSON("Something went wrong. Please try again later")
 	}
-	web.SendJSON(w, count)
+	return SendJSON(count)
 }
 
-func (m Module) getNewNotifications(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPaginationInfo(r)
-	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
-	notification, count, err := m.db.GetNewNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
+func (m Module) getNewNotifications(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	pagedReq := web.GetPaginationInfoSls(r)
+	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
+	notification, count, err := m.db.GetNewNotifications(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GetNewNotifications", err)
-		return
+		return m.sendSomethingWentWrong("GetNewNotifications", err)
 	}
-	web.SendPagedJSON(w, notification, count)
+	return SendPagedJSON(notification, count)
 }
 
-func (m Module) getNotifications(w http.ResponseWriter, r *http.Request) {
-	pagedReq := web.GetPaginationInfo(r)
-	notificationType, _ := strconv.ParseInt(r.FormValue("type"), 10, 64)
-	notification, count, err := m.db.GetNotifications(r.Context(), m.server.GetUserIDTokenCtx(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
+func (m Module) getNotifications(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	pagedReq := web.GetPaginationInfoSls(r)
+	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
+	notification, count, err := m.db.GetNotifications(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GetNotifications", err)
-		return
+		return m.sendSomethingWentWrong("GetNotifications", err)
 	}
-	web.SendPagedJSON(w, notification, count)
+	return SendPagedJSON(notification, count)
 }
 
-func (m Module) getNotification(w http.ResponseWriter, r *http.Request) {
-	notification, err := m.db.GetNotification(r.Context(), r.FormValue("id"))
+func (m Module) getNotification(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	notification, err := m.db.GetNotification(ctx, r.QueryStringParameters["id"])
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GetNotification", err)
-		return
+		return m.sendSomethingWentWrong("GetNotification", err)
 	}
-	if notification.AccountID != m.server.GetUserIDTokenCtx(r) {
-		web.SendErrorfJSON(w, "Access denied")
-		return
+	if notification.AccountID != m.server.GetUserIDTokenCtxSls(r) {
+		return SendErrorfJSON("Access denied")
 	}
-	web.SendJSON(w, notification)
+	return SendJSON(notification)
 }
 
-func (m Module) sendSomethingWentWrong(w http.ResponseWriter, fn string, err error) {
+func (m Module) sendSomethingWentWrong(fn string, err error) (Response, error) {
 	log.Error(fn, err)
-	web.SendErrorfJSON(w, "Something went wrong. Please try again later")
+	return SendErrorfJSON("Something went wrong. Please try again later")
 }

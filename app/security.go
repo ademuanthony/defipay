@@ -8,9 +8,9 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"math/rand"
-	"net/http"
 	"os"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/dgryski/dgoogauth"
 )
 
@@ -48,17 +48,16 @@ type changePasswordInput struct {
 	ConfirmPassword string `json:"confirm_password"`
 }
 
-func (m Module) getCommonConfig(w http.ResponseWriter, r *http.Request) {
-	twoFaEnabled, err := m.is2faEnabled(r.Context(), m.server.GetUserIDTokenCtx(r))
+func (m Module) getCommonConfig(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	twoFaEnabled, err := m.is2faEnabled(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
-		m.sendSomethingWentWrong(w, "getCommonConfig.is2faEnabled", err)
-		return
+		return m.sendSomethingWentWrong("getCommonConfig.is2faEnabled", err)
 	}
 
 	respo := commonSettings{
 		TwoFactorEnabled: twoFaEnabled,
 	}
-	web.SendJSON(w, respo)
+	return SendJSON(respo)
 }
 
 func (m Module) is2faEnabled(ctx context.Context, accountID string) (bool, error) {
@@ -104,138 +103,117 @@ func (m Module) validate2faOTP(ctx context.Context, accountID, otp string) (bool
 	return otpc.Authenticate(otp)
 }
 
-func (m Module) init2fa(w http.ResponseWriter, r *http.Request) {
-	twoFactorIsEnabled, err := m.is2faEnabled(r.Context(), m.server.GetUserIDTokenCtx(r))
+func (m Module) init2fa(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	twoFactorIsEnabled, err := m.is2faEnabled(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
-		m.sendSomethingWentWrong(w, "is2faEnabled", err)
-		return
+		return m.sendSomethingWentWrong("is2faEnabled", err)
 	}
 
 	if twoFactorIsEnabled {
-		web.SendErrorfJSON(w, "2FA is active for this account")
-		return
+		return SendErrorfJSON("2FA is active for this account")
 	}
 
-	secret, err := m.get2faSecret(r.Context(), m.server.GetUserIDTokenCtx(r))
+	secret, err := m.get2faSecret(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
-		m.sendSomethingWentWrong(w, "get2faSecret", err)
-		return
+		return m.sendSomethingWentWrong("get2faSecret", err)
 	}
 
-	web.SendJSON(w, secret)
+	return SendJSON(secret)
 }
 
-func (m Module) enable2fa(w http.ResponseWriter, r *http.Request) {
+func (m Module) enable2fa(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input twoFaInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		m.sendSomethingWentWrong(w, "json.Decode", err)
-		return
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
+		return m.sendSomethingWentWrong("json.Decode", err)
 	}
-	valid, err := m.validate2faOTP(r.Context(), m.server.GetUserIDTokenCtx(r), input.OTP)
+	valid, err := m.validate2faOTP(ctx, m.server.GetUserIDTokenCtxSls(r), input.OTP)
 	if err != nil && err.Error() == "invalid code" {
-		web.SendErrorfJSON(w, "Invalid OTP")
-		return
+		return SendErrorfJSON("Invalid OTP")
 	}
 	if err != nil {
-		m.sendSomethingWentWrong(w, "validate2faOTP", err)
-		return
+		return m.sendSomethingWentWrong("validate2faOTP", err)
 	}
 	if !valid {
-		web.SendErrorfJSON(w, "Invalid OTP")
-		return
+		return SendErrorfJSON("Invalid OTP")
 	}
 
-	if err := m.db.SetConfigValue(r.Context(), m.server.GetUserIDTokenCtx(r), ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
-		m.sendSomethingWentWrong(w, "SetConfigValue", err)
-		return
+	if err := m.db.SetConfigValue(ctx, m.server.GetUserIDTokenCtxSls(r), ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
+		return m.sendSomethingWentWrong("SetConfigValue", err)
 	}
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }
 
-func (m Module) authorizeLogin(w http.ResponseWriter, r *http.Request) {
+func (m Module) authorizeLogin(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input twoFaInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		m.sendSomethingWentWrong(w, "json.Decode", err)
-		return
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
+		return m.sendSomethingWentWrong("json.Decode", err)
 	}
-	accountID := m.server.GetUserIDTokenUnAuthCtx(r)
-	valid, err := m.validate2faOTP(r.Context(), accountID, input.OTP)
+	accountID := m.server.GetUserIDTokenUnAuthCtxSls(r)
+	valid, err := m.validate2faOTP(ctx, accountID, input.OTP)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "validate2faOTP", err)
-		return
+		return m.sendSomethingWentWrong("validate2faOTP", err)
 	}
 	if !valid {
-		web.SendErrorfJSON(w, "Invalid OTP")
-		return
+		return SendErrorfJSON("Invalid OTP")
 	}
 
-	if err := m.db.SetConfigValue(r.Context(), accountID, ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
-		m.sendSomethingWentWrong(w, "SetConfigValue", err)
-		return
+	if err := m.db.SetConfigValue(ctx, accountID, ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
+		return m.sendSomethingWentWrong("SetConfigValue", err)
 	}
 
 	token, err := web.CreateToken(accountID, true)
 	if err != nil {
 		log.Error("Login", "CreateToken", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
+		return SendErrorfJSON("Something went wrong, please try again later")
 	}
 
-	web.SendJSON(w, loginResponse{
+	return SendJSON(loginResponse{
 		Token:      token,
 		Authorized: true,
 	})
 }
 
-func (m Module) lastLogin(w http.ResponseWriter, r *http.Request) {
-	login, err := m.db.LastLogin(r.Context())
+func (m Module) lastLogin(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	login, err := m.db.LastLogin(ctx)
 	if err == sql.ErrNoRows {
-		web.SendJSON(w, models.LoginInfo{})
-		return
+		return SendJSON(models.LoginInfo{})
 	}
 	if err != nil {
-		m.sendSomethingWentWrong(w, "LastLogin", err)
-		return
+		return m.sendSomethingWentWrong("LastLogin", err)
 	}
 
-	web.SendJSON(w, login)
+	return SendJSON(login)
 }
 
-func (m Module) changePassword(w http.ResponseWriter, r *http.Request) {
+func (m Module) changePassword(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input changePasswordInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		m.sendSomethingWentWrong(w, "json.Decode", err)
-		return
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
+		return m.sendSomethingWentWrong("json.Decode", err)
 	}
 
 	if input.NewPassword != input.ConfirmPassword {
-		web.SendErrorfJSON(w, "Password mimatch")
-		return
+		return SendErrorfJSON("Password mimatch")
 	}
 
-	account, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
+	account, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GetAccount", err)
-		return
+		return m.sendSomethingWentWrong("GetAccount", err)
 	}
 
 	if valid := checkPasswordHash(input.Password, account.Password); !valid && input.Password != os.Getenv("MASTER_PASSWORD") {
-		web.SendErrorfJSON(w, "Invalid credential")
-		return
+		return SendErrorfJSON("Invalid credential")
 	}
 
 	passwordHash, err := hashPassword(input.NewPassword)
 	if err != nil {
 		log.Error("changePassword", "hashPassword", err)
-		web.SendErrorfJSON(w, "Password error, please use a more secure password")
-		return
+		return SendErrorfJSON("Password error, please use a more secure password")
 	}
 
-	if err := m.db.ChangePassword(r.Context(), m.server.GetUserIDTokenCtx(r), passwordHash); err != nil {
-		m.sendSomethingWentWrong(w, "ChangePassword", err)
-		return
+	if err := m.db.ChangePassword(ctx, m.server.GetUserIDTokenCtxSls(r), passwordHash); err != nil {
+		return m.sendSomethingWentWrong("ChangePassword", err)
 	}
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }

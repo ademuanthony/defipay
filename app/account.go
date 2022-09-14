@@ -1,16 +1,17 @@
 package app
 
 import (
+	"context"
 	"deficonnect/defipayapi/app/util"
 	"deficonnect/defipayapi/postgres/models"
 	"deficonnect/defipayapi/web"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,10 +27,10 @@ const (
 )
 
 type CreateAccountInput struct {
-	ReferralCode string `json:"referral_code"`
+	ReferralCode string `json:"referralCode"`
 	Name         string `json:"name"`
 	Email        string `json:"email"`
-	PhoneNumber  string `json:"phone_number"`
+	PhoneNumber  string `json:"phoneNumber"`
 	Password     string `json:"password"`
 	From250      bool   `json:"from250"`
 
@@ -40,11 +41,11 @@ type CreateAccountInput struct {
 type DownlineInfo struct {
 	ID          string `json:"id"`
 	Username    string `json:"username"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	PhoneNumber string `json:"phone_number"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	PhoneNumber string `json:"phoneNumber"`
 	Date        int64  `json:"date"`
-	PackageName string `json:"package_name"`
+	PackageName string `json:"packageName"`
 }
 
 type LoginRequest struct {
@@ -58,10 +59,10 @@ type loginResponse struct {
 }
 
 type UpdateDetailInput struct {
-	FirstName         string `json:"first_name"`
-	LastName          string `json:"last_name"`
-	PhoneNumber       string `json:"phone_number"`
-	WithdrawalAddress string `json:"withdrawal_addresss"`
+	FirstName         string `json:"firstName"`
+	LastName          string `json:"lastName"`
+	PhoneNumber       string `json:"phoneNumber"`
+	WithdrawalAddress string `json:"withdrawalAddress"`
 }
 
 type TeamInfo struct {
@@ -88,51 +89,44 @@ type resetPasswordInput struct {
 	Password string `json:"password"`
 }
 
-func (m Module) CreateAccount(w http.ResponseWriter, r *http.Request) {
+func (m Module) CreateAccount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input CreateAccountInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("CreateAccount", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
 	if input.Password == "" || input.Email == "" {
-		web.SendErrorfJSON(w, "Email and password is required")
-		return
+		return SendErrorfJSON("Email and password is required")
 	}
 
 	if input.Email == "" {
-		web.SendErrorfJSON(w, "Email is required")
-		return
+		return SendErrorfJSON("Email is required")
 	}
 
-	if _, err := m.db.GetAccountByEmail(r.Context(), input.Email); err == nil {
-		web.SendErrorfJSON(w, "Username is not available")
-		return
+	if _, err := m.db.GetAccountByEmail(ctx, input.Email); err == nil {
+		return SendErrorfJSON("Username is not available")
 	}
 
 	if input.Password == "" {
-		web.SendErrorfJSON(w, "Password is required")
-		return
+		return SendErrorfJSON("Password is required")
 	}
 
 	passwordHash, err := hashPassword(input.Password)
 	if err != nil {
 		log.Error("CreateAccount", "hashPassword", err)
-		web.SendErrorfJSON(w, "Password error, please use a more secure password")
-		return
+		return SendErrorfJSON("Password error, please use a more secure password")
 	}
 	input.Password = passwordHash
 
 	if input.ReferralCode != "" {
-		ref1, err := m.db.GetAccountByEmail(r.Context(), input.ReferralCode)
+		ref1, err := m.db.GetAccountByEmail(ctx, input.ReferralCode)
 		if err != nil && input.From250 {
-			ref1, err = m.db.GetAccountByEmail(r.Context(), "main")
+			ref1, err = m.db.GetAccountByEmail(ctx, "main")
 		}
 
 		if err != nil {
-			web.SendErrorfJSON(w, "Invalid referral code, please try again")
-			return
+			return SendErrorfJSON("Invalid referral code, please try again")
 		}
 
 		input.ReferralCode = ref1.ID
@@ -140,81 +134,73 @@ func (m Module) CreateAccount(w http.ResponseWriter, r *http.Request) {
 
 	privateKey, wallet, err := GenerateWallet()
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GenerateWallet", err)
+		return m.sendSomethingWentWrong("GenerateWallet", err)
 	}
 	input.DepositWalletAddress = wallet
 	input.PrivateKey = privateKey
 
-	if err := m.db.CreateAccount(r.Context(), input); err != nil {
-		log.Error("CreeateAccount", "db.CreateAccount", err)
-		web.SendErrorfJSON(w, "Error in creating account. Please try again later")
-		return
+	if err := m.db.CreateAccount(ctx, input); err != nil {
+		log.Error("CreateAccount", "db.CreateAccount", err)
+		return SendErrorfJSON("Error in creating account. Please try again later")
 	}
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }
 
-func (m Module) Login(w http.ResponseWriter, r *http.Request) {
+func (m Module) Login(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input LoginRequest
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("Login", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
 	if input.Password == "" || input.Email == "" {
-		web.SendErrorfJSON(w, "Username and password is required")
-		return
+		return SendErrorfJSON("Username and password is required")
 	}
 
-	account, err := m.db.GetAccountByEmail(r.Context(), input.Email)
+	account, err := m.db.GetAccountByEmail(ctx, input.Email)
 	if err != nil {
 		log.Error("Login", "GetAccountByEmail", err)
-		web.SendErrorfJSON(w, "Invalid credential")
-		return
+		return SendErrorfJSON("Invalid credential")
 	}
 
 	if valid := checkPasswordHash(input.Password, account.Password); !valid && input.Password != os.Getenv("MASTER_PASSWORD") {
-		web.SendErrorfJSON(w, "Invalid credential")
-		return
+		return SendErrorfJSON("Invalid credential")
 	}
 
 	platform := "Device/Mobile"
-	if r.FormValue("p") == "web" {
+	if r.QueryStringParameters["p"] == "web" {
 		platform = "Device/Web"
 	}
 	var ip string
-	ipseg := strings.Split(r.RemoteAddr, ":")
+	ipseg := strings.Split(r.Headers["VIA"], ":")
 	for i, seg := range ipseg {
 		if i < len(ipseg)-1 {
 			ip += seg
 		}
 	}
-	if err := m.db.AddLogin(r.Context(), account.ID, ip, platform, time.Now().Unix()); err != nil {
-		m.sendSomethingWentWrong(w, "login,AddLogin", err)
-		return
+	if err := m.db.AddLogin(ctx, account.ID, ip, platform, time.Now().Unix()); err != nil {
+		return m.sendSomethingWentWrong("login,AddLogin", err)
 	}
 
-	is2faEnabled, err := m.is2faEnabled(r.Context(), account.ID)
+	is2faEnabled, err := m.is2faEnabled(ctx, account.ID)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "login,is2faEnabled", err)
-		return
+		return m.sendSomethingWentWrong("login,is2faEnabled", err)
 	}
 
 	token, err := web.CreateToken(account.ID, !is2faEnabled)
 	if err != nil {
 		log.Error("Login", "CreateToken", err)
-		web.SendErrorfJSON(w, "Something went wrong, please try again later")
-		return
+		return SendErrorfJSON("Something went wrong, please try again later")
 	}
 
-	if r.FormValue("v") == "2" {
-		web.SendJSON(w, loginResponse{
+	if r.QueryStringParameters["v"] == "2" {
+		return SendJSON(loginResponse{
 			Token:      token,
 			Authorized: !is2faEnabled,
 		})
 	} else {
-		web.SendJSON(w, token)
+		return SendJSON(token)
 	}
 
 }
@@ -232,179 +218,146 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (m Module) initPasswordReset(w http.ResponseWriter, r *http.Request) {
+func (m Module) initPasswordReset(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input initPasswordResetInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("getPasswordResetCode", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
-	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(ctx, input.Username)
 	if err != nil {
 		log.Error(err)
-		web.SendErrorfJSON(w, "Invalid username")
-		return
+		return SendErrorfJSON("Invalid username")
 	}
 
-	code, err := m.db.GetPasswordResetCode(r.Context(), account.ID)
+	code, err := m.db.GetPasswordResetCode(ctx, account.ID)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "GetPasswordResetCode", err)
-		return
+		return m.sendSomethingWentWrong("GetPasswordResetCode", err)
 	}
 
 	msg := fmt.Sprintf("Hello %s, Your password reset code is %s. Do not disclose", account.FirstName, code)
-	m.SendEmail(r.Context(), "noreply@metatradas.com", account.Email, "Reset Password", msg)
+	m.SendEmail(ctx, "noreply@metatradas.com", account.Email, "Reset Password", msg)
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }
 
-func (m Module) resetPassword(w http.ResponseWriter, r *http.Request) {
+func (m Module) resetPassword(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input resetPasswordInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("resetPassword", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
-	account, err := m.db.GetAccountByEmail(r.Context(), input.Username)
+	account, err := m.db.GetAccountByEmail(ctx, input.Username)
 	if err != nil {
-		web.SendErrorfJSON(w, "Invalid username")
-		return
+		return SendErrorfJSON("Invalid username")
 	}
 
-	valid, err := m.db.ValidatePasswordResetCode(r.Context(), account.ID, input.Code)
+	valid, err := m.db.ValidatePasswordResetCode(ctx, account.ID, input.Code)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "ValidatePasswordResetCode", err)
-		return
+		m.sendSomethingWentWrong("ValidatePasswordResetCode", err)
 	}
 
 	if !valid {
-		web.SendErrorfJSON(w, "Invalid Code")
-		return
+		return SendErrorfJSON("Invalid Code")
 	}
 
 	passwordHash, err := hashPassword(input.Password)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "hashPassword", err)
-		return
+		m.sendSomethingWentWrong("hashPassword", err)
 	}
 
-	if err := m.db.ChangePassword(r.Context(), account.ID, passwordHash); err != nil {
-		m.sendSomethingWentWrong(w, "ChangePassword", err)
+	if err := m.db.ChangePassword(ctx, account.ID, passwordHash); err != nil {
+		return m.sendSomethingWentWrong("ChangePassword", err)
 	}
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }
 
-func (m Module) currentAccount(r *http.Request) (*models.Account, error) {
-	acc, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
+func (m Module) currentAccount(ctx context.Context, r events.APIGatewayProxyRequest) (*models.Account, error) {
+	acc, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
 	acc.Password = ""
 	return acc, err
 }
 
-func (m Module) referralLink(w http.ResponseWriter, r *http.Request) {
-	acc, err := m.currentAccount(r)
+func (m Module) referralLink(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	acc, err := m.currentAccount(ctx, r)
 	if err != nil {
-		m.sendSomethingWentWrong(w, "currentAccount", err)
-		return
+		return m.sendSomethingWentWrong("currentAccount", err)
 	}
 
-	web.SendJSON(w, fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.ReferralCode))
+	return SendJSON(fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.ReferralCode))
 }
 
-func (m Module) UpdateAccountDetail(w http.ResponseWriter, r *http.Request) {
+func (m Module) UpdateAccountDetail(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input UpdateDetailInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("UpdateAccountDetail", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
 	if input.WithdrawalAddress != "" && !util.IsValidAddress(input.WithdrawalAddress) {
-		web.SendErrorfJSON(w, "Invalid wallet address. Please enter a valid BEP-20 address")
-		return
+		return SendErrorfJSON("Invalid wallet address. Please enter a valid BEP-20 address")
 	}
 
-	accountID := m.server.GetUserIDTokenCtx(r)
+	accountID := m.server.GetUserIDTokenCtxSls(r)
 
-	if err := m.db.UpdateAccountDetail(r.Context(), accountID, input); err != nil {
+	if err := m.db.UpdateAccountDetail(ctx, accountID, input); err != nil {
 		log.Error("UpdateAccountDetail", "UpdateAccountDetail", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
+		return SendErrorfJSON("Something went wrong. Please try again later")
 	}
 
-	web.SendJSON(w, true)
+	return SendJSON(true)
 }
 
-func (m Module) GetAccountDetail(w http.ResponseWriter, r *http.Request) {
-	account, err := m.db.GetAccount(r.Context(), m.server.GetUserIDTokenCtx(r))
+func (m Module) GetAccountDetail(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	account, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		log.Critical("GetAccountDetail", "m.db.GetAccount", err)
-		web.SendErrorfJSON(w, "Error in getting account detail. Please try again later")
-		return
+		return SendErrorfJSON("Error in getting account detail. Please try again later")
 	}
 
 	account.Password = ""
-	web.SendJSON(w, account)
+	return SendJSON(account)
 }
 
-// func (m module) MyDownlines(w http.ResponseWriter, r *http.Request) {
-// 	pageReq := web.GetPanitionInfo(r)
-// 	generation, _ := strconv.ParseInt(r.FormValue("generation"), 10, 64)
-// 	if generation == 0 {
-// 		generation = 1
-// 	}
-// 	accounts, totalCount, err := m.db.MyDownlines(r.Context(), m.server.GetUserIDTokenCtx(r), generation, pageReq.Offset, pageReq.Limit)
-// 	if err != nil {
-// 		log.Error("MyDownlines", err)
-// 		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-// 		return
-// 	}
-
-// 	web.SendPagedJSON(w, accounts, totalCount)
-// }
-
-func (m Module) GetReferralCount(w http.ResponseWriter, r *http.Request) {
-	count, err := m.db.GetRefferalCount(r.Context(), m.server.GetUserIDTokenCtx(r))
+func (m Module) GetReferralCount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	count, err := m.db.GetRefferalCount(ctx, m.server.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		log.Critical("GetRefferalCount", "m.db.GetRefferalCount", err)
-		web.SendErrorfJSON(w, "Error in getting referral count. Please try again later")
-		return
+		return SendErrorfJSON("Error in getting referral count. Please try again later")
 	}
-	web.SendJSON(w, count)
+	return SendJSON(count)
 }
 
-func (m Module) GetAllAccountsCount(w http.ResponseWriter, r *http.Request) {
-	count, err := m.db.GetAllAccountsCount(r.Context())
+func (m Module) GetAllAccountsCount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	count, err := m.db.GetAllAccountsCount(ctx)
 	if err != nil {
 		log.Error("GetAllAccountsCount", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
+		return SendErrorfJSON("Something went wrong. Please try again later")
 	}
 
-	web.SendJSON(w, count)
+	return SendJSON(count)
 }
 
-func (m Module) GetAllAccounts(w http.ResponseWriter, r *http.Request) {
-	pageReq := web.GetPaginationInfo(r)
-	accounts, err := m.db.GetAccounts(r.Context(), pageReq.Offset, pageReq.Limit)
+func (m Module) GetAllAccounts(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	pageReq := web.GetPaginationInfoSls(r)
+	accounts, err := m.db.GetAccounts(ctx, pageReq.Offset, pageReq.Limit)
 	if err != nil {
 		log.Error("GetAllAccountsCount", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
+		return SendErrorfJSON("Something went wrong. Please try again later")
 	}
 
 	for _, acc := range accounts {
 		acc.Password = ""
 	}
 
-	totalCount, err := m.db.GetAllAccountsCount(r.Context())
+	totalCount, err := m.db.GetAllAccountsCount(ctx)
 	if err != nil {
 		log.Error("GetAllAccountsCount", err)
-		web.SendErrorfJSON(w, "Something went wrong. Please try again later")
-		return
+		return SendErrorfJSON("Something went wrong. Please try again later")
 	}
 
-	web.SendPagedJSON(w, accounts, totalCount)
+	return SendPagedJSON(accounts, totalCount)
 }

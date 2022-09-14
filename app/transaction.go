@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net/http"
 	"time"
 
 	"deficonnect/defipayapi/web"
@@ -16,15 +15,15 @@ import (
 )
 
 type CreateTransactionInput struct {
-	BankName      string          `govalid:"req" json:"bank_name" toml:"bank_name" yaml:"bank_name"`
-	AccountNumber string          `govalid:"req" json:"account_number" toml:"account_number" yaml:"account_number"`
-	AccountName   string          `govalid:"req" json:"account_name" toml:"account_name" yaml:"account_name"`
+	BankName      string          `govalid:"req" json:"bankName" toml:"bank_name" yaml:"bank_name"`
+	AccountNumber string          `govalid:"req" json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName   string          `govalid:"req" json:"accountName" toml:"account_name" yaml:"account_name"`
 	Amount        int64           `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
 	Email         string          `govalid:"req" json:"email" toml:"email" yaml:"email"`
 	Network       string          `govalid:"req" json:"network" toml:"network" yaml:"network"`
 	Currency      string          `govalid:"req" json:"currency" toml:"currency" yaml:"currency"`
-	PaymentLink   string          `boil:"payment_link" json:"payment_link" toml:"payment_link" yaml:"payment_link"`
-	Type          transactionType `boil:"type" json:"type" toml:"type" yaml:"type"`
+	PaymentLink   string          `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
+	Type          transactionType `govalid:"req" json:"type" toml:"type" yaml:"type"`
 
 	WalletAddress string `json:"-"`
 	PrivateKey    string `json:"-"`
@@ -90,22 +89,6 @@ type GetTransactionsInput struct {
 
 type Response events.APIGatewayProxyResponse
 
-func (m Module) getTransaction(w http.ResponseWriter, r *http.Request) {
-	id := r.FormValue("id")
-	if id == "" {
-		web.SendErrorfJSON(w, "ID is required")
-		return
-	}
-
-	transaction, err := m.db.Transaction(r.Context(), id)
-	if err != nil {
-		m.handleError(w, err, "Get Transaction")
-		return
-	}
-
-	web.SendJSON(w, transaction)
-}
-
 func (m Module) GetTransactionHandler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	id := request.PathParameters["id"]
 	transaction, err := m.db.Transaction(ctx, id)
@@ -113,23 +96,6 @@ func (m Module) GetTransactionHandler(ctx context.Context, request events.APIGat
 		return Response{StatusCode: 400}, err
 	}
 	return SendJSON(transaction)
-}
-
-func (m Module) getTransactions(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	accountID := m.server.GetUserIDTokenCtx(r)
-	pagedReq := web.GetPaginationInfo(r)
-
-	transactions, count, err := m.db.Transactions(r.Context(), GetTransactionsInput{
-		Email: email, AccountID: accountID, Offset: pagedReq.Offset, Limit: pagedReq.Limit,
-	})
-
-	if err != nil {
-		m.handleError(w, err, "Get Transactions")
-		return
-	}
-
-	web.SendPagedJSON(w, transactions, count)
 }
 
 func (m Module) GetTransactionsHandler(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
@@ -148,52 +114,33 @@ func (m Module) GetTransactionsHandler(ctx context.Context, r events.APIGatewayP
 	return SendPagedJSON(transactions, count)
 }
 
-func (m Module) createFundTransferTransaction(w http.ResponseWriter, r *http.Request) {
+func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input CreateTransactionInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("Login", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
-	input.Type = transactionTypes.FundTransfer
+	switch(input.Type) {
+	case "0":
+		input.Type = transactionTypes.FundTransfer
+	case "1":
+		input.Type = transactionTypes.TopUp
+	default:
+		return SendErrorfJSON("unsupported transaction type")
+	}
 
-	tran, err := m.createTransaction(r.Context(), input)
+	tran, err := m.createTransaction(ctx, input)
 	if err != nil {
 		log.Error("Create Transaction", err)
 		msg := "Cannot create transaction. Please try again"
 		if messenger, ok := err.(ErrorMessenger); ok {
 			msg = messenger.ErrorMessage()
 		}
-		web.SendErrorfJSON(w, msg)
-		return
+		return SendErrorfJSON(msg)
 	}
 
-	web.SendJSON(w, tran)
-}
-
-func (m Module) createTupUpTransaction(w http.ResponseWriter, r *http.Request) {
-	var input CreateTransactionInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		log.Error("Login", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
-	}
-
-	input.Type = transactionTypes.TopUp
-
-	tran, err := m.createTransaction(r.Context(), input)
-	if err != nil {
-		log.Error("Create Transaction", err)
-		msg := "Cannot create transaction. Please try again"
-		if messenger, ok := err.(ErrorMessenger); ok {
-			msg = messenger.ErrorMessage()
-		}
-		web.SendErrorfJSON(w, msg)
-		return
-	}
-
-	web.SendJSON(w, tran)
+	return SendJSON(tran)
 }
 
 func (m Module) createTransaction(ctx context.Context, input CreateTransactionInput) (*TransactionOutput, error) {
@@ -216,64 +163,55 @@ func (m Module) createTransaction(ctx context.Context, input CreateTransactionIn
 	return m.db.CreateTransaction(ctx, input)
 }
 
-func (m Module) updateTransactionCurrency(w http.ResponseWriter, r *http.Request) {
+func (m Module) UpdateTransactionCurrency(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input UpdateCurrencyInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		log.Error("Login", "json::Decode", err)
-		web.SendErrorfJSON(w, "cannot decode request")
-		return
+		return SendErrorfJSON("cannot decode request")
 	}
 
 	if m.currencyProcessors[input.Currency][Network(input.Network)] == nil {
-		web.SendErrorfJSON(w, "Unsupported currency")
-		return
+		return SendErrorfJSON("Unsupported currency")
 	}
 
-	transaction, err := m.db.Transaction(r.Context(), input.TransactionID)
+	transaction, err := m.db.Transaction(ctx, input.TransactionID)
 	if err != nil {
-		m.handleError(w, err, "Get Transaction")
-		return
+		return m.handleError(err, "Get Transaction")
 	}
 
-	if transaction.Email != m.server.GetUserIDTokenCtx(r) {
-		web.SendErrorfJSON(w, "Invalid operation")
-		return
+	if transaction.Email != m.server.GetUserIDTokenCtxSls(r) {
+		return SendErrorfJSON("Invalid operation")
 	}
 
-	txOutput, err := m.db.UpdateCurrency(r.Context(), input)
+	txOutput, err := m.db.UpdateCurrency(ctx, input)
 	if err != nil {
-		m.handleError(w, err, "Update Currency")
-		return
+		return m.handleError(err, "Update Currency")
 	}
 
-	web.SendJSON(w, txOutput)
+	return SendJSON(txOutput)
 }
 
-func (m Module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
-	id := r.FormValue("id")
-	transaction, err := m.db.Transaction(r.Context(), id)
+func (m Module) CheckTransactionStatus(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	id := r.QueryStringParameters["id"]
+	transaction, err := m.db.Transaction(ctx, id)
 	if err != nil {
-		m.handleError(w, err, "Get Transaction")
-		return
+		return m.handleError(err, "Get Transaction")
 	}
 
 	if transaction.Status == string(TransactionStatuses.Completed) || transaction.Status == string(TransactionStatuses.Cancelled) ||
 		transaction.Status == string(TransactionStatuses.Paid) || transaction.Status == string(TransactionStatuses.Processing) {
-		web.SendJSON(w, transaction)
-		return
+		return SendJSON(transaction)
 	}
 
 	currencyProcessor := m.currencyProcessors[(transaction.Currency)][Network(transaction.Network)]
 
 	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
-		m.handleError(w, err)
-		return
+		return m.handleError(err)
 	}
 
-	if err := m.db.UpdateTransactionPayment(r.Context(), id, amountPaid.String()); err != nil {
-		m.handleError(w, err)
-		return
+	if err := m.db.UpdateTransactionPayment(ctx, id, amountPaid.String()); err != nil {
+		return m.handleError(err)
 	}
 
 	transaction.AmountPaid = amountPaid.String()
@@ -281,15 +219,14 @@ func (m Module) checkTransactionStatus(w http.ResponseWriter, r *http.Request) {
 	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 64)
 
 	if c := tokenAmount.Cmp(amountPaid); c == 0 || c == -1 {
-		status, err := m.processTransaction(r.Context(), transaction)
+		status, err := m.processTransaction(ctx, transaction)
 		if err != nil {
-			m.handleError(w, err, "process transaction")
-			return
+			return m.handleError(err, "process transaction")
 		}
 		transaction.Status = status
 	}
 
-	web.SendJSON(w, transaction)
+	return SendJSON(transaction)
 }
 
 func (m Module) processTransaction(ctx context.Context, transaction *TransactionOutput) (string, error) {

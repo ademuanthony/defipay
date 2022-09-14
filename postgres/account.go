@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,17 @@ func (pg PgDb) CreateAccount(ctx context.Context, input app.CreateAccountInput) 
 		FirstName:   input.Name,
 		CreatedAt:   time.Now().Unix(),
 	}
+
+	referralCode := strings.ReplaceAll(uuid.NewString(), "-", "")[0:6]
+	for {
+		if ex, _ := models.Accounts(models.AccountWhere.ReferralCode.EQ(referralCode)).Exists(ctx, pg.Db); !ex {
+			break
+		}
+		
+	referralCode = strings.ReplaceAll(uuid.NewString(), "-", "")[0:6]
+	}
+
+	account.ReferralCode = referralCode
 
 	tx, err := pg.Db.Begin()
 	if err != nil {

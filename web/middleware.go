@@ -119,6 +119,16 @@ func (s Server) GetUserIDTokenCtxSls(r events.APIGatewayProxyRequest) string {
 	return claims.UserID
 }
 
+func (s Server) GetUserIDTokenUnAuthCtxSls(r events.APIGatewayProxyRequest) string {
+	// Initialize a new instance of `Claims`
+	claims, err := getClaimsSls(r)
+	if err != nil {
+		return ""
+	}
+
+	return claims.UserID
+}
+
 func (s Server) GetUserIDTokenUnAuthCtx(r *http.Request) string {
 	// Initialize a new instance of `Claims`
 	claims, err := getClaims(r)
