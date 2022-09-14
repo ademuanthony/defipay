@@ -57,4 +57,10 @@ type store interface {
 	CreatePaymentLink(ctx context.Context, input CreatePaymentLinkInput) error
 	GetPaymentLink(ctx context.Context, permalink string) (*PaymentLinkOutput, error)
 	GetPaymentLinks(ctx context.Context, input GetPaymentLinksInput) ([]*PaymentLinkOutput, int64, error)
+
+	// beneficiary
+	GetMyBeneficiaryByAccountNumber(ctx context.Context, accountID string, accountNumber string) (*BeneficiaryOutput, error)
+	CreateBeneficiary(ctx context.Context, input CreateBeneficiaryInput) error
+	GetBeneficiaries(ctx context.Context, input GetBeneficiariesInput) ([]*BeneficiaryOutput, int64, error)
+	GetBeneficiary(ctx context.Context, id string) (*BeneficiaryOutput, error)
 }

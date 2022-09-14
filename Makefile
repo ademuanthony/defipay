@@ -15,6 +15,10 @@ build: gomodgen
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreatePaymentLink handlers/paymentLink/CreatePaymentLink/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetPaymentLink handlers/paymentLink/GetPaymentLink/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetPaymentLinks handlers/paymentLink/GetPaymentLinks/main.go
+
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreateBeneficiary handlers/beneficiary/CreateBeneficiary/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetBeneficiaries handlers/beneficiary/GetBeneficiaries/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetBeneficiary handlers/beneficiary/GetBeneficiary/main.go
 	
 	
 

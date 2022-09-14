@@ -25,7 +25,7 @@ func newValidationError(errors []string) validationError {
 }
 
 func (m Module) handleError(err error, tag ...string) (Response, error) {
-	msg := "Cannot update currency. Something went wrong"
+	msg := "Unable to complete your request. Something went wrong"
 	if messenger, ok := err.(ErrorMessenger); ok {
 		msg = messenger.ErrorMessage()
 	}

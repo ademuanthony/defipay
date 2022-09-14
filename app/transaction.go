@@ -93,7 +93,7 @@ func (m Module) GetTransaction(ctx context.Context, request events.APIGatewayPro
 	id := request.PathParameters["id"]
 	transaction, err := m.db.Transaction(ctx, id)
 	if err != nil {
-		return Response{StatusCode: 400}, err
+		return m.handleError(err)
 	}
 	return SendJSON(transaction)
 }
@@ -108,7 +108,7 @@ func (m Module) GetTransactions(ctx context.Context, r events.APIGatewayProxyReq
 	})
 
 	if err != nil {
-		return Response{StatusCode: 400}, err
+		return m.handleError(err)
 	}
 
 	return SendPagedJSON(transactions, count)

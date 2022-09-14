@@ -101,3 +101,22 @@ functions:
       - httpApi:
           path: /payment-links/{permalink}
           method: get
+
+  CreateBeneficiary:
+    handler: bin/CreateBeneficiary
+    events:
+      - httpApi:
+          path: /beneficiaries
+          method: post
+  GetBeneficiaries:
+    handler: bin/GetBeneficiaries
+    events:
+      - httpApi:
+          path: /beneficiaries
+          method: get
+  GetBeneficiary:
+    handler: bin/GetBeneficiary
+    events:
+      - httpApi:
+          path: /beneficiaries/{id}
+          method: get
