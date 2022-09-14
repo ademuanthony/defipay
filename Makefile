@@ -2,15 +2,15 @@
 
 build: gomodgen
 	export GO111MODULE=on
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/gettransaction handlers/transactions/gettransaction/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/gettransactions handlers/transactions/gettransactions/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/createtransaction handlers/transactions/createtransaction/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/updatetransactioncurrency handlers/transactions/updatetransactioncurrency/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/checktransactionstatus handlers/transactions/checktransactionstatus/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetTransaction handlers/transactions/GetTransaction/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetTransactions handlers/transactions/GetTransactions/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreateTransaction handlers/transactions/CreateTransaction/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/UpdateTransactionCurrency handlers/transactions/UpdateTransactionCurrency/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CheckTransactionStatus handlers/transactions/CheckTransactionStatus/main.go
 
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/register handlers/auth/register/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/login handlers/auth/login/main.go
-	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/me handlers/auth/me/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/Register handlers/auth/Register/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/Login handlers/auth/Login/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/Me handlers/auth/Me/main.go
 
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreatePaymentLink handlers/paymentLink/CreatePaymentLink/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetPaymentLink handlers/paymentLink/GetPaymentLink/main.go

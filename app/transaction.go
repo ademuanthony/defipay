@@ -89,7 +89,7 @@ type GetTransactionsInput struct {
 
 type Response events.APIGatewayProxyResponse
 
-func (m Module) GetTransactionHandler(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
+func (m Module) GetTransaction(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	id := request.PathParameters["id"]
 	transaction, err := m.db.Transaction(ctx, id)
 	if err != nil {
@@ -98,7 +98,7 @@ func (m Module) GetTransactionHandler(ctx context.Context, request events.APIGat
 	return SendJSON(transaction)
 }
 
-func (m Module) GetTransactionsHandler(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+func (m Module) GetTransactions(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	email := r.QueryStringParameters["email"]
 	accountID := m.server.GetUserIDTokenCtxSls(r)
 	pagedReq := web.GetPaginationInfoSls(r)

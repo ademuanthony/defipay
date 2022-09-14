@@ -23,7 +23,7 @@ func InitSlsApp(args ...bool) (*app.Module, error) {
 	}
 
 	var connect bool
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		connect = args[0]
 	}
 

@@ -34,50 +34,50 @@ package:
 
 functions:
   register:
-    handler: bin/register
+    handler: bin/Register
     events:
       - httpApi:
           path: /auth/register
           method: post
   login:
-    handler: bin/login
+    handler: bin/Login
     events:
       - httpApi:
           path: /auth/login
           method: post
-  login:
-    handler: bin/me
+  me:
+    handler: bin/Me
     events:
       - httpApi:
           path: /auth/me
           method: get
 
-  gettransaction:
-    handler: bin/gettransaction
+  GetTransaction:
+    handler: bin/GetTransaction
     events:
       - httpApi:
           path: /transactions/{id}
           method: get
-  gettransactions:
-    handler: bin/gettransactions
+  GetTransactions:
+    handler: bin/GetTransactions
     events:
       - httpApi:
           path: /transactions
           method: get
-  createtransaction:
-    handler: bin/createtransaction
+  CreateTransaction:
+    handler: bin/CreateTransaction
     events:
       - httpApi:
           path: /transactions
           method: post
-  updatetransactioncurrency:
-    handler: bin/updatetransactioncurrency
+  UpdateTransactionCurrency:
+    handler: bin/UpdateTransactionCurrency
     events:
       - httpApi:
           path: /transactions/{id}/update-currency
           method: post
-  checktransactionstatus:
-    handler: bin/checktransactionstatus
+  CheckTransactionStatus:
+    handler: bin/CheckTransactionStatus
     events:
       - httpApi:
           path: /transactions/{id}/check-status
@@ -89,17 +89,15 @@ functions:
       - httpApi:
           path: /payment-links
           method: post
-  CreatePaymentLink:
+  GetPaymentLinks:
     handler: bin/GetPaymentLinks
     events:
       - httpApi:
           path: /payment-links
           method: get
-  CreatePaymentLink:
+  GetPaymentLink:
     handler: bin/GetPaymentLink
     events:
       - httpApi:
           path: /payment-links/{permalink}
           method: get
-
-          
