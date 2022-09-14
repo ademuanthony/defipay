@@ -45,6 +45,13 @@ functions:
       - httpApi:
           path: /auth/login
           method: post
+  login:
+    handler: bin/me
+    events:
+      - httpApi:
+          path: /auth/me
+          method: get
+
   gettransaction:
     handler: bin/gettransaction
     events:
@@ -75,3 +82,24 @@ functions:
       - httpApi:
           path: /transactions/{id}/check-status
           method: post
+
+  CreatePaymentLink:
+    handler: bin/CreatePaymentLink
+    events:
+      - httpApi:
+          path: /payment-links
+          method: post
+  CreatePaymentLink:
+    handler: bin/GetPaymentLinks
+    events:
+      - httpApi:
+          path: /payment-links
+          method: get
+  CreatePaymentLink:
+    handler: bin/GetPaymentLink
+    events:
+      - httpApi:
+          path: /payment-links/{permalink}
+          method: get
+
+          

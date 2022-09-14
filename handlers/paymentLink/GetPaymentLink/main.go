@@ -12,9 +12,9 @@ func main() {
 	if err != nil {
 		println("error loading .env file %v", err)
 	}
-	app, err := handlers.InitSlsApp(true)
+	app, err := handlers.InitSlsApp()
 	if err != nil {
 		panic(err)
 	}
-	lambda.Start(app.CheckTransactionStatus)
+	lambda.Start(app.GetPaymentLink)
 }

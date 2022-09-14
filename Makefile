@@ -10,6 +10,11 @@ build: gomodgen
 
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/register handlers/auth/register/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/login handlers/auth/login/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/me handlers/auth/me/main.go
+
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreatePaymentLink handlers/paymentLink/CreatePaymentLink/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetPaymentLink handlers/paymentLink/GetPaymentLink/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetPaymentLinks handlers/paymentLink/GetPaymentLinks/main.go
 	
 	
 

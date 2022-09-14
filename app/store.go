@@ -52,4 +52,9 @@ type store interface {
 	TransactionPK(ctx context.Context, transactionID string) (string, error)
 	UpdateTransactionStatus(ctx context.Context, transactionID string, status TransactionStatus) error
 	UpdateTransactionPayment(ctx context.Context, transactionID string, amountPaid string) error
+
+	// Payment Link
+	CreatePaymentLink(ctx context.Context, input CreatePaymentLinkInput) error
+	GetPaymentLink(ctx context.Context, permalink string) (*PaymentLinkOutput, error)
+	GetPaymentLinks(ctx context.Context, input GetPaymentLinksInput) ([]*PaymentLinkOutput, int64, error)
 }

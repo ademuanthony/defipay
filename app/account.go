@@ -105,7 +105,7 @@ func (m Module) CreateAccount(ctx context.Context, r events.APIGatewayProxyReque
 	}
 
 	if _, err := m.db.GetAccountByEmail(ctx, input.Email); err == nil {
-		return SendErrorfJSON("Username is not available")
+		return SendErrorfJSON("Account exists. Please login")
 	}
 
 	if input.Password == "" {
@@ -203,6 +203,20 @@ func (m Module) Login(ctx context.Context, r events.APIGatewayProxyRequest) (Res
 		return SendJSON(token)
 	}
 
+}
+
+func (m Module) Me(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
+	accountID := m.server.GetUserIDTokenCtxSls(r)
+	if accountID == "" {
+		return SendAuthErrorfJSON("Login required")
+	}
+
+	account, err := m.currentAccount(ctx, r)
+	if err != nil {
+		return m.handleError(err, "current account")
+	}
+
+	return SendJSON(account)
 }
 
 func hashPassword(password string) (string, error) {
