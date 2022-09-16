@@ -49,7 +49,7 @@ type changePasswordInput struct {
 }
 
 func (m Module) getCommonConfig(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	twoFaEnabled, err := m.is2faEnabled(ctx, m.server.GetUserIDTokenCtxSls(r))
+	twoFaEnabled, err := m.is2faEnabled(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		return m.sendSomethingWentWrong("getCommonConfig.is2faEnabled", err)
 	}
@@ -104,7 +104,7 @@ func (m Module) validate2faOTP(ctx context.Context, accountID, otp string) (bool
 }
 
 func (m Module) init2fa(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	twoFactorIsEnabled, err := m.is2faEnabled(ctx, m.server.GetUserIDTokenCtxSls(r))
+	twoFactorIsEnabled, err := m.is2faEnabled(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		return m.sendSomethingWentWrong("is2faEnabled", err)
 	}
@@ -113,7 +113,7 @@ func (m Module) init2fa(ctx context.Context, r events.APIGatewayProxyRequest) (R
 		return SendErrorfJSON("2FA is active for this account")
 	}
 
-	secret, err := m.get2faSecret(ctx, m.server.GetUserIDTokenCtxSls(r))
+	secret, err := m.get2faSecret(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		return m.sendSomethingWentWrong("get2faSecret", err)
 	}
@@ -126,7 +126,7 @@ func (m Module) enable2fa(ctx context.Context, r events.APIGatewayProxyRequest) 
 	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		return m.sendSomethingWentWrong("json.Decode", err)
 	}
-	valid, err := m.validate2faOTP(ctx, m.server.GetUserIDTokenCtxSls(r), input.OTP)
+	valid, err := m.validate2faOTP(ctx, m.GetUserIDTokenCtxSls(r), input.OTP)
 	if err != nil && err.Error() == "invalid code" {
 		return SendErrorfJSON("Invalid OTP")
 	}
@@ -137,7 +137,7 @@ func (m Module) enable2fa(ctx context.Context, r events.APIGatewayProxyRequest) 
 		return SendErrorfJSON("Invalid OTP")
 	}
 
-	if err := m.db.SetConfigValue(ctx, m.server.GetUserIDTokenCtxSls(r), ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
+	if err := m.db.SetConfigValue(ctx, m.GetUserIDTokenCtxSls(r), ConfigKeys.TwoFactorEnabled, ConfigValues.True); err != nil {
 		return m.sendSomethingWentWrong("SetConfigValue", err)
 	}
 
@@ -149,7 +149,7 @@ func (m Module) authorizeLogin(ctx context.Context, r events.APIGatewayProxyRequ
 	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
 		return m.sendSomethingWentWrong("json.Decode", err)
 	}
-	accountID := m.server.GetUserIDTokenUnAuthCtxSls(r)
+	accountID := m.GetUserIDTokenUnAuthCtxSls(r)
 	valid, err := m.validate2faOTP(ctx, accountID, input.OTP)
 	if err != nil {
 		return m.sendSomethingWentWrong("validate2faOTP", err)
@@ -196,7 +196,7 @@ func (m Module) changePassword(ctx context.Context, r events.APIGatewayProxyRequ
 		return SendErrorfJSON("Password mimatch")
 	}
 
-	account, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
+	account, err := m.db.GetAccount(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		return m.sendSomethingWentWrong("GetAccount", err)
 	}
@@ -211,7 +211,7 @@ func (m Module) changePassword(ctx context.Context, r events.APIGatewayProxyRequ
 		return SendErrorfJSON("Password error, please use a more secure password")
 	}
 
-	if err := m.db.ChangePassword(ctx, m.server.GetUserIDTokenCtxSls(r), passwordHash); err != nil {
+	if err := m.db.ChangePassword(ctx, m.GetUserIDTokenCtxSls(r), passwordHash); err != nil {
 		return m.sendSomethingWentWrong("ChangePassword", err)
 	}
 

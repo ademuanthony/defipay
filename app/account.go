@@ -206,7 +206,7 @@ func (m Module) Login(ctx context.Context, r events.APIGatewayProxyRequest) (Res
 }
 
 func (m Module) Me(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	accountID := m.GetUserIDTokenCtxSls(r)
 	if accountID == "" {
 		return SendAuthErrorfJSON("Login required")
 	}
@@ -290,7 +290,10 @@ func (m Module) resetPassword(ctx context.Context, r events.APIGatewayProxyReque
 }
 
 func (m Module) currentAccount(ctx context.Context, r events.APIGatewayProxyRequest) (*models.Account, error) {
-	acc, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
+	acc, err := m.db.GetAccount(ctx, m.GetUserIDTokenCtxSls(r))
+	if err != nil {
+		return nil, err
+	}
 	acc.Password = ""
 	return acc, err
 }
@@ -315,7 +318,7 @@ func (m Module) UpdateAccountDetail(ctx context.Context, r events.APIGatewayProx
 		return SendErrorfJSON("Invalid wallet address. Please enter a valid BEP-20 address")
 	}
 
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	accountID := m.GetUserIDTokenCtxSls(r)
 
 	if err := m.db.UpdateAccountDetail(ctx, accountID, input); err != nil {
 		log.Error("UpdateAccountDetail", "UpdateAccountDetail", err)
@@ -326,7 +329,7 @@ func (m Module) UpdateAccountDetail(ctx context.Context, r events.APIGatewayProx
 }
 
 func (m Module) GetAccountDetail(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	account, err := m.db.GetAccount(ctx, m.server.GetUserIDTokenCtxSls(r))
+	account, err := m.db.GetAccount(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		log.Critical("GetAccountDetail", "m.db.GetAccount", err)
 		return SendErrorfJSON("Error in getting account detail. Please try again later")
@@ -337,7 +340,7 @@ func (m Module) GetAccountDetail(ctx context.Context, r events.APIGatewayProxyRe
 }
 
 func (m Module) GetReferralCount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	count, err := m.db.GetRefferalCount(ctx, m.server.GetUserIDTokenCtxSls(r))
+	count, err := m.db.GetRefferalCount(ctx, m.GetUserIDTokenCtxSls(r))
 	if err != nil {
 		log.Critical("GetRefferalCount", "m.db.GetRefferalCount", err)
 		return SendErrorfJSON("Error in getting referral count. Please try again later")

@@ -60,7 +60,7 @@ func (m Module) CreatePaymentLink(ctx context.Context, r events.APIGatewayProxyR
 		}
 	}
 
-	input.AccountID = m.server.GetUserIDTokenCtxSls(r)
+	input.AccountID = m.GetUserIDTokenCtxSls(r)
 
 	if err := m.db.CreatePaymentLink(ctx, input); err != nil {
 		return m.handleError(err, "Create Payment Link")
@@ -82,7 +82,7 @@ func (m Module) GetPaymentLink(ctx context.Context, r events.APIGatewayProxyRequ
 }
 
 func (m Module) GetPaymentLinks(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	accountID := m.GetUserIDTokenCtxSls(r)
 	email := r.QueryStringParameters["email"]
 
 	pagedReq := web.GetPaginationInfoSls(r)

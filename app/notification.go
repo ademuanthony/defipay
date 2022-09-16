@@ -26,7 +26,7 @@ type sendNotificationInput struct {
 
 func (m Module) getUnReadNotificationCount(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
-	count, err := m.db.UnReadNotificationCount(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType))
+	count, err := m.db.UnReadNotificationCount(ctx, m.GetUserIDTokenCtxSls(r), int(notificationType))
 	if err != nil {
 		log.Error("getNotificationCount", "UnReadNotificationCount", err)
 		return SendErrorfJSON("Something went wrong. Please try again later")
@@ -37,7 +37,7 @@ func (m Module) getUnReadNotificationCount(ctx context.Context, r events.APIGate
 func (m Module) getNewNotifications(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	pagedReq := web.GetPaginationInfoSls(r)
 	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
-	notification, count, err := m.db.GetNewNotifications(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
+	notification, count, err := m.db.GetNewNotifications(ctx, m.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
 		return m.sendSomethingWentWrong("GetNewNotifications", err)
 	}
@@ -47,7 +47,7 @@ func (m Module) getNewNotifications(ctx context.Context, r events.APIGatewayProx
 func (m Module) getNotifications(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	pagedReq := web.GetPaginationInfoSls(r)
 	notificationType, _ := strconv.ParseInt(r.QueryStringParameters["type"], 10, 64)
-	notification, count, err := m.db.GetNotifications(ctx, m.server.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
+	notification, count, err := m.db.GetNotifications(ctx, m.GetUserIDTokenCtxSls(r), int(notificationType), pagedReq.Offset, pagedReq.Limit)
 	if err != nil {
 		return m.sendSomethingWentWrong("GetNotifications", err)
 	}
@@ -59,7 +59,7 @@ func (m Module) getNotification(ctx context.Context, r events.APIGatewayProxyReq
 	if err != nil {
 		return m.sendSomethingWentWrong("GetNotification", err)
 	}
-	if notification.AccountID != m.server.GetUserIDTokenCtxSls(r) {
+	if notification.AccountID != m.GetUserIDTokenCtxSls(r) {
 		return SendErrorfJSON("Access denied")
 	}
 	return SendJSON(notification)

@@ -83,13 +83,6 @@ func _main(ctx context.Context) error {
 		return err
 	}
 
-	polygonClient, err := ethclient.Dial(cfg.PolygonNode)
-	if err != nil {
-		return err
-	} else {
-		defer bscClient.Close()
-	}
-
 	currencyProcessors := make(map[string]map[app.Network]app.CurrencyProcessor)
 	dfcProcessor, err := processors.NewDfcProcessor(bscClient, common.HexToAddress(cfg.DFCBscContractAddress))
 	if err != nil {
@@ -97,7 +90,7 @@ func _main(ctx context.Context) error {
 	}
 
 	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
-	if _,err := app.Start(db, bscClient, polygonClient, currencyProcessors, cfg.BlockchainConfig, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
+	if _,err := app.Start(db, cfg.BlockchainConfig, false, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
 		log.Error(err)
 		os.Exit(1)
 		return err
@@ -133,13 +126,6 @@ func InitSlsApp() (*app.Module, error) {
 		return nil, err
 	}
 
-	polygonClient, err := ethclient.Dial(cfg.PolygonNode)
-	if err != nil {
-		return nil, err
-	} else {
-		defer bscClient.Close()
-	}
-
 	currencyProcessors := make(map[string]map[app.Network]app.CurrencyProcessor)
 	dfcProcessor, err := processors.NewDfcProcessor(bscClient, common.HexToAddress(cfg.DFCBscContractAddress))
 	if err != nil {
@@ -148,7 +134,7 @@ func InitSlsApp() (*app.Module, error) {
 
 	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
 
-	return app.Start(db, bscClient, polygonClient, currencyProcessors, cfg.BlockchainConfig,
+	return app.Start(db, cfg.BlockchainConfig, false,
 		cfg.MailgunDomain, cfg.MailgunAPIKey)
 }
 

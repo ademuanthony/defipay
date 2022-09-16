@@ -36,10 +36,11 @@ func Start(db store,
 	log.Info("starting...")
 
 	app := Module{
-		db:                 db,
-		config:             cfg,
-		MgDomain:           mgDomain,
-		MgKey:              mgKey,
+		db:       db,
+		config:   cfg,
+		MgDomain: mgDomain,
+		MgKey:    mgKey,
+		server:   &web.Server{},
 	}
 
 	if connectBlockchain {

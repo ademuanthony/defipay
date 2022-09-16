@@ -23,7 +23,7 @@ func (pg PgDb) CreateTransaction(ctx context.Context, input app.CreateTransactio
 		WalletAddress: input.WalletAddress,
 		PrivateKey:    input.PrivateKey,
 		PaymentLink:   input.PaymentLink,
-		Type:          string(input.Type),
+		Type:          (input.Type),
 	}
 
 	if err := transaction.Insert(ctx, pg.Db, boil.Infer()); err != nil {
@@ -77,7 +77,7 @@ func convertTransaction(transaction *models.Transaction) app.TransactionOutput {
 
 func (pg PgDb) Transactions(ctx context.Context, input app.GetTransactionsInput) ([]app.TransactionOutput, int64, error) {
 	query := []qm.QueryMod{
-		qm.Where("email = $1 or account_id = $2", input.Email, input.AccountID),
+		qm.Where("email = $1", input.Email),
 	}
 
 	count, err := models.Transactions(query...).Count(ctx, pg.Db)

@@ -50,7 +50,7 @@ func (m Module) CreateBeneficiary(ctx context.Context, r events.APIGatewayProxyR
 		return m.handleError(newValidationError(vio))
 	}
 
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	accountID := m.GetUserIDTokenCtxSls(r)
 	if accountID == "" {
 		return SendAuthErrorfJSON("Login required")
 	}
@@ -71,7 +71,7 @@ func (m Module) CreateBeneficiary(ctx context.Context, r events.APIGatewayProxyR
 }
 
 func (m Module) GetBeneficiaries(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	accountID := m.GetUserIDTokenCtxSls(r)
 	if accountID == "" {
 		return SendAuthErrorfJSON("Login required")
 	}

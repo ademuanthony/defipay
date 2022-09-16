@@ -15,15 +15,15 @@ import (
 )
 
 type CreateTransactionInput struct {
-	BankName      string          `govalid:"req" json:"bankName" toml:"bank_name" yaml:"bank_name"`
-	AccountNumber string          `govalid:"req" json:"accountNumber" toml:"account_number" yaml:"account_number"`
-	AccountName   string          `govalid:"req" json:"accountName" toml:"account_name" yaml:"account_name"`
-	Amount        int64           `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
-	Email         string          `govalid:"req" json:"email" toml:"email" yaml:"email"`
-	Network       string          `govalid:"req" json:"network" toml:"network" yaml:"network"`
-	Currency      string          `govalid:"req" json:"currency" toml:"currency" yaml:"currency"`
-	PaymentLink   string          `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
-	Type          transactionType `govalid:"req" json:"type" toml:"type" yaml:"type"`
+	BankName      string `govalid:"req" json:"bankName" toml:"bank_name" yaml:"bank_name"`
+	AccountNumber string `govalid:"req" json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName   string `govalid:"req" json:"accountName" toml:"account_name" yaml:"account_name"`
+	Amount        int64  `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
+	Email         string `govalid:"req" json:"email" toml:"email" yaml:"email"`
+	Network       string `govalid:"req" json:"network" toml:"network" yaml:"network"`
+	Currency      string `govalid:"req" json:"currency" toml:"currency" yaml:"currency"`
+	PaymentLink   string `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
+	Type          string `govalid:"req" json:"type" toml:"type" yaml:"type"`
 
 	WalletAddress string `json:"-"`
 	PrivateKey    string `json:"-"`
@@ -100,11 +100,14 @@ func (m Module) GetTransaction(ctx context.Context, request events.APIGatewayPro
 
 func (m Module) GetTransactions(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	email := r.QueryStringParameters["email"]
-	accountID := m.server.GetUserIDTokenCtxSls(r)
+	account, err := m.currentAccount(ctx, r)
+	if err == nil {
+		email = account.Email
+	}
 	pagedReq := web.GetPaginationInfoSls(r)
 
 	transactions, count, err := m.db.Transactions(ctx, GetTransactionsInput{
-		Email: email, AccountID: accountID, Offset: pagedReq.Offset, Limit: pagedReq.Limit,
+		Email: email, Offset: pagedReq.Offset, Limit: pagedReq.Limit,
 	})
 
 	if err != nil {
@@ -121,11 +124,11 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON("cannot decode request")
 	}
 
-	switch(input.Type) {
+	switch input.Type {
 	case "0":
-		input.Type = transactionTypes.FundTransfer
+		input.Type = string(transactionTypes.FundTransfer)
 	case "1":
-		input.Type = transactionTypes.TopUp
+		input.Type = string(transactionTypes.TopUp)
 	default:
 		return SendErrorfJSON("unsupported transaction type")
 	}
@@ -179,7 +182,7 @@ func (m Module) UpdateTransactionCurrency(ctx context.Context, r events.APIGatew
 		return m.handleError(err, "Get Transaction")
 	}
 
-	if transaction.Email != m.server.GetUserIDTokenCtxSls(r) {
+	if transaction.Email != m.GetUserIDTokenCtxSls(r) {
 		return SendErrorfJSON("Invalid operation")
 	}
 
