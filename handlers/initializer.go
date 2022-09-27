@@ -27,6 +27,6 @@ func InitSlsApp(args ...bool) (*app.Module, error) {
 		connect = args[0]
 	}
 
-	return app.Start(db, cfg.BlockchainConfig, connect,
+	return app.Start(db, cfg.AppConfig, connect,
 		cfg.MailgunDomain, cfg.MailgunAPIKey)
 }

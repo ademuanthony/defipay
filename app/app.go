@@ -14,7 +14,7 @@ type Module struct {
 	db            store
 	bscClient     *ethclient.Client
 	polygonClient *ethclient.Client
-	config        BlockchainConfig
+	config        AppConfig
 
 	currencyProcessors map[string]map[Network]CurrencyProcessor
 
@@ -30,7 +30,7 @@ const (
 var v = govalid.New()
 
 func Start(db store,
-	cfg BlockchainConfig,
+	cfg AppConfig,
 	connectBlockchain bool,
 	mgDomain, mgKey string) (*Module, error) {
 	log.Info("starting...")

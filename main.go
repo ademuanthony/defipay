@@ -90,7 +90,7 @@ func _main(ctx context.Context) error {
 	}
 
 	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
-	if _,err := app.Start(db, cfg.BlockchainConfig, false, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
+	if _, err := app.Start(db, cfg.AppConfig, false, cfg.MailgunDomain, cfg.MailgunAPIKey); err != nil {
 		log.Error(err)
 		os.Exit(1)
 		return err
@@ -134,7 +134,7 @@ func InitSlsApp() (*app.Module, error) {
 
 	currencyProcessors[app.DFC.Name][app.Networks.BSC] = dfcProcessor
 
-	return app.Start(db, cfg.BlockchainConfig, false,
+	return app.Start(db, cfg.AppConfig, false,
 		cfg.MailgunDomain, cfg.MailgunAPIKey)
 }
 

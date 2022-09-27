@@ -1,11 +1,16 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"deficonnect/defipayapi/web"
@@ -101,6 +106,7 @@ type GetTransactionsInput struct {
 }
 
 type Response events.APIGatewayProxyResponse
+type Request events.APIGatewayProxyRequest
 
 func (m Module) GetTransaction(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	id := request.PathParameters["id"]
@@ -321,5 +327,75 @@ func (m Module) processTransaction(ctx context.Context, transaction *Transaction
 }
 
 func (m Module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {
-	panic("not implemented")
+	agent, err := m.db.NextAvailableAgent(ctx, transaction.Amount)
+	if err != nil {
+		return err
+	}
+	err = m.db.AssignAgent(ctx, agent.SlackUsername, transaction.ID)
+	if err != nil {
+		return err
+	}
+	webHookUrl, err := m.db.GetConfigValue(ctx, m.config.MastAccountID, "SLACK_WEB_HOOK_URL")
+	if err != nil {
+		return err
+	}
+
+	conversionRateStr, err := m.db.GetConfigValue(ctx, m.config.MastAccountID, "CONVERSION_RATE")
+	if err != nil {
+		return err
+	}
+
+	conversionRate, err := strconv.Atoi(string(conversionRateStr))
+	if err != nil {
+		return err
+	}
+
+	message := fmt.Sprintf(
+		`New Transaction
+		Dollar Amount: %.2f
+		Naira Amount: %.2f
+		Account Name: %s
+		Account Number %s
+		Bank Name: %s
+
+		Agent: %s (@%s)
+		`,
+		(float64(transaction.Amount))/float64(1e4),
+		(float64(transaction.Amount*int64(conversionRate)))/float64(1e4),
+		transaction.AccountName,
+		transaction.AccountNumber,
+		transaction.BankName,
+		agent.Name,
+		agent.SlackUsername,
+	)
+
+	var input = struct {
+		Text string `json:"text"`
+	}{
+		Text: message,
+	}
+
+	postBody, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	requestBody := bytes.NewBuffer(postBody)
+
+	resp, err := http.Post(string(webHookUrl), "application/json", requestBody)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	// b, err := ioutil.ReadAll(resp.Body)  Go.1.15 and earlier
+	if err != nil {
+		return err
+	}
+	
+	bodyStr := string(b)
+	if strings.ToLower(bodyStr) != "ok" {
+		return errors.New(bodyStr)
+	}
+	return nil
 }

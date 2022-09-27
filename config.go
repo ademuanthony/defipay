@@ -81,7 +81,7 @@ type config struct {
 
 	NoAutoPayout string `long:"noautopayout" env:"NOAUTOPAYOUT"`
 
-	app.BlockchainConfig
+	app.AppConfig
 
 	// API/server
 	APIProto           string `long:"apiproto" description:"Protocol for API (http or https)" env:"PDANALYTICS_ENABLE_HTTPS"`
