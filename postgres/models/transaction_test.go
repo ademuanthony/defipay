@@ -353,14 +353,14 @@ func testTransactionsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testTransactionToManyTransactionAsignments(t *testing.T) {
+func testTransactionToManyTransactionAssignments(t *testing.T) {
 	var err error
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
 	var a Transaction
-	var b, c TransactionAsignment
+	var b, c TransactionAssignment
 
 	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
@@ -371,10 +371,10 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = randomize.Struct(seed, &b, transactionAsignmentDBTypes, false, transactionAsignmentColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &b, transactionAssignmentDBTypes, false, transactionAssignmentColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &c, transactionAsignmentDBTypes, false, transactionAsignmentColumnsWithDefault...); err != nil {
+	if err = randomize.Struct(seed, &c, transactionAssignmentDBTypes, false, transactionAssignmentColumnsWithDefault...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -388,7 +388,7 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	check, err := a.TransactionAsignments().All(ctx, tx)
+	check, err := a.TransactionAssignments().All(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -411,18 +411,18 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 	}
 
 	slice := TransactionSlice{&a}
-	if err = a.L.LoadTransactionAsignments(ctx, tx, false, (*[]*Transaction)(&slice), nil); err != nil {
+	if err = a.L.LoadTransactionAssignments(ctx, tx, false, (*[]*Transaction)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.TransactionAsignments); got != 2 {
+	if got := len(a.R.TransactionAssignments); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.TransactionAsignments = nil
-	if err = a.L.LoadTransactionAsignments(ctx, tx, true, &a, nil); err != nil {
+	a.R.TransactionAssignments = nil
+	if err = a.L.LoadTransactionAssignments(ctx, tx, true, &a, nil); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.TransactionAsignments); got != 2 {
+	if got := len(a.R.TransactionAssignments); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
@@ -431,7 +431,7 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 	}
 }
 
-func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
+func testTransactionToManyAddOpTransactionAssignments(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
@@ -439,15 +439,15 @@ func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
 	defer func() { _ = tx.Rollback() }()
 
 	var a Transaction
-	var b, c, d, e TransactionAsignment
+	var b, c, d, e TransactionAssignment
 
 	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, transactionDBTypes, false, strmangle.SetComplement(transactionPrimaryKeyColumns, transactionColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	foreigners := []*TransactionAsignment{&b, &c, &d, &e}
+	foreigners := []*TransactionAssignment{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, transactionAsignmentDBTypes, false, strmangle.SetComplement(transactionAsignmentPrimaryKeyColumns, transactionAsignmentColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, transactionAssignmentDBTypes, false, strmangle.SetComplement(transactionAssignmentPrimaryKeyColumns, transactionAssignmentColumnsWithoutDefault)...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -462,13 +462,13 @@ func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*TransactionAsignment{
+	foreignersSplitByInsertion := [][]*TransactionAssignment{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddTransactionAsignments(ctx, tx, i != 0, x...)
+		err = a.AddTransactionAssignments(ctx, tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -490,14 +490,14 @@ func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.TransactionAsignments[i*2] != first {
+		if a.R.TransactionAssignments[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.TransactionAsignments[i*2+1] != second {
+		if a.R.TransactionAssignments[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.TransactionAsignments().Count(ctx, tx)
+		count, err := a.TransactionAssignments().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}

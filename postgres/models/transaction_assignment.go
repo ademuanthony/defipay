@@ -21,8 +21,8 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// TransactionAsignment is an object representing the database table.
-type TransactionAsignment struct {
+// TransactionAssignment is an object representing the database table.
+type TransactionAssignment struct {
 	ID            int    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	AgentID       int    `boil:"agent_id" json:"agent_id" toml:"agent_id" yaml:"agent_id"`
 	TransactionID string `boil:"transaction_id" json:"transaction_id" toml:"transaction_id" yaml:"transaction_id"`
@@ -30,11 +30,11 @@ type TransactionAsignment struct {
 	Date          int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
 	Status        int    `boil:"status" json:"status" toml:"status" yaml:"status"`
 
-	R *transactionAsignmentR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L transactionAsignmentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *transactionAssignmentR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L transactionAssignmentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var TransactionAsignmentColumns = struct {
+var TransactionAssignmentColumns = struct {
 	ID            string
 	AgentID       string
 	TransactionID string
@@ -50,7 +50,7 @@ var TransactionAsignmentColumns = struct {
 	Status:        "status",
 }
 
-var TransactionAsignmentTableColumns = struct {
+var TransactionAssignmentTableColumns = struct {
 	ID            string
 	AgentID       string
 	TransactionID string
@@ -58,17 +58,17 @@ var TransactionAsignmentTableColumns = struct {
 	Date          string
 	Status        string
 }{
-	ID:            "transaction_asignment.id",
-	AgentID:       "transaction_asignment.agent_id",
-	TransactionID: "transaction_asignment.transaction_id",
-	Amount:        "transaction_asignment.amount",
-	Date:          "transaction_asignment.date",
-	Status:        "transaction_asignment.status",
+	ID:            "transaction_assignment.id",
+	AgentID:       "transaction_assignment.agent_id",
+	TransactionID: "transaction_assignment.transaction_id",
+	Amount:        "transaction_assignment.amount",
+	Date:          "transaction_assignment.date",
+	Status:        "transaction_assignment.status",
 }
 
 // Generated where
 
-var TransactionAsignmentWhere = struct {
+var TransactionAssignmentWhere = struct {
 	ID            whereHelperint
 	AgentID       whereHelperint
 	TransactionID whereHelperstring
@@ -76,16 +76,16 @@ var TransactionAsignmentWhere = struct {
 	Date          whereHelperint64
 	Status        whereHelperint
 }{
-	ID:            whereHelperint{field: "\"transaction_asignment\".\"id\""},
-	AgentID:       whereHelperint{field: "\"transaction_asignment\".\"agent_id\""},
-	TransactionID: whereHelperstring{field: "\"transaction_asignment\".\"transaction_id\""},
-	Amount:        whereHelperint64{field: "\"transaction_asignment\".\"amount\""},
-	Date:          whereHelperint64{field: "\"transaction_asignment\".\"date\""},
-	Status:        whereHelperint{field: "\"transaction_asignment\".\"status\""},
+	ID:            whereHelperint{field: "\"transaction_assignment\".\"id\""},
+	AgentID:       whereHelperint{field: "\"transaction_assignment\".\"agent_id\""},
+	TransactionID: whereHelperstring{field: "\"transaction_assignment\".\"transaction_id\""},
+	Amount:        whereHelperint64{field: "\"transaction_assignment\".\"amount\""},
+	Date:          whereHelperint64{field: "\"transaction_assignment\".\"date\""},
+	Status:        whereHelperint{field: "\"transaction_assignment\".\"status\""},
 }
 
-// TransactionAsignmentRels is where relationship names are stored.
-var TransactionAsignmentRels = struct {
+// TransactionAssignmentRels is where relationship names are stored.
+var TransactionAssignmentRels = struct {
 	Agent       string
 	Transaction string
 }{
@@ -93,48 +93,48 @@ var TransactionAsignmentRels = struct {
 	Transaction: "Transaction",
 }
 
-// transactionAsignmentR is where relationships are stored.
-type transactionAsignmentR struct {
+// transactionAssignmentR is where relationships are stored.
+type transactionAssignmentR struct {
 	Agent       *Agent       `boil:"Agent" json:"Agent" toml:"Agent" yaml:"Agent"`
 	Transaction *Transaction `boil:"Transaction" json:"Transaction" toml:"Transaction" yaml:"Transaction"`
 }
 
 // NewStruct creates a new relationship struct
-func (*transactionAsignmentR) NewStruct() *transactionAsignmentR {
-	return &transactionAsignmentR{}
+func (*transactionAssignmentR) NewStruct() *transactionAssignmentR {
+	return &transactionAssignmentR{}
 }
 
-// transactionAsignmentL is where Load methods for each relationship are stored.
-type transactionAsignmentL struct{}
+// transactionAssignmentL is where Load methods for each relationship are stored.
+type transactionAssignmentL struct{}
 
 var (
-	transactionAsignmentAllColumns            = []string{"id", "agent_id", "transaction_id", "amount", "date", "status"}
-	transactionAsignmentColumnsWithoutDefault = []string{"agent_id", "transaction_id", "amount", "date", "status"}
-	transactionAsignmentColumnsWithDefault    = []string{"id"}
-	transactionAsignmentPrimaryKeyColumns     = []string{"id"}
+	transactionAssignmentAllColumns            = []string{"id", "agent_id", "transaction_id", "amount", "date", "status"}
+	transactionAssignmentColumnsWithoutDefault = []string{"agent_id", "transaction_id", "amount", "date", "status"}
+	transactionAssignmentColumnsWithDefault    = []string{"id"}
+	transactionAssignmentPrimaryKeyColumns     = []string{"id"}
 )
 
 type (
-	// TransactionAsignmentSlice is an alias for a slice of pointers to TransactionAsignment.
-	// This should almost always be used instead of []TransactionAsignment.
-	TransactionAsignmentSlice []*TransactionAsignment
+	// TransactionAssignmentSlice is an alias for a slice of pointers to TransactionAssignment.
+	// This should almost always be used instead of []TransactionAssignment.
+	TransactionAssignmentSlice []*TransactionAssignment
 
-	transactionAsignmentQuery struct {
+	transactionAssignmentQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	transactionAsignmentType                 = reflect.TypeOf(&TransactionAsignment{})
-	transactionAsignmentMapping              = queries.MakeStructMapping(transactionAsignmentType)
-	transactionAsignmentPrimaryKeyMapping, _ = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, transactionAsignmentPrimaryKeyColumns)
-	transactionAsignmentInsertCacheMut       sync.RWMutex
-	transactionAsignmentInsertCache          = make(map[string]insertCache)
-	transactionAsignmentUpdateCacheMut       sync.RWMutex
-	transactionAsignmentUpdateCache          = make(map[string]updateCache)
-	transactionAsignmentUpsertCacheMut       sync.RWMutex
-	transactionAsignmentUpsertCache          = make(map[string]insertCache)
+	transactionAssignmentType                 = reflect.TypeOf(&TransactionAssignment{})
+	transactionAssignmentMapping              = queries.MakeStructMapping(transactionAssignmentType)
+	transactionAssignmentPrimaryKeyMapping, _ = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, transactionAssignmentPrimaryKeyColumns)
+	transactionAssignmentInsertCacheMut       sync.RWMutex
+	transactionAssignmentInsertCache          = make(map[string]insertCache)
+	transactionAssignmentUpdateCacheMut       sync.RWMutex
+	transactionAssignmentUpdateCache          = make(map[string]updateCache)
+	transactionAssignmentUpsertCacheMut       sync.RWMutex
+	transactionAssignmentUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -145,9 +145,9 @@ var (
 	_ = qmhelper.Where
 )
 
-// One returns a single transactionAsignment record from the query.
-func (q transactionAsignmentQuery) One(ctx context.Context, exec boil.ContextExecutor) (*TransactionAsignment, error) {
-	o := &TransactionAsignment{}
+// One returns a single transactionAssignment record from the query.
+func (q transactionAssignmentQuery) One(ctx context.Context, exec boil.ContextExecutor) (*TransactionAssignment, error) {
+	o := &TransactionAssignment{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -156,26 +156,26 @@ func (q transactionAsignmentQuery) One(ctx context.Context, exec boil.ContextExe
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for transaction_asignment")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for transaction_assignment")
 	}
 
 	return o, nil
 }
 
-// All returns all TransactionAsignment records from the query.
-func (q transactionAsignmentQuery) All(ctx context.Context, exec boil.ContextExecutor) (TransactionAsignmentSlice, error) {
-	var o []*TransactionAsignment
+// All returns all TransactionAssignment records from the query.
+func (q transactionAssignmentQuery) All(ctx context.Context, exec boil.ContextExecutor) (TransactionAssignmentSlice, error) {
+	var o []*TransactionAssignment
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to TransactionAsignment slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to TransactionAssignment slice")
 	}
 
 	return o, nil
 }
 
-// Count returns the count of all TransactionAsignment records in the query.
-func (q transactionAsignmentQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all TransactionAssignment records in the query.
+func (q transactionAssignmentQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -183,14 +183,14 @@ func (q transactionAsignmentQuery) Count(ctx context.Context, exec boil.ContextE
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count transaction_asignment rows")
+		return 0, errors.Wrap(err, "models: failed to count transaction_assignment rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q transactionAsignmentQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q transactionAssignmentQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -199,14 +199,14 @@ func (q transactionAsignmentQuery) Exists(ctx context.Context, exec boil.Context
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if transaction_asignment exists")
+		return false, errors.Wrap(err, "models: failed to check if transaction_assignment exists")
 	}
 
 	return count > 0, nil
 }
 
 // Agent pointed to by the foreign key.
-func (o *TransactionAsignment) Agent(mods ...qm.QueryMod) agentQuery {
+func (o *TransactionAssignment) Agent(mods ...qm.QueryMod) agentQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"id\" = ?", o.AgentID),
 	}
@@ -220,7 +220,7 @@ func (o *TransactionAsignment) Agent(mods ...qm.QueryMod) agentQuery {
 }
 
 // Transaction pointed to by the foreign key.
-func (o *TransactionAsignment) Transaction(mods ...qm.QueryMod) transactionQuery {
+func (o *TransactionAssignment) Transaction(mods ...qm.QueryMod) transactionQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"id\" = ?", o.TransactionID),
 	}
@@ -235,20 +235,20 @@ func (o *TransactionAsignment) Transaction(mods ...qm.QueryMod) transactionQuery
 
 // LoadAgent allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (transactionAsignmentL) LoadAgent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransactionAsignment interface{}, mods queries.Applicator) error {
-	var slice []*TransactionAsignment
-	var object *TransactionAsignment
+func (transactionAssignmentL) LoadAgent(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransactionAssignment interface{}, mods queries.Applicator) error {
+	var slice []*TransactionAssignment
+	var object *TransactionAssignment
 
 	if singular {
-		object = maybeTransactionAsignment.(*TransactionAsignment)
+		object = maybeTransactionAssignment.(*TransactionAssignment)
 	} else {
-		slice = *maybeTransactionAsignment.(*[]*TransactionAsignment)
+		slice = *maybeTransactionAssignment.(*[]*TransactionAssignment)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &transactionAsignmentR{}
+			object.R = &transactionAssignmentR{}
 		}
 		args = append(args, object.AgentID)
 
@@ -256,7 +256,7 @@ func (transactionAsignmentL) LoadAgent(ctx context.Context, e boil.ContextExecut
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &transactionAsignmentR{}
+				obj.R = &transactionAssignmentR{}
 			}
 
 			for _, a := range args {
@@ -309,7 +309,7 @@ func (transactionAsignmentL) LoadAgent(ctx context.Context, e boil.ContextExecut
 		if foreign.R == nil {
 			foreign.R = &agentR{}
 		}
-		foreign.R.TransactionAsignments = append(foreign.R.TransactionAsignments, object)
+		foreign.R.TransactionAssignments = append(foreign.R.TransactionAssignments, object)
 		return nil
 	}
 
@@ -320,7 +320,7 @@ func (transactionAsignmentL) LoadAgent(ctx context.Context, e boil.ContextExecut
 				if foreign.R == nil {
 					foreign.R = &agentR{}
 				}
-				foreign.R.TransactionAsignments = append(foreign.R.TransactionAsignments, local)
+				foreign.R.TransactionAssignments = append(foreign.R.TransactionAssignments, local)
 				break
 			}
 		}
@@ -331,20 +331,20 @@ func (transactionAsignmentL) LoadAgent(ctx context.Context, e boil.ContextExecut
 
 // LoadTransaction allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (transactionAsignmentL) LoadTransaction(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransactionAsignment interface{}, mods queries.Applicator) error {
-	var slice []*TransactionAsignment
-	var object *TransactionAsignment
+func (transactionAssignmentL) LoadTransaction(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransactionAssignment interface{}, mods queries.Applicator) error {
+	var slice []*TransactionAssignment
+	var object *TransactionAssignment
 
 	if singular {
-		object = maybeTransactionAsignment.(*TransactionAsignment)
+		object = maybeTransactionAssignment.(*TransactionAssignment)
 	} else {
-		slice = *maybeTransactionAsignment.(*[]*TransactionAsignment)
+		slice = *maybeTransactionAssignment.(*[]*TransactionAssignment)
 	}
 
 	args := make([]interface{}, 0, 1)
 	if singular {
 		if object.R == nil {
-			object.R = &transactionAsignmentR{}
+			object.R = &transactionAssignmentR{}
 		}
 		args = append(args, object.TransactionID)
 
@@ -352,7 +352,7 @@ func (transactionAsignmentL) LoadTransaction(ctx context.Context, e boil.Context
 	Outer:
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &transactionAsignmentR{}
+				obj.R = &transactionAssignmentR{}
 			}
 
 			for _, a := range args {
@@ -405,7 +405,7 @@ func (transactionAsignmentL) LoadTransaction(ctx context.Context, e boil.Context
 		if foreign.R == nil {
 			foreign.R = &transactionR{}
 		}
-		foreign.R.TransactionAsignments = append(foreign.R.TransactionAsignments, object)
+		foreign.R.TransactionAssignments = append(foreign.R.TransactionAssignments, object)
 		return nil
 	}
 
@@ -416,7 +416,7 @@ func (transactionAsignmentL) LoadTransaction(ctx context.Context, e boil.Context
 				if foreign.R == nil {
 					foreign.R = &transactionR{}
 				}
-				foreign.R.TransactionAsignments = append(foreign.R.TransactionAsignments, local)
+				foreign.R.TransactionAssignments = append(foreign.R.TransactionAssignments, local)
 				break
 			}
 		}
@@ -425,10 +425,10 @@ func (transactionAsignmentL) LoadTransaction(ctx context.Context, e boil.Context
 	return nil
 }
 
-// SetAgent of the transactionAsignment to the related item.
+// SetAgent of the transactionAssignment to the related item.
 // Sets o.R.Agent to related.
-// Adds o to related.R.TransactionAsignments.
-func (o *TransactionAsignment) SetAgent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Agent) error {
+// Adds o to related.R.TransactionAssignments.
+func (o *TransactionAssignment) SetAgent(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Agent) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -437,9 +437,9 @@ func (o *TransactionAsignment) SetAgent(ctx context.Context, exec boil.ContextEx
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE \"transaction_asignment\" SET %s WHERE %s",
+		"UPDATE \"transaction_assignment\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, []string{"agent_id"}),
-		strmangle.WhereClause("\"", "\"", 2, transactionAsignmentPrimaryKeyColumns),
+		strmangle.WhereClause("\"", "\"", 2, transactionAssignmentPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -454,7 +454,7 @@ func (o *TransactionAsignment) SetAgent(ctx context.Context, exec boil.ContextEx
 
 	o.AgentID = related.ID
 	if o.R == nil {
-		o.R = &transactionAsignmentR{
+		o.R = &transactionAssignmentR{
 			Agent: related,
 		}
 	} else {
@@ -463,19 +463,19 @@ func (o *TransactionAsignment) SetAgent(ctx context.Context, exec boil.ContextEx
 
 	if related.R == nil {
 		related.R = &agentR{
-			TransactionAsignments: TransactionAsignmentSlice{o},
+			TransactionAssignments: TransactionAssignmentSlice{o},
 		}
 	} else {
-		related.R.TransactionAsignments = append(related.R.TransactionAsignments, o)
+		related.R.TransactionAssignments = append(related.R.TransactionAssignments, o)
 	}
 
 	return nil
 }
 
-// SetTransaction of the transactionAsignment to the related item.
+// SetTransaction of the transactionAssignment to the related item.
 // Sets o.R.Transaction to related.
-// Adds o to related.R.TransactionAsignments.
-func (o *TransactionAsignment) SetTransaction(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Transaction) error {
+// Adds o to related.R.TransactionAssignments.
+func (o *TransactionAssignment) SetTransaction(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Transaction) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -484,9 +484,9 @@ func (o *TransactionAsignment) SetTransaction(ctx context.Context, exec boil.Con
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE \"transaction_asignment\" SET %s WHERE %s",
+		"UPDATE \"transaction_assignment\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, []string{"transaction_id"}),
-		strmangle.WhereClause("\"", "\"", 2, transactionAsignmentPrimaryKeyColumns),
+		strmangle.WhereClause("\"", "\"", 2, transactionAssignmentPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -501,7 +501,7 @@ func (o *TransactionAsignment) SetTransaction(ctx context.Context, exec boil.Con
 
 	o.TransactionID = related.ID
 	if o.R == nil {
-		o.R = &transactionAsignmentR{
+		o.R = &transactionAssignmentR{
 			Transaction: related,
 		}
 	} else {
@@ -510,83 +510,83 @@ func (o *TransactionAsignment) SetTransaction(ctx context.Context, exec boil.Con
 
 	if related.R == nil {
 		related.R = &transactionR{
-			TransactionAsignments: TransactionAsignmentSlice{o},
+			TransactionAssignments: TransactionAssignmentSlice{o},
 		}
 	} else {
-		related.R.TransactionAsignments = append(related.R.TransactionAsignments, o)
+		related.R.TransactionAssignments = append(related.R.TransactionAssignments, o)
 	}
 
 	return nil
 }
 
-// TransactionAsignments retrieves all the records using an executor.
-func TransactionAsignments(mods ...qm.QueryMod) transactionAsignmentQuery {
-	mods = append(mods, qm.From("\"transaction_asignment\""))
-	return transactionAsignmentQuery{NewQuery(mods...)}
+// TransactionAssignments retrieves all the records using an executor.
+func TransactionAssignments(mods ...qm.QueryMod) transactionAssignmentQuery {
+	mods = append(mods, qm.From("\"transaction_assignment\""))
+	return transactionAssignmentQuery{NewQuery(mods...)}
 }
 
-// FindTransactionAsignment retrieves a single record by ID with an executor.
+// FindTransactionAssignment retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindTransactionAsignment(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*TransactionAsignment, error) {
-	transactionAsignmentObj := &TransactionAsignment{}
+func FindTransactionAssignment(ctx context.Context, exec boil.ContextExecutor, iD int, selectCols ...string) (*TransactionAssignment, error) {
+	transactionAssignmentObj := &TransactionAssignment{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"transaction_asignment\" where \"id\"=$1", sel,
+		"select %s from \"transaction_assignment\" where \"id\"=$1", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, transactionAsignmentObj)
+	err := q.Bind(ctx, exec, transactionAssignmentObj)
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from transaction_asignment")
+		return nil, errors.Wrap(err, "models: unable to select from transaction_assignment")
 	}
 
-	return transactionAsignmentObj, nil
+	return transactionAssignmentObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *TransactionAsignment) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *TransactionAssignment) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no transaction_asignment provided for insertion")
+		return errors.New("models: no transaction_assignment provided for insertion")
 	}
 
 	var err error
 
-	nzDefaults := queries.NonZeroDefaultSet(transactionAsignmentColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(transactionAssignmentColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	transactionAsignmentInsertCacheMut.RLock()
-	cache, cached := transactionAsignmentInsertCache[key]
-	transactionAsignmentInsertCacheMut.RUnlock()
+	transactionAssignmentInsertCacheMut.RLock()
+	cache, cached := transactionAssignmentInsertCache[key]
+	transactionAssignmentInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			transactionAsignmentAllColumns,
-			transactionAsignmentColumnsWithDefault,
-			transactionAsignmentColumnsWithoutDefault,
+			transactionAssignmentAllColumns,
+			transactionAssignmentColumnsWithDefault,
+			transactionAssignmentColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO \"transaction_asignment\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO \"transaction_assignment\" (\"%s\") %%sVALUES (%s)%%s", strings.Join(wl, "\",\""), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO \"transaction_asignment\" %sDEFAULT VALUES%s"
+			cache.query = "INSERT INTO \"transaction_assignment\" %sDEFAULT VALUES%s"
 		}
 
 		var queryOutput, queryReturning string
@@ -614,43 +614,43 @@ func (o *TransactionAsignment) Insert(ctx context.Context, exec boil.ContextExec
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into transaction_asignment")
+		return errors.Wrap(err, "models: unable to insert into transaction_assignment")
 	}
 
 	if !cached {
-		transactionAsignmentInsertCacheMut.Lock()
-		transactionAsignmentInsertCache[key] = cache
-		transactionAsignmentInsertCacheMut.Unlock()
+		transactionAssignmentInsertCacheMut.Lock()
+		transactionAssignmentInsertCache[key] = cache
+		transactionAssignmentInsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Update uses an executor to update the TransactionAsignment.
+// Update uses an executor to update the TransactionAssignment.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *TransactionAsignment) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *TransactionAssignment) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	var err error
 	key := makeCacheKey(columns, nil)
-	transactionAsignmentUpdateCacheMut.RLock()
-	cache, cached := transactionAsignmentUpdateCache[key]
-	transactionAsignmentUpdateCacheMut.RUnlock()
+	transactionAssignmentUpdateCacheMut.RLock()
+	cache, cached := transactionAssignmentUpdateCache[key]
+	transactionAssignmentUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			transactionAsignmentAllColumns,
-			transactionAsignmentPrimaryKeyColumns,
+			transactionAssignmentAllColumns,
+			transactionAssignmentPrimaryKeyColumns,
 		)
 
 		if len(wl) == 0 {
-			return 0, errors.New("models: unable to update transaction_asignment, could not build whitelist")
+			return 0, errors.New("models: unable to update transaction_assignment, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE \"transaction_asignment\" SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE \"transaction_assignment\" SET %s WHERE %s",
 			strmangle.SetParamNames("\"", "\"", 1, wl),
-			strmangle.WhereClause("\"", "\"", len(wl)+1, transactionAsignmentPrimaryKeyColumns),
+			strmangle.WhereClause("\"", "\"", len(wl)+1, transactionAssignmentPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, append(wl, transactionAsignmentPrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, append(wl, transactionAssignmentPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -666,42 +666,42 @@ func (o *TransactionAsignment) Update(ctx context.Context, exec boil.ContextExec
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update transaction_asignment row")
+		return 0, errors.Wrap(err, "models: unable to update transaction_assignment row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by update for transaction_asignment")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by update for transaction_assignment")
 	}
 
 	if !cached {
-		transactionAsignmentUpdateCacheMut.Lock()
-		transactionAsignmentUpdateCache[key] = cache
-		transactionAsignmentUpdateCacheMut.Unlock()
+		transactionAssignmentUpdateCacheMut.Lock()
+		transactionAssignmentUpdateCache[key] = cache
+		transactionAssignmentUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q transactionAsignmentQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q transactionAssignmentQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all for transaction_asignment")
+		return 0, errors.Wrap(err, "models: unable to update all for transaction_assignment")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for transaction_asignment")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected for transaction_assignment")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o TransactionAsignmentSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o TransactionAssignmentSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -723,13 +723,13 @@ func (o TransactionAsignmentSlice) UpdateAll(ctx context.Context, exec boil.Cont
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAsignmentPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAssignmentPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE \"transaction_asignment\" SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE \"transaction_assignment\" SET %s WHERE %s",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, transactionAsignmentPrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), len(colNames)+1, transactionAssignmentPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -738,24 +738,24 @@ func (o TransactionAsignmentSlice) UpdateAll(ctx context.Context, exec boil.Cont
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to update all in transactionAsignment slice")
+		return 0, errors.Wrap(err, "models: unable to update all in transactionAssignment slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all transactionAsignment")
+		return 0, errors.Wrap(err, "models: unable to retrieve rows affected all in update all transactionAssignment")
 	}
 	return rowsAff, nil
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *TransactionAsignment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
+func (o *TransactionAssignment) Upsert(ctx context.Context, exec boil.ContextExecutor, updateOnConflict bool, conflictColumns []string, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("models: no transaction_asignment provided for upsert")
+		return errors.New("models: no transaction_assignment provided for upsert")
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(transactionAsignmentColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(transactionAssignmentColumnsWithDefault, o)
 
 	// Build cache key in-line uglily - mysql vs psql problems
 	buf := strmangle.GetBuffer()
@@ -785,41 +785,41 @@ func (o *TransactionAsignment) Upsert(ctx context.Context, exec boil.ContextExec
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	transactionAsignmentUpsertCacheMut.RLock()
-	cache, cached := transactionAsignmentUpsertCache[key]
-	transactionAsignmentUpsertCacheMut.RUnlock()
+	transactionAssignmentUpsertCacheMut.RLock()
+	cache, cached := transactionAssignmentUpsertCache[key]
+	transactionAssignmentUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, ret := insertColumns.InsertColumnSet(
-			transactionAsignmentAllColumns,
-			transactionAsignmentColumnsWithDefault,
-			transactionAsignmentColumnsWithoutDefault,
+			transactionAssignmentAllColumns,
+			transactionAssignmentColumnsWithDefault,
+			transactionAssignmentColumnsWithoutDefault,
 			nzDefaults,
 		)
 		update := updateColumns.UpdateColumnSet(
-			transactionAsignmentAllColumns,
-			transactionAsignmentPrimaryKeyColumns,
+			transactionAssignmentAllColumns,
+			transactionAssignmentPrimaryKeyColumns,
 		)
 
 		if updateOnConflict && len(update) == 0 {
-			return errors.New("models: unable to upsert transaction_asignment, could not build update column list")
+			return errors.New("models: unable to upsert transaction_assignment, could not build update column list")
 		}
 
 		conflict := conflictColumns
 		if len(conflict) == 0 {
-			conflict = make([]string, len(transactionAsignmentPrimaryKeyColumns))
-			copy(conflict, transactionAsignmentPrimaryKeyColumns)
+			conflict = make([]string, len(transactionAssignmentPrimaryKeyColumns))
+			copy(conflict, transactionAssignmentPrimaryKeyColumns)
 		}
-		cache.query = buildUpsertQueryPostgres(dialect, "\"transaction_asignment\"", updateOnConflict, ret, update, conflict, insert)
+		cache.query = buildUpsertQueryPostgres(dialect, "\"transaction_assignment\"", updateOnConflict, ret, update, conflict, insert)
 
-		cache.valueMapping, err = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(transactionAsignmentType, transactionAsignmentMapping, ret)
+			cache.retMapping, err = queries.BindMapping(transactionAssignmentType, transactionAssignmentMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -847,27 +847,27 @@ func (o *TransactionAsignment) Upsert(ctx context.Context, exec boil.ContextExec
 		_, err = exec.ExecContext(ctx, cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert transaction_asignment")
+		return errors.Wrap(err, "models: unable to upsert transaction_assignment")
 	}
 
 	if !cached {
-		transactionAsignmentUpsertCacheMut.Lock()
-		transactionAsignmentUpsertCache[key] = cache
-		transactionAsignmentUpsertCacheMut.Unlock()
+		transactionAssignmentUpsertCacheMut.Lock()
+		transactionAssignmentUpsertCache[key] = cache
+		transactionAssignmentUpsertCacheMut.Unlock()
 	}
 
 	return nil
 }
 
-// Delete deletes a single TransactionAsignment record with an executor.
+// Delete deletes a single TransactionAssignment record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *TransactionAsignment) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *TransactionAssignment) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("models: no TransactionAsignment provided for delete")
+		return 0, errors.New("models: no TransactionAssignment provided for delete")
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), transactionAsignmentPrimaryKeyMapping)
-	sql := "DELETE FROM \"transaction_asignment\" WHERE \"id\"=$1"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), transactionAssignmentPrimaryKeyMapping)
+	sql := "DELETE FROM \"transaction_assignment\" WHERE \"id\"=$1"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -876,52 +876,52 @@ func (o *TransactionAsignment) Delete(ctx context.Context, exec boil.ContextExec
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete from transaction_asignment")
+		return 0, errors.Wrap(err, "models: unable to delete from transaction_assignment")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for transaction_asignment")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by delete for transaction_assignment")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all matching rows.
-func (q transactionAsignmentQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q transactionAssignmentQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("models: no transactionAsignmentQuery provided for delete all")
+		return 0, errors.New("models: no transactionAssignmentQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from transaction_asignment")
+		return 0, errors.Wrap(err, "models: unable to delete all from transaction_assignment")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for transaction_asignment")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for transaction_assignment")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o TransactionAsignmentSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o TransactionAssignmentSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAsignmentPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAssignmentPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM \"transaction_asignment\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, transactionAsignmentPrimaryKeyColumns, len(o))
+	sql := "DELETE FROM \"transaction_assignment\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, transactionAssignmentPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -930,12 +930,12 @@ func (o TransactionAsignmentSlice) DeleteAll(ctx context.Context, exec boil.Cont
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: unable to delete all from transactionAsignment slice")
+		return 0, errors.Wrap(err, "models: unable to delete all from transactionAssignment slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for transaction_asignment")
+		return 0, errors.Wrap(err, "models: failed to get rows affected by deleteall for transaction_assignment")
 	}
 
 	return rowsAff, nil
@@ -943,8 +943,8 @@ func (o TransactionAsignmentSlice) DeleteAll(ctx context.Context, exec boil.Cont
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *TransactionAsignment) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindTransactionAsignment(ctx, exec, o.ID)
+func (o *TransactionAssignment) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindTransactionAssignment(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -955,26 +955,26 @@ func (o *TransactionAsignment) Reload(ctx context.Context, exec boil.ContextExec
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *TransactionAsignmentSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *TransactionAssignmentSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := TransactionAsignmentSlice{}
+	slice := TransactionAssignmentSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAsignmentPrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), transactionAssignmentPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT \"transaction_asignment\".* FROM \"transaction_asignment\" WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, transactionAsignmentPrimaryKeyColumns, len(*o))
+	sql := "SELECT \"transaction_assignment\".* FROM \"transaction_assignment\" WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 1, transactionAssignmentPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in TransactionAsignmentSlice")
+		return errors.Wrap(err, "models: unable to reload all in TransactionAssignmentSlice")
 	}
 
 	*o = slice
@@ -982,10 +982,10 @@ func (o *TransactionAsignmentSlice) ReloadAll(ctx context.Context, exec boil.Con
 	return nil
 }
 
-// TransactionAsignmentExists checks if the TransactionAsignment row exists.
-func TransactionAsignmentExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
+// TransactionAssignmentExists checks if the TransactionAssignment row exists.
+func TransactionAssignmentExists(ctx context.Context, exec boil.ContextExecutor, iD int) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from \"transaction_asignment\" where \"id\"=$1 limit 1)"
+	sql := "select exists(select 1 from \"transaction_assignment\" where \"id\"=$1 limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -996,7 +996,7 @@ func TransactionAsignmentExists(ctx context.Context, exec boil.ContextExecutor, 
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if transaction_asignment exists")
+		return false, errors.Wrap(err, "models: unable to check if transaction_assignment exists")
 	}
 
 	return exists, nil

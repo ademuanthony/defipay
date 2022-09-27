@@ -149,14 +149,14 @@ var TransactionWhere = struct {
 
 // TransactionRels is where relationship names are stored.
 var TransactionRels = struct {
-	TransactionAsignments string
+	TransactionAssignments string
 }{
-	TransactionAsignments: "TransactionAsignments",
+	TransactionAssignments: "TransactionAssignments",
 }
 
 // transactionR is where relationships are stored.
 type transactionR struct {
-	TransactionAsignments TransactionAsignmentSlice `boil:"TransactionAsignments" json:"TransactionAsignments" toml:"TransactionAsignments" yaml:"TransactionAsignments"`
+	TransactionAssignments TransactionAssignmentSlice `boil:"TransactionAssignments" json:"TransactionAssignments" toml:"TransactionAssignments" yaml:"TransactionAssignments"`
 }
 
 // NewStruct creates a new relationship struct
@@ -265,30 +265,30 @@ func (q transactionQuery) Exists(ctx context.Context, exec boil.ContextExecutor)
 	return count > 0, nil
 }
 
-// TransactionAsignments retrieves all the transaction_asignment's TransactionAsignments with an executor.
-func (o *Transaction) TransactionAsignments(mods ...qm.QueryMod) transactionAsignmentQuery {
+// TransactionAssignments retrieves all the transaction_assignment's TransactionAssignments with an executor.
+func (o *Transaction) TransactionAssignments(mods ...qm.QueryMod) transactionAssignmentQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"transaction_asignment\".\"transaction_id\"=?", o.ID),
+		qm.Where("\"transaction_assignment\".\"transaction_id\"=?", o.ID),
 	)
 
-	query := TransactionAsignments(queryMods...)
-	queries.SetFrom(query.Query, "\"transaction_asignment\"")
+	query := TransactionAssignments(queryMods...)
+	queries.SetFrom(query.Query, "\"transaction_assignment\"")
 
 	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"transaction_asignment\".*"})
+		queries.SetSelect(query.Query, []string{"\"transaction_assignment\".*"})
 	}
 
 	return query
 }
 
-// LoadTransactionAsignments allows an eager lookup of values, cached into the
+// LoadTransactionAssignments allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (transactionL) LoadTransactionAsignments(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransaction interface{}, mods queries.Applicator) error {
+func (transactionL) LoadTransactionAssignments(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTransaction interface{}, mods queries.Applicator) error {
 	var slice []*Transaction
 	var object *Transaction
 
@@ -326,8 +326,8 @@ func (transactionL) LoadTransactionAsignments(ctx context.Context, e boil.Contex
 	}
 
 	query := NewQuery(
-		qm.From(`transaction_asignment`),
-		qm.WhereIn(`transaction_asignment.transaction_id in ?`, args...),
+		qm.From(`transaction_assignment`),
+		qm.WhereIn(`transaction_assignment.transaction_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -335,26 +335,26 @@ func (transactionL) LoadTransactionAsignments(ctx context.Context, e boil.Contex
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load transaction_asignment")
+		return errors.Wrap(err, "failed to eager load transaction_assignment")
 	}
 
-	var resultSlice []*TransactionAsignment
+	var resultSlice []*TransactionAssignment
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice transaction_asignment")
+		return errors.Wrap(err, "failed to bind eager loaded slice transaction_assignment")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on transaction_asignment")
+		return errors.Wrap(err, "failed to close results in eager load on transaction_assignment")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for transaction_asignment")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for transaction_assignment")
 	}
 
 	if singular {
-		object.R.TransactionAsignments = resultSlice
+		object.R.TransactionAssignments = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &transactionAsignmentR{}
+				foreign.R = &transactionAssignmentR{}
 			}
 			foreign.R.Transaction = object
 		}
@@ -364,9 +364,9 @@ func (transactionL) LoadTransactionAsignments(ctx context.Context, e boil.Contex
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.TransactionID {
-				local.R.TransactionAsignments = append(local.R.TransactionAsignments, foreign)
+				local.R.TransactionAssignments = append(local.R.TransactionAssignments, foreign)
 				if foreign.R == nil {
-					foreign.R = &transactionAsignmentR{}
+					foreign.R = &transactionAssignmentR{}
 				}
 				foreign.R.Transaction = local
 				break
@@ -377,11 +377,11 @@ func (transactionL) LoadTransactionAsignments(ctx context.Context, e boil.Contex
 	return nil
 }
 
-// AddTransactionAsignments adds the given related objects to the existing relationships
+// AddTransactionAssignments adds the given related objects to the existing relationships
 // of the transaction, optionally inserting them as new records.
-// Appends related to o.R.TransactionAsignments.
+// Appends related to o.R.TransactionAssignments.
 // Sets related.R.Transaction appropriately.
-func (o *Transaction) AddTransactionAsignments(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*TransactionAsignment) error {
+func (o *Transaction) AddTransactionAssignments(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*TransactionAssignment) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -391,9 +391,9 @@ func (o *Transaction) AddTransactionAsignments(ctx context.Context, exec boil.Co
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"transaction_asignment\" SET %s WHERE %s",
+				"UPDATE \"transaction_assignment\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"transaction_id"}),
-				strmangle.WhereClause("\"", "\"", 2, transactionAsignmentPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, transactionAssignmentPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -412,15 +412,15 @@ func (o *Transaction) AddTransactionAsignments(ctx context.Context, exec boil.Co
 
 	if o.R == nil {
 		o.R = &transactionR{
-			TransactionAsignments: related,
+			TransactionAssignments: related,
 		}
 	} else {
-		o.R.TransactionAsignments = append(o.R.TransactionAsignments, related...)
+		o.R.TransactionAssignments = append(o.R.TransactionAssignments, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &transactionAsignmentR{
+			rel.R = &transactionAssignmentR{
 				Transaction: o,
 			}
 		} else {

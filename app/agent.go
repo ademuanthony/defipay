@@ -4,6 +4,7 @@ import (
 	"context"
 	"deficonnect/defipayapi/web"
 	"encoding/json"
+	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
 )
@@ -16,6 +17,7 @@ type CreateAgentInput struct {
 }
 
 type AgentOutput struct {
+	ID            int    `json:"id"`
 	SlackUsername string `json:"slack_username"`
 	Name          string `json:"name"`
 	Balance       int64  `json:"balance"`
@@ -34,9 +36,9 @@ type GetAgentsInput struct {
 }
 
 type GetAgentAssignmentsInput struct {
-	SlackUsername string `json:"slackUsername"`
-	Offset        int    `json:"offset"`
-	Limit         int    `json:"limit"`
+	AgentID int `json:"agentId"`
+	Offset  int    `json:"offset"`
+	Limit   int    `json:"limit"`
 }
 
 type AssignmentOutput struct {
@@ -129,12 +131,13 @@ func (m Module) UpdateAgent(ctx context.Context, r events.APIGatewayProxyRequest
 		return SendErrorfJSON("Invalid agent status")
 	}
 
-	slackUsername := r.PathParameters["slackUsername"]
-	if slackUsername == "" {
-		SendErrorfJSON("Username is required")
+	agentIDStr := r.PathParameters["agentId"]
+	agentId, err := strconv.Atoi(agentIDStr)
+	if err != nil {
+		return SendErrorfJSON("Invalid agent ID")
 	}
 
-	agent, err := m.db.UpdateAgent(ctx, slackUsername, input)
+	agent, err := m.db.UpdateAgent(ctx, agentId, input)
 	if err != nil {
 		return m.handleError(err)
 	}

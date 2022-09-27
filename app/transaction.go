@@ -143,6 +143,11 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON("cannot decode request")
 	}
 
+	currencyProcessor := m.currencyProcessors[(input.Currency)][Network(input.Network)]
+	if currencyProcessor == nil {
+		return SendErrorfJSON("Unsupported currency or network in transaction")
+	}
+
 	switch input.Type {
 	case "0":
 		input.Type = string(transactionTypes.FundTransfer)
@@ -152,7 +157,7 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON("unsupported transaction type")
 	}
 
-	if input.Amount > 10000 {
+	if input.Amount > 10000*1e4 {
 		return SendErrorfJSON("Please enter an amount below $10,000")
 	}
 
@@ -248,6 +253,9 @@ func (m Module) CheckTransactionStatus(ctx context.Context, r events.APIGatewayP
 	}
 
 	currencyProcessor := m.currencyProcessors[(transaction.Currency)][Network(transaction.Network)]
+	if currencyProcessor == nil {
+		return SendErrorfJSON("Unsupported currency or network in transaction")
+	}
 
 	amountPaid, err := currencyProcessor.BalanceOf(context.TODO(), common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
@@ -331,7 +339,7 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 	if err != nil {
 		return err
 	}
-	err = m.db.AssignAgent(ctx, agent.SlackUsername, transaction.ID)
+	err = m.db.AssignAgent(ctx, agent.ID, transaction.ID, transaction.Amount)
 	if err != nil {
 		return err
 	}

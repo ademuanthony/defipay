@@ -120,7 +120,7 @@ create table if not exists agent (
     status int not null
 );
 
-create table if not exists transaction_asignment(
+create table if not exists transaction_assignment(
     id serial not null primary key,
     agent_id int not null references agent(id),
     transaction_id uuid not null references transaction(id),

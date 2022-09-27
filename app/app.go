@@ -66,6 +66,8 @@ func Start(db store,
 		currencyProcessors[DFC.Name] = map[Network]CurrencyProcessor{}
 		currencyProcessors[DFC.Name][Networks.BSC] = dfcProcessor
 
+		// ADD USDT processor
+
 		app.bscClient = bscClient
 		app.polygonClient = polygonClient
 		app.currencyProcessors = currencyProcessors

@@ -66,12 +66,12 @@ type store interface {
 
 	// Agent
 	CreateAgent(ctx context.Context, input CreateAgentInput) error
-	UpdateAgent(ctx context.Context, slackUsername string, input UpdateAgentInput) (AgentOutput, error)
+	UpdateAgent(ctx context.Context, agentID int, input UpdateAgentInput) (*AgentOutput, error)
 	AgentExists(ctx context.Context, slackUsername string) (bool, error)
 	GetAgent(ctx context.Context, slackUsername string) (*AgentOutput, error)
-	GetAgents(ctx context.Context, input GetAgentsInput) ([]AgentOutput, int64, error)
+	GetAgents(ctx context.Context, input GetAgentsInput) ([]*AgentOutput, int64, error)
 	NextAvailableAgent(ctx context.Context, transactionAmount int64) (*AgentOutput, error)
-	AssignAgent(ctx context.Context, agentID string, transactionID string) error
-	GetAssignedAgent(ctx context.Context, transactionID string) (AgentOutput, error)
+	AssignAgent(ctx context.Context, agentID int, transactionID string, amount int64) error 
+	GetAssignedAgent(ctx context.Context, transactionID string) (*AgentOutput, error)
 	GetAgentAssignments(ctx context.Context, input GetAgentAssignmentsInput) ([]AssignmentOutput, error)
 }

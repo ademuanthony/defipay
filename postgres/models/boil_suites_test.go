@@ -21,7 +21,7 @@ func TestParent(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinks)
 	t.Run("SecurityCodes", testSecurityCodes)
 	t.Run("Transactions", testTransactions)
-	t.Run("TransactionAsignments", testTransactionAsignments)
+	t.Run("TransactionAssignments", testTransactionAssignments)
 	t.Run("UserSettings", testUserSettings)
 }
 
@@ -35,7 +35,7 @@ func TestDelete(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksDelete)
 	t.Run("SecurityCodes", testSecurityCodesDelete)
 	t.Run("Transactions", testTransactionsDelete)
-	t.Run("TransactionAsignments", testTransactionAsignmentsDelete)
+	t.Run("TransactionAssignments", testTransactionAssignmentsDelete)
 	t.Run("UserSettings", testUserSettingsDelete)
 }
 
@@ -49,7 +49,7 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksQueryDeleteAll)
 	t.Run("SecurityCodes", testSecurityCodesQueryDeleteAll)
 	t.Run("Transactions", testTransactionsQueryDeleteAll)
-	t.Run("TransactionAsignments", testTransactionAsignmentsQueryDeleteAll)
+	t.Run("TransactionAssignments", testTransactionAssignmentsQueryDeleteAll)
 	t.Run("UserSettings", testUserSettingsQueryDeleteAll)
 }
 
@@ -63,7 +63,7 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksSliceDeleteAll)
 	t.Run("SecurityCodes", testSecurityCodesSliceDeleteAll)
 	t.Run("Transactions", testTransactionsSliceDeleteAll)
-	t.Run("TransactionAsignments", testTransactionAsignmentsSliceDeleteAll)
+	t.Run("TransactionAssignments", testTransactionAssignmentsSliceDeleteAll)
 	t.Run("UserSettings", testUserSettingsSliceDeleteAll)
 }
 
@@ -77,7 +77,7 @@ func TestExists(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksExists)
 	t.Run("SecurityCodes", testSecurityCodesExists)
 	t.Run("Transactions", testTransactionsExists)
-	t.Run("TransactionAsignments", testTransactionAsignmentsExists)
+	t.Run("TransactionAssignments", testTransactionAssignmentsExists)
 	t.Run("UserSettings", testUserSettingsExists)
 }
 
@@ -91,7 +91,7 @@ func TestFind(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksFind)
 	t.Run("SecurityCodes", testSecurityCodesFind)
 	t.Run("Transactions", testTransactionsFind)
-	t.Run("TransactionAsignments", testTransactionAsignmentsFind)
+	t.Run("TransactionAssignments", testTransactionAssignmentsFind)
 	t.Run("UserSettings", testUserSettingsFind)
 }
 
@@ -105,7 +105,7 @@ func TestBind(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksBind)
 	t.Run("SecurityCodes", testSecurityCodesBind)
 	t.Run("Transactions", testTransactionsBind)
-	t.Run("TransactionAsignments", testTransactionAsignmentsBind)
+	t.Run("TransactionAssignments", testTransactionAssignmentsBind)
 	t.Run("UserSettings", testUserSettingsBind)
 }
 
@@ -119,7 +119,7 @@ func TestOne(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksOne)
 	t.Run("SecurityCodes", testSecurityCodesOne)
 	t.Run("Transactions", testTransactionsOne)
-	t.Run("TransactionAsignments", testTransactionAsignmentsOne)
+	t.Run("TransactionAssignments", testTransactionAssignmentsOne)
 	t.Run("UserSettings", testUserSettingsOne)
 }
 
@@ -133,7 +133,7 @@ func TestAll(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksAll)
 	t.Run("SecurityCodes", testSecurityCodesAll)
 	t.Run("Transactions", testTransactionsAll)
-	t.Run("TransactionAsignments", testTransactionAsignmentsAll)
+	t.Run("TransactionAssignments", testTransactionAssignmentsAll)
 	t.Run("UserSettings", testUserSettingsAll)
 }
 
@@ -147,7 +147,7 @@ func TestCount(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksCount)
 	t.Run("SecurityCodes", testSecurityCodesCount)
 	t.Run("Transactions", testTransactionsCount)
-	t.Run("TransactionAsignments", testTransactionAsignmentsCount)
+	t.Run("TransactionAssignments", testTransactionAssignmentsCount)
 	t.Run("UserSettings", testUserSettingsCount)
 }
 
@@ -170,8 +170,8 @@ func TestInsert(t *testing.T) {
 	t.Run("SecurityCodes", testSecurityCodesInsertWhitelist)
 	t.Run("Transactions", testTransactionsInsert)
 	t.Run("Transactions", testTransactionsInsertWhitelist)
-	t.Run("TransactionAsignments", testTransactionAsignmentsInsert)
-	t.Run("TransactionAsignments", testTransactionAsignmentsInsertWhitelist)
+	t.Run("TransactionAssignments", testTransactionAssignmentsInsert)
+	t.Run("TransactionAssignments", testTransactionAssignmentsInsertWhitelist)
 	t.Run("UserSettings", testUserSettingsInsert)
 	t.Run("UserSettings", testUserSettingsInsertWhitelist)
 }
@@ -185,8 +185,8 @@ func TestToOne(t *testing.T) {
 	t.Run("NotificationToAccountUsingAccount", testNotificationToOneAccountUsingAccount)
 	t.Run("PaymentLinkToAccountUsingAccount", testPaymentLinkToOneAccountUsingAccount)
 	t.Run("SecurityCodeToAccountUsingAccount", testSecurityCodeToOneAccountUsingAccount)
-	t.Run("TransactionAsignmentToAgentUsingAgent", testTransactionAsignmentToOneAgentUsingAgent)
-	t.Run("TransactionAsignmentToTransactionUsingTransaction", testTransactionAsignmentToOneTransactionUsingTransaction)
+	t.Run("TransactionAssignmentToAgentUsingAgent", testTransactionAssignmentToOneAgentUsingAgent)
+	t.Run("TransactionAssignmentToTransactionUsingTransaction", testTransactionAssignmentToOneTransactionUsingTransaction)
 	t.Run("UserSettingToAccountUsingAccount", testUserSettingToOneAccountUsingAccount)
 }
 
@@ -204,8 +204,8 @@ func TestToMany(t *testing.T) {
 	t.Run("AccountToPaymentLinks", testAccountToManyPaymentLinks)
 	t.Run("AccountToSecurityCodes", testAccountToManySecurityCodes)
 	t.Run("AccountToUserSettings", testAccountToManyUserSettings)
-	t.Run("AgentToTransactionAsignments", testAgentToManyTransactionAsignments)
-	t.Run("TransactionToTransactionAsignments", testTransactionToManyTransactionAsignments)
+	t.Run("AgentToTransactionAssignments", testAgentToManyTransactionAssignments)
+	t.Run("TransactionToTransactionAssignments", testTransactionToManyTransactionAssignments)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -217,8 +217,8 @@ func TestToOneSet(t *testing.T) {
 	t.Run("NotificationToAccountUsingNotifications", testNotificationToOneSetOpAccountUsingAccount)
 	t.Run("PaymentLinkToAccountUsingPaymentLinks", testPaymentLinkToOneSetOpAccountUsingAccount)
 	t.Run("SecurityCodeToAccountUsingSecurityCodes", testSecurityCodeToOneSetOpAccountUsingAccount)
-	t.Run("TransactionAsignmentToAgentUsingTransactionAsignments", testTransactionAsignmentToOneSetOpAgentUsingAgent)
-	t.Run("TransactionAsignmentToTransactionUsingTransactionAsignments", testTransactionAsignmentToOneSetOpTransactionUsingTransaction)
+	t.Run("TransactionAssignmentToAgentUsingTransactionAssignments", testTransactionAssignmentToOneSetOpAgentUsingAgent)
+	t.Run("TransactionAssignmentToTransactionUsingTransactionAssignments", testTransactionAssignmentToOneSetOpTransactionUsingTransaction)
 	t.Run("UserSettingToAccountUsingUserSettings", testUserSettingToOneSetOpAccountUsingAccount)
 }
 
@@ -247,8 +247,8 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("AccountToPaymentLinks", testAccountToManyAddOpPaymentLinks)
 	t.Run("AccountToSecurityCodes", testAccountToManyAddOpSecurityCodes)
 	t.Run("AccountToUserSettings", testAccountToManyAddOpUserSettings)
-	t.Run("AgentToTransactionAsignments", testAgentToManyAddOpTransactionAsignments)
-	t.Run("TransactionToTransactionAsignments", testTransactionToManyAddOpTransactionAsignments)
+	t.Run("AgentToTransactionAssignments", testAgentToManyAddOpTransactionAssignments)
+	t.Run("TransactionToTransactionAssignments", testTransactionToManyAddOpTransactionAssignments)
 }
 
 // TestToManySet tests cannot be run in parallel
@@ -275,7 +275,7 @@ func TestReload(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksReload)
 	t.Run("SecurityCodes", testSecurityCodesReload)
 	t.Run("Transactions", testTransactionsReload)
-	t.Run("TransactionAsignments", testTransactionAsignmentsReload)
+	t.Run("TransactionAssignments", testTransactionAssignmentsReload)
 	t.Run("UserSettings", testUserSettingsReload)
 }
 
@@ -289,7 +289,7 @@ func TestReloadAll(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksReloadAll)
 	t.Run("SecurityCodes", testSecurityCodesReloadAll)
 	t.Run("Transactions", testTransactionsReloadAll)
-	t.Run("TransactionAsignments", testTransactionAsignmentsReloadAll)
+	t.Run("TransactionAssignments", testTransactionAssignmentsReloadAll)
 	t.Run("UserSettings", testUserSettingsReloadAll)
 }
 
@@ -303,7 +303,7 @@ func TestSelect(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksSelect)
 	t.Run("SecurityCodes", testSecurityCodesSelect)
 	t.Run("Transactions", testTransactionsSelect)
-	t.Run("TransactionAsignments", testTransactionAsignmentsSelect)
+	t.Run("TransactionAssignments", testTransactionAssignmentsSelect)
 	t.Run("UserSettings", testUserSettingsSelect)
 }
 
@@ -317,7 +317,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksUpdate)
 	t.Run("SecurityCodes", testSecurityCodesUpdate)
 	t.Run("Transactions", testTransactionsUpdate)
-	t.Run("TransactionAsignments", testTransactionAsignmentsUpdate)
+	t.Run("TransactionAssignments", testTransactionAssignmentsUpdate)
 	t.Run("UserSettings", testUserSettingsUpdate)
 }
 
@@ -331,6 +331,6 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("PaymentLinks", testPaymentLinksSliceUpdateAll)
 	t.Run("SecurityCodes", testSecurityCodesSliceUpdateAll)
 	t.Run("Transactions", testTransactionsSliceUpdateAll)
-	t.Run("TransactionAsignments", testTransactionAsignmentsSliceUpdateAll)
+	t.Run("TransactionAssignments", testTransactionAssignmentsSliceUpdateAll)
 	t.Run("UserSettings", testUserSettingsSliceUpdateAll)
 }
