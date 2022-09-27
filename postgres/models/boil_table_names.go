@@ -4,23 +4,27 @@
 package models
 
 var TableNames = struct {
-	Account            string
-	AccountTransaction string
-	Beneficiary        string
-	LoginInfo          string
-	Notification       string
-	PaymentLink        string
-	SecurityCode       string
-	Transaction        string
-	UserSetting        string
+	Account              string
+	AccountTransaction   string
+	Agent                string
+	Beneficiary          string
+	LoginInfo            string
+	Notification         string
+	PaymentLink          string
+	SecurityCode         string
+	Transaction          string
+	TransactionAsignment string
+	UserSetting          string
 }{
-	Account:            "account",
-	AccountTransaction: "account_transaction",
-	Beneficiary:        "beneficiary",
-	LoginInfo:          "login_info",
-	Notification:       "notification",
-	PaymentLink:        "payment_link",
-	SecurityCode:       "security_code",
-	Transaction:        "transaction",
-	UserSetting:        "user_setting",
+	Account:              "account",
+	AccountTransaction:   "account_transaction",
+	Agent:                "agent",
+	Beneficiary:          "beneficiary",
+	LoginInfo:            "login_info",
+	Notification:         "notification",
+	PaymentLink:          "payment_link",
+	SecurityCode:         "security_code",
+	Transaction:          "transaction",
+	TransactionAsignment: "transaction_asignment",
+	UserSetting:          "user_setting",
 }

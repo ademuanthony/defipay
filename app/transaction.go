@@ -12,18 +12,21 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/google/uuid"
 )
 
 type CreateTransactionInput struct {
-	BankName      string `govalid:"req" json:"bankName" toml:"bank_name" yaml:"bank_name"`
-	AccountNumber string `govalid:"req" json:"accountNumber" toml:"account_number" yaml:"account_number"`
-	AccountName   string `govalid:"req" json:"accountName" toml:"account_name" yaml:"account_name"`
-	Amount        int64  `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
-	Email         string `govalid:"req" json:"email" toml:"email" yaml:"email"`
-	Network       string `govalid:"req" json:"network" toml:"network" yaml:"network"`
-	Currency      string `govalid:"req" json:"currency" toml:"currency" yaml:"currency"`
-	PaymentLink   string `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
-	Type          string `govalid:"req" json:"type" toml:"type" yaml:"type"`
+	BankName        string `json:"bankName" toml:"bank_name" yaml:"bank_name"`
+	AccountNumber   string `json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName     string `json:"accountName" toml:"account_name" yaml:"account_name"`
+	Amount          int64  `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
+	Email           string `govalid:"req" json:"email" toml:"email" yaml:"email"`
+	Network         string `json:"network" toml:"network" yaml:"network"`
+	Currency        string `json:"currency" toml:"currency" yaml:"currency"`
+	PaymentLink     string `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
+	Type            string `govalid:"req" json:"type" toml:"type" yaml:"type"`
+	PaymentMethod   string `json:"paymentMethod"`
+	SaveBeneficiary bool   `json:"saveBeneficiary"`
 
 	WalletAddress string `json:"-"`
 	PrivateKey    string `json:"-"`
@@ -31,17 +34,17 @@ type CreateTransactionInput struct {
 
 type TransactionOutput struct {
 	ID            string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	BankName      string `boil:"bank_name" json:"bank_name" toml:"bank_name" yaml:"bank_name"`
-	AccountNumber string `boil:"account_number" json:"account_number" toml:"account_number" yaml:"account_number"`
-	AccountName   string `boil:"account_name" json:"account_name" toml:"account_name" yaml:"account_name"`
+	BankName      string `boil:"bank_name" json:"bankName" toml:"bank_name" yaml:"bank_name"`
+	AccountNumber string `boil:"account_number" json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName   string `boil:"account_name" json:"accountName" toml:"account_name" yaml:"account_name"`
 	Amount        int64  `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	AmountPaid    string `json:"amount_paid"`
-	TokenAmount   string `json:"token_amount"`
+	AmountPaid    string `json:"amountPaid"`
+	TokenAmount   string `json:"tokenAmount"`
 	Email         string `boil:"email" json:"email" toml:"email" yaml:"email"`
 	Network       string `boil:"network" json:"network" toml:"network" yaml:"network"`
 	Currency      string `boil:"currency" json:"currency" toml:"currency" yaml:"currency"`
-	WalletAddress string `boil:"wallet_address" json:"wallet_address" toml:"wallet_address" yaml:"wallet_address"`
-	PaymentLink   string `boil:"payment_link" json:"payment_link" toml:"payment_link" yaml:"payment_link"`
+	WalletAddress string `boil:"wallet_address" json:"walletAddress" toml:"wallet_address" yaml:"wallet_address"`
+	PaymentLink   string `boil:"payment_link" json:"paymentLink" toml:"payment_link" yaml:"payment_link"`
 	Type          string `boil:"type" json:"type" toml:"type" yaml:"type"`
 	Status        string `json:"status"`
 }
@@ -78,6 +81,16 @@ var TransactionStatuses = struct {
 	Processing:    "processing",
 	Completed:     "completed",
 	Cancelled:     "cancelled",
+}
+
+type PaymentMethod string
+
+var PaymentMethods = struct {
+	Wallet PaymentMethod
+	Crypto PaymentMethod
+}{
+	Wallet: "wallet",
+	Crypto: "crypto",
 }
 
 type GetTransactionsInput struct {
@@ -133,6 +146,10 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON("unsupported transaction type")
 	}
 
+	if input.Amount > 10000 {
+		return SendErrorfJSON("Please enter an amount below $10,000")
+	}
+
 	tran, err := m.createTransaction(ctx, input)
 	if err != nil {
 		log.Error("Create Transaction", err)
@@ -141,6 +158,18 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 			msg = messenger.ErrorMessage()
 		}
 		return SendErrorfJSON(msg)
+	}
+
+	account, err := m.currentAccount(ctx, r)
+	if err == nil && input.SaveBeneficiary {
+		m.db.CreateBeneficiary(ctx, CreateBeneficiaryInput{
+			ID:            uuid.NewString(),
+			AccountID:     account.ID,
+			Bank:          input.BankName,
+			AccountNumber: input.AccountNumber,
+			AccountName:   input.AccountName,
+			Country:       input.Currency,
+		})
 	}
 
 	return SendJSON(tran)
@@ -152,7 +181,13 @@ func (m Module) createTransaction(ctx context.Context, input CreateTransactionIn
 		return nil, err
 	}
 	if len(vio) > 0 {
-		return nil, newValidationError(vio)
+		return nil, NewValidationError(vio)
+	}
+
+	if input.Type == string(transactionTypes.FundTransfer) {
+		if input.AccountName == "" || input.AccountNumber == "" || input.BankName == "" {
+			return nil, NewValidationError([]string{"Account details required"})
+		}
 	}
 
 	privateKey, wallet, err := GenerateWallet()
@@ -195,7 +230,7 @@ func (m Module) UpdateTransactionCurrency(ctx context.Context, r events.APIGatew
 }
 
 func (m Module) CheckTransactionStatus(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	id := r.QueryStringParameters["id"]
+	id := r.PathParameters["id"]
 	transaction, err := m.db.Transaction(ctx, id)
 	if err != nil {
 		return m.handleError(err, "Get Transaction")
@@ -208,7 +243,7 @@ func (m Module) CheckTransactionStatus(ctx context.Context, r events.APIGatewayP
 
 	currencyProcessor := m.currencyProcessors[(transaction.Currency)][Network(transaction.Network)]
 
-	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
+	amountPaid, err := currencyProcessor.BalanceOf(context.TODO(), common.HexToAddress(transaction.WalletAddress))
 	if err != nil {
 		return m.handleError(err)
 	}

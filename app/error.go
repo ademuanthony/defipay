@@ -21,7 +21,7 @@ func (v validationError) ErrorMessage() string {
 	return strings.Join(v.Errors, "|")
 }
 
-func newValidationError(errors []string) validationError {
+func NewValidationError(errors []string) validationError {
 	return validationError{Errors: errors}
 }
 
@@ -30,7 +30,7 @@ func (m Module) handleError(err error, tag ...string) (Response, error) {
 	if messenger, ok := err.(ErrorMessenger); ok {
 		msg = messenger.ErrorMessage()
 	} else if err.Error() == sql.ErrNoRows.Error() {
-		msg =  "Not Found"
+		msg = "Not Found"
 	}
 	log.Error(tag, err)
 	return SendErrorfJSON(msg)

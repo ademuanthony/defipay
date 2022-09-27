@@ -21,24 +21,24 @@ var (
 	_ = queries.Equal
 )
 
-func testTransactions(t *testing.T) {
+func testAgents(t *testing.T) {
 	t.Parallel()
 
-	query := Transactions()
+	query := Agents()
 
 	if query.Query == nil {
 		t.Error("expected a query, got nothing")
 	}
 }
 
-func testTransactionsDelete(t *testing.T) {
+func testAgentsDelete(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -54,7 +54,7 @@ func testTransactionsDelete(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,14 +64,14 @@ func testTransactionsDelete(t *testing.T) {
 	}
 }
 
-func testTransactionsQueryDeleteAll(t *testing.T) {
+func testAgentsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -81,13 +81,13 @@ func testTransactionsQueryDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rowsAff, err := Transactions().DeleteAll(ctx, tx); err != nil {
+	if rowsAff, err := Agents().DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -97,14 +97,14 @@ func testTransactionsQueryDeleteAll(t *testing.T) {
 	}
 }
 
-func testTransactionsSliceDeleteAll(t *testing.T) {
+func testAgentsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -114,7 +114,7 @@ func testTransactionsSliceDeleteAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := TransactionSlice{o}
+	slice := AgentSlice{o}
 
 	if rowsAff, err := slice.DeleteAll(ctx, tx); err != nil {
 		t.Error(err)
@@ -122,7 +122,7 @@ func testTransactionsSliceDeleteAll(t *testing.T) {
 		t.Error("should only have deleted one row, but affected:", rowsAff)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -132,14 +132,14 @@ func testTransactionsSliceDeleteAll(t *testing.T) {
 	}
 }
 
-func testTransactionsExists(t *testing.T) {
+func testAgentsExists(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -149,23 +149,23 @@ func testTransactionsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := TransactionExists(ctx, tx, o.ID)
+	e, err := AgentExists(ctx, tx, o.ID)
 	if err != nil {
-		t.Errorf("Unable to check if Transaction exists: %s", err)
+		t.Errorf("Unable to check if Agent exists: %s", err)
 	}
 	if !e {
-		t.Errorf("Expected TransactionExists to return true, but got false.")
+		t.Errorf("Expected AgentExists to return true, but got false.")
 	}
 }
 
-func testTransactionsFind(t *testing.T) {
+func testAgentsFind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -175,24 +175,24 @@ func testTransactionsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	transactionFound, err := FindTransaction(ctx, tx, o.ID)
+	agentFound, err := FindAgent(ctx, tx, o.ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if transactionFound == nil {
+	if agentFound == nil {
 		t.Error("want a record, got nil")
 	}
 }
 
-func testTransactionsBind(t *testing.T) {
+func testAgentsBind(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -202,19 +202,19 @@ func testTransactionsBind(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err = Transactions().Bind(ctx, tx, o); err != nil {
+	if err = Agents().Bind(ctx, tx, o); err != nil {
 		t.Error(err)
 	}
 }
 
-func testTransactionsOne(t *testing.T) {
+func testAgentsOne(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -224,38 +224,38 @@ func testTransactionsOne(t *testing.T) {
 		t.Error(err)
 	}
 
-	if x, err := Transactions().One(ctx, tx); err != nil {
+	if x, err := Agents().One(ctx, tx); err != nil {
 		t.Error(err)
 	} else if x == nil {
 		t.Error("expected to get a non nil record")
 	}
 }
 
-func testTransactionsAll(t *testing.T) {
+func testAgentsAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	transactionOne := &Transaction{}
-	transactionTwo := &Transaction{}
-	if err = randomize.Struct(seed, transactionOne, transactionDBTypes, false, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	agentOne := &Agent{}
+	agentTwo := &Agent{}
+	if err = randomize.Struct(seed, agentOne, agentDBTypes, false, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
-	if err = randomize.Struct(seed, transactionTwo, transactionDBTypes, false, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, agentTwo, agentDBTypes, false, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = transactionOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = agentOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = transactionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = agentTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	slice, err := Transactions().All(ctx, tx)
+	slice, err := Agents().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -265,31 +265,31 @@ func testTransactionsAll(t *testing.T) {
 	}
 }
 
-func testTransactionsCount(t *testing.T) {
+func testAgentsCount(t *testing.T) {
 	t.Parallel()
 
 	var err error
 	seed := randomize.NewSeed()
-	transactionOne := &Transaction{}
-	transactionTwo := &Transaction{}
-	if err = randomize.Struct(seed, transactionOne, transactionDBTypes, false, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	agentOne := &Agent{}
+	agentTwo := &Agent{}
+	if err = randomize.Struct(seed, agentOne, agentDBTypes, false, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
-	if err = randomize.Struct(seed, transactionTwo, transactionDBTypes, false, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, agentTwo, agentDBTypes, false, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = transactionOne.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = agentOne.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
-	if err = transactionTwo.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err = agentTwo.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -299,14 +299,14 @@ func testTransactionsCount(t *testing.T) {
 	}
 }
 
-func testTransactionsInsert(t *testing.T) {
+func testAgentsInsert(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -316,7 +316,7 @@ func testTransactionsInsert(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -326,24 +326,24 @@ func testTransactionsInsert(t *testing.T) {
 	}
 }
 
-func testTransactionsInsertWhitelist(t *testing.T) {
+func testAgentsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
-	if err = o.Insert(ctx, tx, boil.Whitelist(transactionColumnsWithoutDefault...)); err != nil {
+	if err = o.Insert(ctx, tx, boil.Whitelist(agentColumnsWithoutDefault...)); err != nil {
 		t.Error(err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -353,18 +353,18 @@ func testTransactionsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testTransactionToManyTransactionAsignments(t *testing.T) {
+func testAgentToManyTransactionAsignments(t *testing.T) {
 	var err error
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Transaction
+	var a Agent
 	var b, c TransactionAsignment
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, &a, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
@@ -378,8 +378,8 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b.TransactionID = a.ID
-	c.TransactionID = a.ID
+	b.AgentID = a.ID
+	c.AgentID = a.ID
 
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
@@ -395,10 +395,10 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if v.TransactionID == b.TransactionID {
+		if v.AgentID == b.AgentID {
 			bFound = true
 		}
-		if v.TransactionID == c.TransactionID {
+		if v.AgentID == c.AgentID {
 			cFound = true
 		}
 	}
@@ -410,8 +410,8 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 		t.Error("expected to find c")
 	}
 
-	slice := TransactionSlice{&a}
-	if err = a.L.LoadTransactionAsignments(ctx, tx, false, (*[]*Transaction)(&slice), nil); err != nil {
+	slice := AgentSlice{&a}
+	if err = a.L.LoadTransactionAsignments(ctx, tx, false, (*[]*Agent)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
 	if got := len(a.R.TransactionAsignments); got != 2 {
@@ -431,18 +431,18 @@ func testTransactionToManyTransactionAsignments(t *testing.T) {
 	}
 }
 
-func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
+func testAgentToManyAddOpTransactionAsignments(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
-	var a Transaction
+	var a Agent
 	var b, c, d, e TransactionAsignment
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, transactionDBTypes, false, strmangle.SetComplement(transactionPrimaryKeyColumns, transactionColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &a, agentDBTypes, false, strmangle.SetComplement(agentPrimaryKeyColumns, agentColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
 	foreigners := []*TransactionAsignment{&b, &c, &d, &e}
@@ -476,17 +476,17 @@ func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if a.ID != first.TransactionID {
-			t.Error("foreign key was wrong value", a.ID, first.TransactionID)
+		if a.ID != first.AgentID {
+			t.Error("foreign key was wrong value", a.ID, first.AgentID)
 		}
-		if a.ID != second.TransactionID {
-			t.Error("foreign key was wrong value", a.ID, second.TransactionID)
+		if a.ID != second.AgentID {
+			t.Error("foreign key was wrong value", a.ID, second.AgentID)
 		}
 
-		if first.R.Transaction != &a {
+		if first.R.Agent != &a {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
-		if second.R.Transaction != &a {
+		if second.R.Agent != &a {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
@@ -507,14 +507,14 @@ func testTransactionToManyAddOpTransactionAsignments(t *testing.T) {
 	}
 }
 
-func testTransactionsReload(t *testing.T) {
+func testAgentsReload(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -529,14 +529,14 @@ func testTransactionsReload(t *testing.T) {
 	}
 }
 
-func testTransactionsReloadAll(t *testing.T) {
+func testAgentsReloadAll(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -546,21 +546,21 @@ func testTransactionsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice := TransactionSlice{o}
+	slice := AgentSlice{o}
 
 	if err = slice.ReloadAll(ctx, tx); err != nil {
 		t.Error(err)
 	}
 }
 
-func testTransactionsSelect(t *testing.T) {
+func testAgentsSelect(t *testing.T) {
 	t.Parallel()
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -570,7 +570,7 @@ func testTransactionsSelect(t *testing.T) {
 		t.Error(err)
 	}
 
-	slice, err := Transactions().All(ctx, tx)
+	slice, err := Agents().All(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -581,25 +581,25 @@ func testTransactionsSelect(t *testing.T) {
 }
 
 var (
-	transactionDBTypes = map[string]string{`ID`: `uuid`, `BankName`: `character varying`, `AccountNumber`: `character varying`, `AccountName`: `character varying`, `Amount`: `bigint`, `Email`: `character varying`, `Network`: `character varying`, `Currency`: `character varying`, `WalletAddress`: `character varying`, `PrivateKey`: `character varying`, `PaymentLink`: `character varying`, `Type`: `character varying`, `Status`: `character varying`, `TokenAmount`: `character varying`, `AmountPaid`: `character varying`}
-	_                  = bytes.MinRead
+	agentDBTypes = map[string]string{`ID`: `integer`, `SlackUsername`: `character varying`, `Name`: `character varying`, `Balance`: `bigint`, `Status`: `integer`}
+	_            = bytes.MinRead
 )
 
-func testTransactionsUpdate(t *testing.T) {
+func testAgentsUpdate(t *testing.T) {
 	t.Parallel()
 
-	if 0 == len(transactionPrimaryKeyColumns) {
+	if 0 == len(agentPrimaryKeyColumns) {
 		t.Skip("Skipping table with no primary key columns")
 	}
-	if len(transactionAllColumns) == len(transactionPrimaryKeyColumns) {
+	if len(agentAllColumns) == len(agentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -609,7 +609,7 @@ func testTransactionsUpdate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -618,8 +618,8 @@ func testTransactionsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	if rowsAff, err := o.Update(ctx, tx, boil.Infer()); err != nil {
@@ -629,18 +629,18 @@ func testTransactionsUpdate(t *testing.T) {
 	}
 }
 
-func testTransactionsSliceUpdateAll(t *testing.T) {
+func testAgentsSliceUpdateAll(t *testing.T) {
 	t.Parallel()
 
-	if len(transactionAllColumns) == len(transactionPrimaryKeyColumns) {
+	if len(agentAllColumns) == len(agentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
-	o := &Transaction{}
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := &Agent{}
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
@@ -650,7 +650,7 @@ func testTransactionsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -659,18 +659,18 @@ func testTransactionsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, o, transactionDBTypes, true, transactionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, o, agentDBTypes, true, agentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
-	if strmangle.StringSliceMatch(transactionAllColumns, transactionPrimaryKeyColumns) {
-		fields = transactionAllColumns
+	if strmangle.StringSliceMatch(agentAllColumns, agentPrimaryKeyColumns) {
+		fields = agentAllColumns
 	} else {
 		fields = strmangle.SetComplement(
-			transactionAllColumns,
-			transactionPrimaryKeyColumns,
+			agentAllColumns,
+			agentPrimaryKeyColumns,
 		)
 	}
 
@@ -688,7 +688,7 @@ func testTransactionsSliceUpdateAll(t *testing.T) {
 		}
 	}
 
-	slice := TransactionSlice{o}
+	slice := AgentSlice{o}
 	if rowsAff, err := slice.UpdateAll(ctx, tx, updateMap); err != nil {
 		t.Error(err)
 	} else if rowsAff != 1 {
@@ -696,29 +696,29 @@ func testTransactionsSliceUpdateAll(t *testing.T) {
 	}
 }
 
-func testTransactionsUpsert(t *testing.T) {
+func testAgentsUpsert(t *testing.T) {
 	t.Parallel()
 
-	if len(transactionAllColumns) == len(transactionPrimaryKeyColumns) {
+	if len(agentAllColumns) == len(agentPrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
 	seed := randomize.NewSeed()
 	var err error
 	// Attempt the INSERT side of an UPSERT
-	o := Transaction{}
-	if err = randomize.Struct(seed, &o, transactionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	o := Agent{}
+	if err = randomize.Struct(seed, &o, agentDBTypes, true); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 	if err = o.Upsert(ctx, tx, false, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Transaction: %s", err)
+		t.Errorf("Unable to upsert Agent: %s", err)
 	}
 
-	count, err := Transactions().Count(ctx, tx)
+	count, err := Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -727,15 +727,15 @@ func testTransactionsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &o, transactionDBTypes, false, transactionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Transaction struct: %s", err)
+	if err = randomize.Struct(seed, &o, agentDBTypes, false, agentPrimaryKeyColumns...); err != nil {
+		t.Errorf("Unable to randomize Agent struct: %s", err)
 	}
 
 	if err = o.Upsert(ctx, tx, true, nil, boil.Infer(), boil.Infer()); err != nil {
-		t.Errorf("Unable to upsert Transaction: %s", err)
+		t.Errorf("Unable to upsert Agent: %s", err)
 	}
 
-	count, err = Transactions().Count(ctx, tx)
+	count, err = Agents().Count(ctx, tx)
 	if err != nil {
 		t.Error(err)
 	}

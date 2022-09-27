@@ -91,7 +91,7 @@ create table if not exists transaction (
 );
 
 create table if not exists payment_link ( 
-    permalink character not null primary key,
+    permalink character(64) not null primary key,
     account_id character varying(64) references account(id),
     email  character varying(64) not null,
     accountName character varying(64) not null,
@@ -110,6 +110,23 @@ create table if not exists beneficiary (
     account_name character varying(64) not null,
     country character varying(64) not null,
     beneficial_email character varying(64) not null
+);
+
+create table if not exists agent (
+    id serial not null primary key,
+    slack_username character varying(64) not null unique,
+    name character varying(64) not null,
+    balance int8 not null,
+    status int not null
+);
+
+create table if not exists transaction_asignment(
+    id serial not null primary key,
+    agent_id int not null references agent(id),
+    transaction_id uuid not null references transaction(id),
+    amount int8 not null,
+    date int8 not null,
+    status int noy null
 );
 
 alter table account add referral_code character varying(256) not null UNIQUE;

@@ -24,14 +24,19 @@ func (pg PgDb) GetMyBeneficiaryByAccountNumber(ctx context.Context, accountID st
 }
 
 func (pg PgDb) CreateBeneficiary(ctx context.Context, input app.CreateBeneficiaryInput) error {
+	if e, _ := models.Beneficiaries(
+		models.BeneficiaryWhere.AccountID.EQ(null.StringFrom(input.AccountID)),
+		models.BeneficiaryWhere.AccountNumber.EQ(input.AccountNumber),
+	).Exists(ctx, pg.Db); e {
+		return app.NewValidationError([]string{"beneficiary exists"})
+	}
 	ben := models.Beneficiary{
-		ID:              input.ID,
-		AccountID:       null.StringFrom(input.AccountID),
-		Bank:            input.Bank,
-		AccountNumber:   input.AccountNumber,
-		AccountName:     input.AccountName,
-		Country:         input.Country,
-		BeneficialEmail: input.BeneficialEmail,
+		ID:            input.ID,
+		AccountID:     null.StringFrom(input.AccountID),
+		Bank:          input.Bank,
+		AccountNumber: input.AccountNumber,
+		AccountName:   input.AccountName,
+		Country:       input.Country,
 	}
 
 	return ben.Insert(ctx, pg.Db, boil.Infer())
@@ -73,12 +78,11 @@ func (pg PgDb) GetBeneficiary(ctx context.Context, id string) (*app.BeneficiaryO
 
 func convertBeneficiary(input *models.Beneficiary) *app.BeneficiaryOutput {
 	return &app.BeneficiaryOutput{
-		ID:              input.ID,
-		AccountID:       input.AccountID.String,
-		Bank:            input.Bank,
-		AccountNumber:   input.AccountNumber,
-		AccountName:     input.AccountName,
-		Country:         input.Country,
-		BeneficialEmail: input.BeneficialEmail,
+		ID:            input.ID,
+		AccountID:     input.AccountID.String,
+		Bank:          input.Bank,
+		AccountNumber: input.AccountNumber,
+		AccountName:   input.AccountName,
+		Country:       input.Country,
 	}
 }

@@ -10,23 +10,21 @@ import (
 )
 
 type BeneficiaryOutput struct {
-	ID              string `json:"id"`
-	AccountID       string `json:"accountID"`
-	Bank            string `boil:"bank" json:"bank" toml:"bank" yaml:"bank"`
-	AccountNumber   string `boil:"account_number" json:"accountNumber" toml:"account_number" yaml:"account_number"`
-	AccountName     string `boil:"account_name" json:"accountName" toml:"account_name" yaml:"account_name"`
-	Country         string `boil:"country" json:"country" toml:"country" yaml:"country"`
-	BeneficialEmail string `boil:"beneficial_email" json:"beneficialEmail" toml:"beneficial_email" yaml:"beneficial_email"`
+	ID            string `json:"id"`
+	AccountID     string `json:"accountID"`
+	Bank          string `boil:"bank" json:"bankName" toml:"bank" yaml:"bank"`
+	AccountNumber string `boil:"account_number" json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName   string `boil:"account_name" json:"accountName" toml:"account_name" yaml:"account_name"`
+	Country       string `boil:"country" json:"country" toml:"country" yaml:"country"`
 }
 
 type CreateBeneficiaryInput struct {
-	ID              string `json:"id"`
-	AccountID       string `json:"-"`
-	Bank            string `govalid:"req" json:"bank" toml:"bank" yaml:"bank"`
-	AccountNumber   string `govalid:"red" json:"accountNumber" toml:"account_number" yaml:"account_number"`
-	AccountName     string `govalid:"red" json:"accountName" toml:"account_name" yaml:"account_name"`
-	Country         string `govalid:"red" json:"country" toml:"country" yaml:"country"`
-	BeneficialEmail string `govalid:"red" json:"beneficialEmail" toml:"beneficial_email" yaml:"beneficial_email"`
+	ID            string `json:"id"`
+	AccountID     string `json:"-"`
+	Bank          string `govalid:"req" json:"bankName" toml:"bank" yaml:"bank"`
+	AccountNumber string `govalid:"req" json:"accountNumber" toml:"account_number" yaml:"account_number"`
+	AccountName   string `govalid:"req" json:"accountName" toml:"account_name" yaml:"account_name"`
+	Country       string `govalid:"req" json:"country" toml:"country" yaml:"country"`
 }
 
 type GetBeneficiariesInput struct {
@@ -47,7 +45,7 @@ func (m Module) CreateBeneficiary(ctx context.Context, r events.APIGatewayProxyR
 		return m.sendSomethingWentWrong("Violations", err)
 	}
 	if len(vio) > 0 {
-		return m.handleError(newValidationError(vio))
+		return m.handleError(NewValidationError(vio))
 	}
 
 	accountID := m.GetUserIDTokenCtxSls(r)

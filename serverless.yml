@@ -81,7 +81,7 @@ functions:
     events:
       - httpApi:
           path: /transactions/{id}/check-status
-          method: post
+          method: get
 
   CreatePaymentLink:
     handler: bin/CreatePaymentLink

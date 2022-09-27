@@ -41,7 +41,7 @@ func ExtractToken(r *http.Request) string {
 }
 
 func ExtractTokenSls(r events.APIGatewayProxyRequest) string {
-	bearToken := r.Headers["Authorization"]
+	bearToken := r.Headers["authorization"]
 	//normally Authorization the_token_xxx
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) == 2 {

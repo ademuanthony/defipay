@@ -37,7 +37,7 @@ func (pg PgDb) GetPaymentLink(ctx context.Context, permalink string) (*app.Payme
 
 func (pg PgDb) GetPaymentLinks(ctx context.Context, input app.GetPaymentLinksInput) ([]*app.PaymentLinkOutput, int64, error) {
 	query := []qm.QueryMod{
-		qm.Where("account_id = $1 or email = $2", input.AccountID, input.Email),
+		models.PaymentLinkWhere.Email.EQ(input.Email),
 	}
 
 	count, err := models.PaymentLinks(query...).Count(ctx, pg.Db)
