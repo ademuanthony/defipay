@@ -120,3 +120,12 @@ functions:
       - httpApi:
           path: /beneficiaries/{id}
           method: get
+
+  GetDfcEndpoint:
+    handler: bin/GetDfcEndpoint
+    events:
+      - httpApi:
+          path: /config/dfc
+          method: get
+
+          

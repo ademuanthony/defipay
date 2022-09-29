@@ -298,6 +298,10 @@ func (m Module) currentAccount(ctx context.Context, r events.APIGatewayProxyRequ
 	return acc, err
 }
 
+func (m Module) CurrentAccount(ctx context.Context, r events.APIGatewayProxyRequest) (*models.Account, error) {
+	return m.currentAccount(ctx, r)
+}
+
 func (m Module) referralLink(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	acc, err := m.currentAccount(ctx, r)
 	if err != nil {

@@ -21,6 +21,7 @@ type Currency struct {
 
 type CurrencyProcessor interface {
 	BalanceOf(ctx context.Context, walletAddress common.Address) (*big.Int, error)
+	DollarToToken(ctx context.Context, amount *big.Int) (*big.Int, error)
 	Decimals(ctx context.Context) (uint8, error)
 	Transfer(ctx context.Context, privateKey string, to common.Address, value *big.Int) (*types.Transaction, error)
 }

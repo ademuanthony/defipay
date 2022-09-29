@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"deficonnect/defipayapi/postgres/models"
 	"deficonnect/defipayapi/web"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -24,7 +25,8 @@ type CreateTransactionInput struct {
 	BankName        string `json:"bankName" toml:"bank_name" yaml:"bank_name"`
 	AccountNumber   string `json:"accountNumber" toml:"account_number" yaml:"account_number"`
 	AccountName     string `json:"accountName" toml:"account_name" yaml:"account_name"`
-	Amount          int64  `govalid:"req|min:10|max:10000" json:"amount" toml:"amount" yaml:"amount"`
+	Amount          int64  `govalid:"req|min:10|max:100000000" json:"amount" toml:"amount" yaml:"amount"`
+	TokenAmount     string `json:"-"`
 	Email           string `govalid:"req" json:"email" toml:"email" yaml:"email"`
 	Network         string `json:"network" toml:"network" yaml:"network"`
 	Currency        string `json:"currency" toml:"currency" yaml:"currency"`
@@ -136,13 +138,7 @@ func (m Module) GetTransactions(ctx context.Context, r events.APIGatewayProxyReq
 	return SendPagedJSON(transactions, count)
 }
 
-func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
-	var input CreateTransactionInput
-	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
-		log.Error("Login", "json::Decode", err)
-		return SendErrorfJSON("cannot decode request")
-	}
-
+func (m Module) CreateTransaction(ctx context.Context, input CreateTransactionInput, account *models.Account) (Response, error) {
 	currencyProcessor := m.currencyProcessors[(input.Currency)][Network(input.Network)]
 	if currencyProcessor == nil {
 		return SendErrorfJSON("Unsupported currency or network in transaction")
@@ -161,6 +157,18 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON("Please enter an amount below $10,000")
 	}
 
+	inputAmount, valid := common.Big0.SetString(fmt.Sprintf("%d", input.Amount), 10)
+	if !valid {
+		return SendErrorfJSON("Cannot set big string")
+	}
+	// compute token amount
+	tokenAmount, err := currencyProcessor.DollarToToken(ctx, inputAmount)
+	if err != nil {
+		return SendErrorfJSON("Unable to get token conversion. Please contact the customer service")
+	}
+
+	input.TokenAmount = tokenAmount.String()
+
 	tran, err := m.createTransaction(ctx, input)
 	if err != nil {
 		log.Error("Create Transaction", err)
@@ -171,8 +179,7 @@ func (m Module) CreateTransaction(ctx context.Context, r events.APIGatewayProxyR
 		return SendErrorfJSON(msg)
 	}
 
-	account, err := m.currentAccount(ctx, r)
-	if err == nil && input.SaveBeneficiary {
+	if account != nil && input.SaveBeneficiary {
 		m.db.CreateBeneficiary(ctx, CreateBeneficiaryInput{
 			ID:            uuid.NewString(),
 			AccountID:     account.ID,
@@ -267,8 +274,11 @@ func (m Module) CheckTransactionStatus(ctx context.Context, r events.APIGatewayP
 	}
 
 	transaction.AmountPaid = amountPaid.String()
-	var tokenAmount *big.Int
-	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 64)
+	var tokenAmount *big.Int = common.Big0
+	tokenAmount, valid := tokenAmount.SetString(transaction.TokenAmount, 10)
+	if !valid {
+		return SendErrorfJSON("Invalid token amount. Please contact the admin for resolution")
+	}
 
 	if c := tokenAmount.Cmp(amountPaid); c == 0 || c == -1 {
 		status, err := m.processTransaction(ctx, transaction)
@@ -286,13 +296,16 @@ func (m Module) processTransaction(ctx context.Context, transaction *Transaction
 	if transaction.Status == string(TransactionStatuses.Completed) {
 		return "", errors.New("already completed")
 	}
-	amountPaid, err := currencyProcessor.BalanceOf(nil, common.HexToAddress(transaction.WalletAddress))
+	amountPaid, err := currencyProcessor.BalanceOf(context.TODO(), common.HexToAddress(transaction.WalletAddress))
+	if err != nil {
+		return "", err
+	}
 	if err != nil {
 		return "", err
 	}
 
-	var tokenAmount *big.Int
-	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 64)
+	var tokenAmount *big.Int = common.Big0
+	tokenAmount, _ = tokenAmount.SetString(transaction.TokenAmount, 10)
 
 	if c := amountPaid.Cmp(tokenAmount); c == -1 {
 		return "", errors.New("incomplete payment")
@@ -306,14 +319,14 @@ func (m Module) processTransaction(ctx context.Context, transaction *Transaction
 		return "", err
 	}
 
-	pk, err := m.db.TransactionPK(ctx, transaction.ID)
-	if err != nil {
-		return "", err
-	}
+	// pk, err := m.db.TransactionPK(ctx, transaction.ID)
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	if _, err := currencyProcessor.Transfer(ctx, pk, common.HexToAddress(m.config.MasterAddress), amountPaid); err != nil {
-		return "", err
-	}
+	// if _, err := currencyProcessor.Transfer(ctx, pk, common.HexToAddress(m.config.MasterAddress), amountPaid); err != nil {
+	// 	return "", err
+	// }
 
 	if transaction.Type == string(transactionTypes.FundTransfer) {
 		if err := m.assignTransactionToAgent(ctx, transaction); err != nil {
@@ -400,7 +413,7 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 	if err != nil {
 		return err
 	}
-	
+
 	bodyStr := string(b)
 	if strings.ToLower(bodyStr) != "ok" {
 		return errors.New(bodyStr)

@@ -63,8 +63,8 @@ func Start(db store,
 			return nil, err
 		}
 
-		currencyProcessors[DFC.Name] = map[Network]CurrencyProcessor{}
-		currencyProcessors[DFC.Name][Networks.BSC] = dfcProcessor
+		currencyProcessors[DFC.Symbol] = map[Network]CurrencyProcessor{}
+		currencyProcessors[DFC.Symbol][Networks.BSC] = dfcProcessor
 
 		// ADD USDT processor
 

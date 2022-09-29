@@ -401,5 +401,9 @@ func loadConfig() (*config, error) {
 		cfg.ServerHeader = "coinzion - 1.0"
 	}
 
+	if cfg.DFCBscContractAddress == "" {
+		cfg.DFCBscContractAddress = "0x651B6aDf55249f285100DCf0FC29Ee5b192583Ac"
+	}
+
 	return &cfg, nil
 }

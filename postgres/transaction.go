@@ -14,6 +14,7 @@ func (pg PgDb) CreateTransaction(ctx context.Context, input app.CreateTransactio
 	transaction := models.Transaction{
 		ID:            uuid.NewString(),
 		Amount:        input.Amount,
+		TokenAmount:   input.TokenAmount,
 		BankName:      input.BankName,
 		AccountNumber: input.AccountNumber,
 		AccountName:   input.AccountName,
@@ -33,6 +34,7 @@ func (pg PgDb) CreateTransaction(ctx context.Context, input app.CreateTransactio
 	return &app.TransactionOutput{
 		ID:            transaction.ID,
 		Amount:        input.Amount,
+		TokenAmount:   input.TokenAmount,
 		BankName:      input.BankName,
 		AccountNumber: input.AccountNumber,
 		AccountName:   input.AccountName,
@@ -72,6 +74,7 @@ func convertTransaction(transaction *models.Transaction) app.TransactionOutput {
 		WalletAddress: transaction.WalletAddress,
 		PaymentLink:   transaction.PaymentLink,
 		Type:          string(transaction.Type),
+		Status:        transaction.Status,
 	}
 }
 

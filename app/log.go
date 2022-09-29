@@ -11,6 +11,8 @@ import "github.com/decred/slog"
 // requests it.
 var log = slog.Disabled
 
+var Log = slog.Disabled
+
 // DisableLog disables all library log output.  Logging output is disabled
 // by default until UseLogger is called.
 func DisableLog() {
@@ -20,4 +22,5 @@ func DisableLog() {
 // UseLogger uses a specified Logger to output package logging info.
 func UseLogger(logger slog.Logger) {
 	log = logger
+	Log = logger
 }

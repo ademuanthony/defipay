@@ -35,6 +35,11 @@ func (p dfcProcessor) BalanceOf(ctx context.Context, walletAddress common.Addres
 	return p.instance.BalanceOf(nil, walletAddress)
 }
 
+func (p dfcProcessor) DollarToToken(ctx context.Context, amount *big.Int) (*big.Int, error) {
+	// todo use mainnet price
+	return amount, nil
+}
+
 func (p dfcProcessor) Decimals(ctx context.Context) (uint8, error) {
 	decimals, err := p.instance.Decimals(nil)
 	if err != nil {

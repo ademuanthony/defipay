@@ -19,6 +19,8 @@ build: gomodgen
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/CreateBeneficiary handlers/beneficiary/CreateBeneficiary/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetBeneficiaries handlers/beneficiary/GetBeneficiaries/main.go
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetBeneficiary handlers/beneficiary/GetBeneficiary/main.go
+
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetDfcEndpoint handlers/config/GetDfcEndpoint/main.go
 	
 	
 
