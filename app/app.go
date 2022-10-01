@@ -68,6 +68,24 @@ func Start(db store,
 
 		// ADD USDT processor
 
+		usdtProcessor, err := processors.NewUsdtProcessor(bscClient, common.HexToAddress(cfg.USDTBscContractAddress))
+		if err != nil {
+			return nil, err
+		}
+
+		currencyProcessors[USDT.Symbol] = map[Network]CurrencyProcessor{}
+		currencyProcessors[USDT.Symbol][Networks.BSC] = usdtProcessor
+
+		// ADD BUSD processor
+
+		busdProcessor, err := processors.NewBusdProcessor(bscClient, common.HexToAddress(cfg.BUSDContractAddress))
+		if err != nil {
+			return nil, err
+		}
+
+		currencyProcessors[BUSD.Symbol] = map[Network]CurrencyProcessor{}
+		currencyProcessors[BUSD.Symbol][Networks.BSC] = busdProcessor
+
 		app.bscClient = bscClient
 		app.polygonClient = polygonClient
 		app.currencyProcessors = currencyProcessors

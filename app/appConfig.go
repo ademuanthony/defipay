@@ -20,6 +20,8 @@ type AppConfig struct {
 	DFCBscContractAddress       string `env:"DFC_BSC_CONTRACT_ADDRESS"`
 	CGoldPolygonContractAddress string `env:"CGOLD_POLYGON"`
 
+	BUSDContractAddress string `env:"BUSD_BSC"`
+
 	MastAccountID string `env:"MASTER_ACCOUNT_ID"`
 }
 

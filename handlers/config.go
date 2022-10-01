@@ -405,8 +405,16 @@ func loadConfig() (*config, error) {
 		cfg.DFCBscContractAddress = "0x651B6aDf55249f285100DCf0FC29Ee5b192583Ac"
 	}
 
+	if cfg.USDTBscContractAddress == "" {
+		cfg.USDTBscContractAddress = "0x55d398326f99059fF775485246999027B3197955"
+	}
+
 	if cfg.MastAccountID == "" {
 		cfg.MastAccountID = "6903e8f4-1eb3-44d1-a9d2-1ee49218621c"
+	}
+
+	if cfg.BUSDContractAddress == "" {
+		cfg.BUSDContractAddress = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
 	}
 
 	return &cfg, nil

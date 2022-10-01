@@ -3,10 +3,8 @@ package app
 import (
 	"context"
 	"math/big"
-	"net/http"
 
-	"deficonnect/defipayapi/web"
-
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -43,6 +41,14 @@ var (
 		},
 	}
 
+	BUSD = Currency{
+		Name:   "BUSD",
+		Symbol: "BUSD",
+		Networks: []Network{
+			Networks.BSC, Networks.Polygon,
+		},
+	}
+
 	DFC = Currency{
 		Name:   "DefiConnect",
 		Symbol: "DFC",
@@ -60,15 +66,15 @@ var (
 	}
 )
 
-func (m Module) supportedCurrencies(w http.ResponseWriter, r *http.Request) {
+func (m Module) SupportedCurrencies(ctx context.Context, r *events.APIGatewayProxyRequest) (Response, error) {
 	currencies := []Currency{}
 	for _, c := range []Currency{
-		USDT, DFC, CGold,
+		USDT, DFC, CGold, BUSD,
 	} {
 		if m.currencyProcessors[c.Name] != nil {
 			currencies = append(currencies, c)
 		}
 	}
 
-	web.SendJSON(w, currencies)
+	return SendJSON(currencies)
 }
