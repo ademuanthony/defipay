@@ -405,5 +405,9 @@ func loadConfig() (*config, error) {
 		cfg.DFCBscContractAddress = "0x651B6aDf55249f285100DCf0FC29Ee5b192583Ac"
 	}
 
+	if cfg.MastAccountID == "" {
+		cfg.MastAccountID = "6903e8f4-1eb3-44d1-a9d2-1ee49218621c"
+	}
+
 	return &cfg, nil
 }

@@ -4,8 +4,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"deficonnect/defipayapi/app/dfc"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
+	"net/http"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -35,9 +39,61 @@ func (p dfcProcessor) BalanceOf(ctx context.Context, walletAddress common.Addres
 	return p.instance.BalanceOf(nil, walletAddress)
 }
 
+type pancakeSwapPriceOutput struct {
+	UpdatedAt int64 `json:"updated_at"`
+	Data      struct {
+		Name   string `json:"name"`
+		Symbol string `json:"symbol"`
+		Price  string `json:"price"`
+	} `json:"data"`
+}
+
 func (p dfcProcessor) DollarToToken(ctx context.Context, amount *big.Int) (*big.Int, error) {
+	dfcPrice, err := getTokenPrice(ctx, "0x97A143545c0F8200222C051aC0a2Fc93ACBE6bA2", 18)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("amount", amount)
+	fmt.Println("dfcPrice", dfcPrice)
+
+	tokenAmount := amount.Div(amount.Mul(amount, big.NewInt(1e8)), dfcPrice)
+
+	fmt.Println("tokenAmount", tokenAmount)
 	// todo use mainnet price
-	return amount, nil
+	return tokenAmount, nil
+}
+
+func getTokenPrice(ctx context.Context, contractAddress string, dollarDecimals int) (*big.Int, error) {
+	url := fmt.Sprintf("https://api.pancakeswap.info/api/v2/tokens/%s", contractAddress)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	var result pancakeSwapPriceOutput
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	priceParts := strings.Split(result.Data.Price, ".")
+	if len(priceParts) == 1 {
+		priceParts = append(priceParts, "0")
+	}
+
+	if len(priceParts[1]) < dollarDecimals {
+		priceParts[1] = priceParts[1] + strings.Repeat("0", dollarDecimals-len(priceParts[1]))
+	}
+
+	priceParts[1] = priceParts[1][0:dollarDecimals]
+
+	priceStr := strings.Join(priceParts, "")
+	priceStr = strings.TrimLeft(priceStr, "0")
+
+	price, valid := common.Big0.SetString(priceStr, 10)
+	if !valid {
+		return nil, errors.New("invalid price string")
+	}
+	return price, nil
 }
 
 func (p dfcProcessor) Decimals(ctx context.Context) (uint8, error) {

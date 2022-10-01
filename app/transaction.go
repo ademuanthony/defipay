@@ -373,20 +373,20 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 
 	message := fmt.Sprintf(
 		`New Transaction
+		ID: %s
 		Dollar Amount: %.2f
 		Naira Amount: %.2f
 		Account Name: %s
 		Account Number %s
 		Bank Name: %s
 
-		Agent: %s (@%s)
-		`,
+		Agent: <@%s>
+		`, transaction.ID,
 		(float64(transaction.Amount))/float64(1e4),
 		(float64(transaction.Amount*int64(conversionRate)))/float64(1e4),
 		transaction.AccountName,
 		transaction.AccountNumber,
 		transaction.BankName,
-		agent.Name,
 		agent.SlackUsername,
 	)
 

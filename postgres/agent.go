@@ -115,12 +115,12 @@ func (pg PgDb) NextAvailableAgent(ctx context.Context, transactionAmount int64) 
 		lastAgentID = lastAssignment.AgentID
 	}
 
-	maxAgent, err := models.Agents(
+	maxAgent, _ := models.Agents(
 		qm.Select(models.AgentColumns.ID),
 		qm.OrderBy(models.AgentColumns.ID+" desc"),
 	).One(ctx, pg.Db)
 
-	if lastAgentID == maxAgent.ID {
+	if maxAgent == nil || lastAgentID == maxAgent.ID {
 		lastAgentID = 0
 	}
 

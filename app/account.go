@@ -311,6 +311,10 @@ func (m Module) referralLink(ctx context.Context, r events.APIGatewayProxyReques
 	return SendJSON(fmt.Sprintf("https://platform.metatradas.com/user/register?ref=%s", acc.ReferralCode))
 }
 
+func (m Module) MasterAccountID() (string) {
+	return m.config.MastAccountID
+}
+
 func (m Module) UpdateAccountDetail(ctx context.Context, r events.APIGatewayProxyRequest) (Response, error) {
 	var input UpdateDetailInput
 	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
