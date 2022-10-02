@@ -128,4 +128,16 @@ functions:
           path: /config/dfc
           method: get
 
+  SupportedCurrencies:
+    handler: bin/SupportedCurrencies
+    events:
+      - httpApi:
+          path: /config/currencies
+          method: get 
           
+  SlackCallback:
+    handler: bin/SlackCallback
+    events:
+      - httpApi:
+          path: /slack/callback
+          method: post     

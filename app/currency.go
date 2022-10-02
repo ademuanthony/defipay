@@ -37,7 +37,7 @@ var (
 		Name:   "USDT",
 		Symbol: "USDT",
 		Networks: []Network{
-			Networks.BSC, Networks.Polygon,
+			Networks.BSC, // Networks.Polygon,
 		},
 	}
 
@@ -45,7 +45,7 @@ var (
 		Name:   "BUSD",
 		Symbol: "BUSD",
 		Networks: []Network{
-			Networks.BSC, Networks.Polygon,
+			Networks.BSC, // Networks.Polygon,
 		},
 	}
 
@@ -69,7 +69,7 @@ var (
 func (m Module) SupportedCurrencies(ctx context.Context, r *events.APIGatewayProxyRequest) (Response, error) {
 	currencies := []Currency{}
 	for _, c := range []Currency{
-		USDT, DFC, CGold, BUSD,
+		DFC, USDT, BUSD,
 	} {
 		if m.currencyProcessors[c.Name] != nil {
 			currencies = append(currencies, c)

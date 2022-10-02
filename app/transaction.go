@@ -329,7 +329,7 @@ func (m Module) processTransaction(ctx context.Context, transaction *Transaction
 	// }
 
 	if transaction.Type == string(transactionTypes.FundTransfer) {
-		if err := m.assignTransactionToAgent(ctx, transaction); err != nil {
+		if err := m.assignTransactionToAgent(ctx, transaction, false); err != nil {
 			return "", err
 		}
 	} else {
@@ -347,16 +347,12 @@ func (m Module) processTransaction(ctx context.Context, transaction *Transaction
 	return string(TransactionStatuses.Processing), nil
 }
 
-func (m Module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput) error {
+func (m Module) assignTransactionToAgent(ctx context.Context, transaction *TransactionOutput, reassigning bool) error {
 	agent, err := m.db.NextAvailableAgent(ctx, transaction.Amount)
 	if err != nil {
 		return err
 	}
 	err = m.db.AssignAgent(ctx, agent.ID, transaction.ID, transaction.Amount)
-	if err != nil {
-		return err
-	}
-	webHookUrl, err := m.db.GetConfigValue(ctx, m.config.MastAccountID, "SLACK_WEB_HOOK_URL")
 	if err != nil {
 		return err
 	}
@@ -371,8 +367,13 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 		return err
 	}
 
+	actionTitle := "New Transaction" 
+	if reassigning {
+		actionTitle = "Transaction reassignment"
+	}
+
 	message := fmt.Sprintf(
-		`New Transaction
+		`%s
 		ID: %s
 		Dollar Amount: %.2f
 		Naira Amount: %.2f
@@ -381,7 +382,7 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 		Bank Name: %s
 
 		Agent: <@%s>
-		`, transaction.ID,
+		`, actionTitle, transaction.ID,
 		(float64(transaction.Amount))/float64(1e4),
 		(float64(transaction.Amount*int64(conversionRate)))/float64(1e4),
 		transaction.AccountName,
@@ -389,6 +390,15 @@ func (m Module) assignTransactionToAgent(ctx context.Context, transaction *Trans
 		transaction.BankName,
 		agent.SlackUsername,
 	)
+
+	return m.sendSlackMessage(ctx, message)
+}
+
+func (m Module) sendSlackMessage(ctx context.Context, message string) error {
+	webHookUrl, err := m.db.GetConfigValue(ctx, m.config.MastAccountID, "SLACK_WEB_HOOK_URL")
+	if err != nil {
+		return err
+	}
 
 	var input = struct {
 		Text string `json:"text"`

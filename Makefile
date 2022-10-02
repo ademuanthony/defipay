@@ -21,6 +21,12 @@ build: gomodgen
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetBeneficiary handlers/beneficiary/GetBeneficiary/main.go
 
 	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/GetDfcEndpoint handlers/config/GetDfcEndpoint/main.go
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/SupportedCurrencies handlers/config/SupportedCurrencies/main.go
+	
+	env GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/SlackCallback handlers/SlackCallback/main.go
+
+	
+	
 	
 	
 
