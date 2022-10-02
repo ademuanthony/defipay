@@ -16,8 +16,12 @@ func (m Module) SlackCallback(ctx context.Context, r *events.APIGatewayProxyRequ
 	var input = struct {
 		Challenge string `json:"challenge"`
 		Type      string `json:"type"`
-		Text      string `json:"text"`
-		User      string `json:"user"`
+		Event     struct {
+			Challenge string `json:"challenge"`
+			Type      string `json:"type"`
+			Text      string `json:"text"`
+			User      string `json:"user"`
+		} `json:"event"`
 	}{}
 
 	if err := json.Unmarshal([]byte(r.Body), &input); err != nil {
@@ -25,24 +29,25 @@ func (m Module) SlackCallback(ctx context.Context, r *events.APIGatewayProxyRequ
 		return SendErrorfJSON("cannot decode request")
 	}
 
-	if input.Text == "challenge" {
+	if input.Type == "challenge" {
 		return SendJSON(input)
 	}
 
-	if input.Type == "message" {
+	if input.Event.Type == "app_mention" {
+
 		func() {
-			payloads := strings.Split(input.Text, " ")
-			if len(payloads) != 2 {
-				m.sendSlackMessage(ctx, fmt.Sprintf("Invalid command sent by <@%s>", input.User))
+			payloads := strings.Split(input.Event.Text, " ")
+			if len(payloads) != 3 {
+				m.sendSlackMessage(ctx, fmt.Sprintf("Invalid command sent by <@%s>", input.Event.User))
 				return
 			}
 
-			command := payloads[0]
-			transactionID := payloads[1]
+			command := payloads[1]
+			transactionID := payloads[2]
 
 			transaction, err := m.db.Transaction(ctx, transactionID)
 			if err != nil {
-				m.sendSlackMessage(ctx, fmt.Sprintf("Invalid transaction ID in command from <@%s>", input.User))
+				m.sendSlackMessage(ctx, fmt.Sprintf("Invalid transaction ID in command from <@%s>", input.Event.User))
 				return
 			}
 
@@ -50,16 +55,16 @@ func (m Module) SlackCallback(ctx context.Context, r *events.APIGatewayProxyRequ
 			case transactionCompleted:
 				if err := m.db.UpdateTransactionStatus(ctx, transaction.ID, TransactionStatuses.Completed); err != nil {
 					m.sendSlackMessage(ctx, fmt.Sprintf("error in marking transaction as completed, ID: %s. Manual check required. Completed by <@%s>",
-					 transactionID, input.User))
-					 return
-				}
-				m.sendSlackMessage(ctx, fmt.Sprintf("Transaction with ID: %s marked as completed by <@%s>", transactionID, input.User))
-			case transactionReassign:
-				if err = m.assignTransactionToAgent(ctx, transaction, true); err != nil {
-					m.sendSlackMessage(ctx, fmt.Sprintf("Cannot reassign transaction with ID: %s as requested by <@%s>", transactionID, input.User))
+						transactionID, input.Event.User))
 					return
 				}
-				m.sendSlackMessage(ctx, fmt.Sprintf("Transaction with ID %s reassigned by <@%s>", transactionID, input.User))
+				m.sendSlackMessage(ctx, fmt.Sprintf("Transaction with ID: %s marked as completed by <@%s>", transactionID, input.Event.User))
+			case transactionReassign:
+				if err = m.assignTransactionToAgent(ctx, transaction, true); err != nil {
+					m.sendSlackMessage(ctx, fmt.Sprintf("Cannot reassign transaction with ID: %s as requested by <@%s>", transactionID, input.Event.User))
+					return
+				}
+				m.sendSlackMessage(ctx, fmt.Sprintf("Transaction with ID %s reassigned by <@%s>", transactionID, input.Event.User))
 			}
 		}()
 	}
